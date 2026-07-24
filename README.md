@@ -564,8 +564,3 @@ docker run -p 5000:5000 \
 | `Table doesn't exist` error | Re-import schema: `mysql -u root -p career_recommendation < database/career_system.sql` |
 | Templates not rendering | Ensure you are running `python app.py` from inside the `backend/` directory |
 
----
-
-## 📝 License & Academic Disclaimer
-
-Developed for academic purposes as an **MCA Major Project**. All rights reserved &copy; 2026.
