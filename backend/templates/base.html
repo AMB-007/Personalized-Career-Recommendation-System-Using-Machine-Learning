@@ -53,17 +53,94 @@
 
             <div class="collapse navbar-collapse" id="navbarNav">
 
-                <!-- ── Left Nav: Public + User Links ── -->
+                {% if session.is_admin %}
+                <!-- ════════════════════════════════════════ -->
+                <!-- ── ADMIN NAVBAR (clean & minimal) ──    -->
+                <!-- ════════════════════════════════════════ -->
                 <ul class="navbar-nav me-auto align-items-lg-center gap-lg-1">
+                    <li class="nav-item">
+                        <a class="nav-link-pill {% if request.endpoint == 'admin_dashboard' %}active{% endif %}" href="/admin/dashboard">
+                            <i class="fas fa-tachometer-alt"></i><span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <span class="nav-admin-badge ms-2">
+                            <i class="fas fa-shield-alt me-1"></i>Admin Panel
+                        </span>
+                    </li>
+                </ul>
 
+                <!-- Right: Admin controls -->
+                <ul class="navbar-nav align-items-lg-center gap-2">
+                    <!-- Export CTA -->
+                    <li class="nav-item d-none d-lg-block">
+                        <a href="/admin/export" class="btn btn-nav-cta">
+                            <i class="fas fa-download me-1"></i>Export CSV
+                        </a>
+                    </li>
+                    <!-- Admin dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-user-toggle nav-user-toggle--admin" href="#" id="adminDropdown" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="nav-user-avatar nav-user-avatar--admin">
+                                <i class="fas fa-user-shield"></i>
+                            </div>
+                            <div class="nav-user-info d-none d-lg-block">
+                                <span class="nav-user-name">{{ session.admin_name or 'Admin' }}</span>
+                                <span class="nav-user-role">
+                                    <i class="fas fa-circle text-danger me-1" style="font-size:.45rem;vertical-align:middle;"></i>Administrator
+                                </span>
+                            </div>
+                            <i class="fas fa-chevron-down nav-user-caret d-none d-lg-block"></i>
+                        </a>
+
+                        <ul class="dropdown-menu dropdown-menu-end nav-dropdown shadow" aria-labelledby="adminDropdown">
+                            <li class="nav-dropdown-header">
+                                <div class="nav-dropdown-avatar nav-dropdown-avatar--admin">
+                                    <i class="fas fa-user-shield"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold text-dark" style="font-size:.9rem;">{{ session.admin_name or 'Administrator' }}</div>
+                                    <div class="text-muted" style="font-size:.78rem;">
+                                        <i class="fas fa-shield-alt me-1 text-danger"></i>Admin Session Active
+                                    </div>
+                                </div>
+                            </li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li>
+                                <a class="dropdown-item nav-dropdown-item" href="/admin/dashboard">
+                                    <span class="nav-dropdown-icon bg-primary-soft"><i class="fas fa-tachometer-alt text-primary"></i></span>
+                                    <span>Admin Dashboard</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item nav-dropdown-item" href="/admin/export">
+                                    <span class="nav-dropdown-icon bg-success-soft"><i class="fas fa-file-csv text-success"></i></span>
+                                    <span>Export Report (CSV)</span>
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li>
+                                <a class="dropdown-item nav-dropdown-item text-danger" href="/admin/logout">
+                                    <span class="nav-dropdown-icon bg-danger-soft"><i class="fas fa-sign-out-alt text-danger"></i></span>
+                                    <span>Admin Logout</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+
+
+                {% elif session.user_id %}
+                <!-- ══════════════════════════════════════════════ -->
+                <!-- ── USER NAVBAR ──                            -->
+                <!-- ══════════════════════════════════════════════ -->
+                <ul class="navbar-nav me-auto align-items-lg-center gap-lg-1">
                     <li class="nav-item">
                         <a class="nav-link-pill {% if request.endpoint == 'index' %}active{% endif %}" href="/">
                             <i class="fas fa-home"></i><span>Home</span>
                         </a>
                     </li>
-
-                    {% if session.user_id %}
-                    <!-- ── Authenticated User Links ── -->
                     <li class="nav-item">
                         <a class="nav-link-pill {% if request.endpoint == 'dashboard' %}active{% endif %}" href="/dashboard">
                             <i class="fas fa-th-large"></i><span>Dashboard</span>
@@ -80,12 +157,10 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link-pill {% if request.endpoint == 'feedback_page' %}active{% endif %}" href="/feedback">
-                            <i class="fas fa-comment-dots"></i><span>Feedback</span>
+                        <a class="nav-link-pill {% if request.endpoint == 'profile' %}active{% endif %}" href="/profile">
+                            <i class="fas fa-user-circle"></i><span>Profile</span>
                         </a>
                     </li>
-                    {% endif %}
-
                     <li class="nav-item">
                         <a class="nav-link-pill {% if request.endpoint == 'about' %}active{% endif %}" href="/about">
                             <i class="fas fa-info-circle"></i><span>About</span>
@@ -98,11 +173,9 @@
                     </li>
                 </ul>
 
-                <!-- ── Right Nav: Account Controls ── -->
+                <!-- Right: User account controls -->
                 <ul class="navbar-nav align-items-lg-center gap-2">
-
-                    {% if session.user_id %}
-                    <!-- Assessment CTA (desktop only) -->
+                    <!-- New Assessment CTA (desktop only) -->
                     <li class="nav-item d-none d-lg-block">
                         <a href="/assessment" class="btn btn-nav-cta">
                             <i class="fas fa-magic me-1"></i>New Assessment
@@ -118,7 +191,9 @@
                             </div>
                             <div class="nav-user-info d-none d-lg-block">
                                 <span class="nav-user-name">{{ session.full_name.split()[0] if session.full_name else 'Account' }}</span>
-                                <span class="nav-user-role">Student</span>
+                                <span class="nav-user-role">
+                                    <i class="fas fa-circle text-success me-1" style="font-size:.45rem;vertical-align:middle;"></i>Student
+                                </span>
                             </div>
                             <i class="fas fa-chevron-down nav-user-caret d-none d-lg-block"></i>
                         </a>
@@ -129,12 +204,12 @@
                                 <div class="nav-dropdown-avatar">{{ (session.full_name or 'U')[0].upper() }}</div>
                                 <div>
                                     <div class="fw-semibold text-dark" style="font-size:.9rem;">{{ session.full_name or 'Student' }}</div>
-                                    <div class="text-muted" style="font-size:.78rem;">Signed in as Student</div>
+                                    <div class="text-muted" style="font-size:.78rem;">
+                                        <i class="fas fa-circle me-1 text-success" style="font-size:.5rem;vertical-align:middle;"></i>Signed in as Student
+                                    </div>
                                 </div>
                             </li>
                             <li><hr class="dropdown-divider my-1"></li>
-
-                            <!-- Navigation items -->
                             <li>
                                 <a class="dropdown-item nav-dropdown-item" href="/dashboard">
                                     <span class="nav-dropdown-icon bg-primary-soft"><i class="fas fa-th-large text-primary"></i></span>
@@ -148,6 +223,12 @@
                                 </a>
                             </li>
                             <li>
+                                <a class="dropdown-item nav-dropdown-item" href="/assessment">
+                                    <span class="nav-dropdown-icon bg-warning-soft"><i class="fas fa-clipboard-check text-warning"></i></span>
+                                    <span>Take Assessment</span>
+                                </a>
+                            </li>
+                            <li>
                                 <a class="dropdown-item nav-dropdown-item" href="/recommendation">
                                     <span class="nav-dropdown-icon bg-success-soft"><i class="fas fa-chart-line text-success"></i></span>
                                     <span>My Results</span>
@@ -155,7 +236,7 @@
                             </li>
                             <li>
                                 <a class="dropdown-item nav-dropdown-item" href="/feedback">
-                                    <span class="nav-dropdown-icon bg-warning-soft"><i class="fas fa-comment-dots text-warning"></i></span>
+                                    <span class="nav-dropdown-icon bg-primary-soft"><i class="fas fa-comment-dots text-primary"></i></span>
                                     <span>Give Feedback</span>
                                 </a>
                             </li>
@@ -167,12 +248,6 @@
                                 </a>
                             </li>
                         </ul>
-                    </li>
-
-                    {% elif session.admin_id %}
-                    <!-- ── Admin Session Controls ── -->
-                    <li class="nav-item">
-                        <span class="nav-admin-badge"><i class="fas fa-shield-alt me-1"></i>Admin</span>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-user-toggle" href="#" id="adminDropdown" role="button"

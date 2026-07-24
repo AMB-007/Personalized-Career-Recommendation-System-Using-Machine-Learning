@@ -587,7 +587,7 @@ def api_admin_login():
 
     admin_data = admin[0]
     session.clear()
-    session['user_id'] = admin_data['admin_id']
+    session['admin_id'] = admin_data['admin_id']   # use admin_id, NOT user_id
     session['admin_name'] = admin_data['full_name']
     session['email'] = admin_data['email']
     session['is_admin'] = True

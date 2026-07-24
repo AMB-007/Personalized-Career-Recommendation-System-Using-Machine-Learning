@@ -242,6 +242,16 @@ img { max-width: 100%; }
     background: rgba(255,255,255,.22);
     border-color: rgba(255,255,255,.4);
 }
+/* Admin toggle — red tint to distinguish from student */
+.nav-user-toggle--admin {
+    background: rgba(198,40,40,.18);
+    border-color: rgba(198,40,40,.45);
+}
+.nav-user-toggle--admin:hover, .nav-user-toggle--admin.show {
+    background: rgba(198,40,40,.32);
+    border-color: rgba(198,40,40,.65);
+}
+
 .nav-user-avatar {
     width: 32px;
     height: 32px;
