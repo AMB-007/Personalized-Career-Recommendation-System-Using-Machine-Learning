@@ -1285,17 +1285,16 @@
         // Next button handler
         nextBtn.addEventListener('click', function(e) {
             if (currentStep < totalSections) {
-                // Validate current section before moving forward
                 if (validateSection(currentStep)) {
                     currentStep++;
                     updateProgress();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
             } else {
-                // Final submission
                 e.preventDefault();
-                if (validateForm()) {
+                if (validateSection(currentStep)) {
                     showLoading();
-                    // Form will submit normally after this
+                    form.submit();
                 }
             }
         });
@@ -1307,14 +1306,10 @@
                 if (validateSection(currentStep)) {
                     currentStep++;
                     updateProgress();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
             } else {
-                // Final validation before submit
-                if (!validateForm()) {
-                    e.preventDefault();
-                } else {
-                    showLoading();
-                }
+                showLoading();
             }
         });
 
@@ -1356,10 +1351,6 @@
         // Show loading overlay
         function showLoading() {
             loadingOverlay.classList.remove('d-none');
-            // Disable form during loading
-            form.querySelectorAll('input, select, button, textarea').forEach(el => {
-                el.disabled = true;
-            });
         }
 
         // Initialize
