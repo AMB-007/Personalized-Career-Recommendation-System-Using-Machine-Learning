@@ -56,7 +56,7 @@
                 {# ══════════════════════════════════════════════════ #}
                 {# ADMIN NAVBAR                                       #}
                 {# ══════════════════════════════════════════════════ #}
-                {% if session.is_admin %}
+                {% if session.admin_id %}
                 <ul class="navbar-nav me-auto align-items-lg-center gap-lg-1">
                     <li class="nav-item">
                         <a class="nav-link-pill {% if request.endpoint == 'admin_dashboard' %}active{% endif %}" href="/admin/dashboard">

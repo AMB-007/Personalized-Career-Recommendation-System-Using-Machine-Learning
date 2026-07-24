@@ -39,7 +39,7 @@ app = Flask(__name__,
             static_folder='static',
             static_url_path='/static')
 
-app.config['SECRET_KEY'] = secrets.token_hex(32)
+app.config['SECRET_KEY'] = 'career-recommender-secret-key-2024-stable-do-not-change'
 app.config['SESSION_COOKIE_SECURE'] = False
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
@@ -217,6 +217,11 @@ def api_login():
         return jsonify({'success': False, 'message': 'Invalid email or password'}), 401
 
     user_data = user[0]
+
+    # Block admin accounts from logging in via user login
+    if user_data.get('is_admin'):
+        return jsonify({'success': False, 'message': 'Admin accounts must use the Admin Login portal. Go to /admin/login'}), 403
+
     execute_query(
         "INSERT INTO login_history (user_id, ip_address, user_agent, success) VALUES (%s, %s, %s, TRUE)",
         (user_data['user_id'], request.remote_addr, request.headers.get('User-Agent', '')),
@@ -227,7 +232,7 @@ def api_login():
     session['user_id'] = user_data['user_id']
     session['email'] = user_data['email']
     session['full_name'] = user_data['full_name']
-    session['is_admin'] = bool(user_data.get('is_admin', False))
+    session['is_admin'] = False   # always False for user login path
     session.permanent = True
 
     return jsonify({'success': True, 'message': 'Login successful', 'redirect': '/dashboard'})
