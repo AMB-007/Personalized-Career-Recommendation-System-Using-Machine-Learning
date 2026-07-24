@@ -53,55 +53,71 @@
 
             <div class="collapse navbar-collapse" id="navbarNav">
 
+                {# ══════════════════════════════════════════════════ #}
+                {# ADMIN NAVBAR                                       #}
+                {# ══════════════════════════════════════════════════ #}
                 {% if session.is_admin %}
-                <!-- ════════════════════════════════════════ -->
-                <!-- ── ADMIN NAVBAR (clean & minimal) ──    -->
-                <!-- ════════════════════════════════════════ -->
                 <ul class="navbar-nav me-auto align-items-lg-center gap-lg-1">
                     <li class="nav-item">
                         <a class="nav-link-pill {% if request.endpoint == 'admin_dashboard' %}active{% endif %}" href="/admin/dashboard">
-                            <i class="fas fa-tachometer-alt"></i><span>Dashboard</span>
+                            <i class="fas fa-tachometer-alt"></i><span>Overview</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <span class="nav-admin-badge ms-2">
-                            <i class="fas fa-shield-alt me-1"></i>Admin Panel
+                        <a class="nav-link-pill" href="/admin/dashboard" onclick="event.preventDefault();document.getElementById('section-users')&&showSection('users',this);">
+                            <i class="fas fa-users"></i><span>Users</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-pill" href="/admin/dashboard" onclick="event.preventDefault();document.getElementById('section-predictions')&&showSection('predictions',this);">
+                            <i class="fas fa-chart-line"></i><span>Predictions</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-pill" href="/admin/dashboard" onclick="event.preventDefault();document.getElementById('section-feedback')&&showSection('feedback',this);">
+                            <i class="fas fa-comments"></i><span>Feedback</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-pill" href="/admin/dashboard" onclick="event.preventDefault();document.getElementById('section-analytics')&&showSection('analytics',this);">
+                            <i class="fas fa-chart-bar"></i><span>Analytics</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <span class="nav-admin-badge ms-1">
+                            <i class="fas fa-shield-alt me-1"></i>Admin
                         </span>
                     </li>
                 </ul>
 
-                <!-- Right: Admin controls -->
                 <ul class="navbar-nav align-items-lg-center gap-2">
-                    <!-- Export CTA -->
                     <li class="nav-item d-none d-lg-block">
                         <a href="/admin/export" class="btn btn-nav-cta">
                             <i class="fas fa-download me-1"></i>Export CSV
                         </a>
                     </li>
-                    <!-- Admin dropdown -->
                     <li class="nav-item dropdown">
-                        <a class="nav-user-toggle nav-user-toggle--admin" href="#" id="adminDropdown" role="button"
-                           data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-user-toggle nav-user-toggle--admin" href="#" id="adminDropdown"
+                           role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <div class="nav-user-avatar nav-user-avatar--admin">
                                 <i class="fas fa-user-shield"></i>
                             </div>
                             <div class="nav-user-info d-none d-lg-block">
                                 <span class="nav-user-name">{{ session.admin_name or 'Admin' }}</span>
                                 <span class="nav-user-role">
-                                    <i class="fas fa-circle text-danger me-1" style="font-size:.45rem;vertical-align:middle;"></i>Administrator
+                                    <i class="fas fa-circle text-danger me-1" style="font-size:.42rem;vertical-align:middle;"></i>Administrator
                                 </span>
                             </div>
                             <i class="fas fa-chevron-down nav-user-caret d-none d-lg-block"></i>
                         </a>
-
                         <ul class="dropdown-menu dropdown-menu-end nav-dropdown shadow" aria-labelledby="adminDropdown">
                             <li class="nav-dropdown-header">
                                 <div class="nav-dropdown-avatar nav-dropdown-avatar--admin">
                                     <i class="fas fa-user-shield"></i>
                                 </div>
                                 <div>
-                                    <div class="fw-semibold text-dark" style="font-size:.9rem;">{{ session.admin_name or 'Administrator' }}</div>
-                                    <div class="text-muted" style="font-size:.78rem;">
+                                    <div class="fw-semibold text-dark" style="font-size:.88rem;">{{ session.admin_name or 'Administrator' }}</div>
+                                    <div class="text-muted" style="font-size:.75rem;">
                                         <i class="fas fa-shield-alt me-1 text-danger"></i>Admin Session Active
                                     </div>
                                 </div>
@@ -130,11 +146,10 @@
                     </li>
                 </ul>
 
-
+                {# ══════════════════════════════════════════════════ #}
+                {# USER NAVBAR                                        #}
+                {# ══════════════════════════════════════════════════ #}
                 {% elif session.user_id %}
-                <!-- ══════════════════════════════════════════════ -->
-                <!-- ── USER NAVBAR ──                            -->
-                <!-- ══════════════════════════════════════════════ -->
                 <ul class="navbar-nav me-auto align-items-lg-center gap-lg-1">
                     <li class="nav-item">
                         <a class="nav-link-pill {% if request.endpoint == 'index' %}active{% endif %}" href="/">
@@ -173,39 +188,33 @@
                     </li>
                 </ul>
 
-                <!-- Right: User account controls -->
                 <ul class="navbar-nav align-items-lg-center gap-2">
-                    <!-- New Assessment CTA (desktop only) -->
                     <li class="nav-item d-none d-lg-block">
                         <a href="/assessment" class="btn btn-nav-cta">
                             <i class="fas fa-magic me-1"></i>New Assessment
                         </a>
                     </li>
-
-                    <!-- User account dropdown -->
                     <li class="nav-item dropdown">
-                        <a class="nav-user-toggle" href="#" id="userDropdown" role="button"
-                           data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-user-toggle" href="#" id="userDropdown"
+                           role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <div class="nav-user-avatar">
                                 {{ (session.full_name or 'U')[0].upper() }}
                             </div>
                             <div class="nav-user-info d-none d-lg-block">
                                 <span class="nav-user-name">{{ session.full_name.split()[0] if session.full_name else 'Account' }}</span>
                                 <span class="nav-user-role">
-                                    <i class="fas fa-circle text-success me-1" style="font-size:.45rem;vertical-align:middle;"></i>Student
+                                    <i class="fas fa-circle text-success me-1" style="font-size:.42rem;vertical-align:middle;"></i>Student
                                 </span>
                             </div>
                             <i class="fas fa-chevron-down nav-user-caret d-none d-lg-block"></i>
                         </a>
-
                         <ul class="dropdown-menu dropdown-menu-end nav-dropdown shadow" aria-labelledby="userDropdown">
-                            <!-- User header -->
                             <li class="nav-dropdown-header">
                                 <div class="nav-dropdown-avatar">{{ (session.full_name or 'U')[0].upper() }}</div>
                                 <div>
-                                    <div class="fw-semibold text-dark" style="font-size:.9rem;">{{ session.full_name or 'Student' }}</div>
-                                    <div class="text-muted" style="font-size:.78rem;">
-                                        <i class="fas fa-circle me-1 text-success" style="font-size:.5rem;vertical-align:middle;"></i>Signed in as Student
+                                    <div class="fw-semibold text-dark" style="font-size:.88rem;">{{ session.full_name or 'Student' }}</div>
+                                    <div class="text-muted" style="font-size:.75rem;">
+                                        <i class="fas fa-circle me-1 text-success" style="font-size:.48rem;vertical-align:middle;"></i>Signed in as Student
                                     </div>
                                 </div>
                             </li>
@@ -223,12 +232,6 @@
                                 </a>
                             </li>
                             <li>
-                                <a class="dropdown-item nav-dropdown-item" href="/assessment">
-                                    <span class="nav-dropdown-icon bg-warning-soft"><i class="fas fa-clipboard-check text-warning"></i></span>
-                                    <span>Take Assessment</span>
-                                </a>
-                            </li>
-                            <li>
                                 <a class="dropdown-item nav-dropdown-item" href="/recommendation">
                                     <span class="nav-dropdown-icon bg-success-soft"><i class="fas fa-chart-line text-success"></i></span>
                                     <span>My Results</span>
@@ -236,7 +239,7 @@
                             </li>
                             <li>
                                 <a class="dropdown-item nav-dropdown-item" href="/feedback">
-                                    <span class="nav-dropdown-icon bg-primary-soft"><i class="fas fa-comment-dots text-primary"></i></span>
+                                    <span class="nav-dropdown-icon bg-warning-soft"><i class="fas fa-comment-dots text-warning"></i></span>
                                     <span>Give Feedback</span>
                                 </a>
                             </li>
@@ -249,52 +252,30 @@
                             </li>
                         </ul>
                     </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-user-toggle" href="#" id="adminDropdown" role="button"
-                           data-bs-toggle="dropdown" aria-expanded="false">
-                            <div class="nav-user-avatar nav-user-avatar--admin">
-                                <i class="fas fa-user-shield"></i>
-                            </div>
-                            <div class="nav-user-info d-none d-lg-block">
-                                <span class="nav-user-name">{{ session.admin_name or 'Admin' }}</span>
-                                <span class="nav-user-role">Administrator</span>
-                            </div>
-                            <i class="fas fa-chevron-down nav-user-caret d-none d-lg-block"></i>
+                </ul>
+
+                {# ══════════════════════════════════════════════════ #}
+                {# GUEST NAVBAR                                       #}
+                {# ══════════════════════════════════════════════════ #}
+                {% else %}
+                <ul class="navbar-nav me-auto align-items-lg-center gap-lg-1">
+                    <li class="nav-item">
+                        <a class="nav-link-pill {% if request.endpoint == 'index' %}active{% endif %}" href="/">
+                            <i class="fas fa-home"></i><span>Home</span>
                         </a>
-
-                        <ul class="dropdown-menu dropdown-menu-end nav-dropdown shadow" aria-labelledby="adminDropdown">
-                            <li class="nav-dropdown-header">
-                                <div class="nav-dropdown-avatar nav-dropdown-avatar--admin"><i class="fas fa-user-shield"></i></div>
-                                <div>
-                                    <div class="fw-semibold text-dark" style="font-size:.9rem;">{{ session.admin_name or 'Administrator' }}</div>
-                                    <div class="text-muted" style="font-size:.78rem;"><i class="fas fa-shield-alt me-1 text-danger"></i>Admin Session</div>
-                                </div>
-                            </li>
-                            <li><hr class="dropdown-divider my-1"></li>
-                            <li>
-                                <a class="dropdown-item nav-dropdown-item" href="/admin/dashboard">
-                                    <span class="nav-dropdown-icon bg-primary-soft"><i class="fas fa-tachometer-alt text-primary"></i></span>
-                                    <span>Admin Dashboard</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item nav-dropdown-item" href="/admin/export">
-                                    <span class="nav-dropdown-icon bg-success-soft"><i class="fas fa-download text-success"></i></span>
-                                    <span>Export Report</span>
-                                </a>
-                            </li>
-                            <li><hr class="dropdown-divider my-1"></li>
-                            <li>
-                                <a class="dropdown-item nav-dropdown-item text-danger" href="/admin/logout">
-                                    <span class="nav-dropdown-icon bg-danger-soft"><i class="fas fa-sign-out-alt text-danger"></i></span>
-                                    <span>Admin Logout</span>
-                                </a>
-                            </li>
-                        </ul>
                     </li>
-
-                    {% else %}
-                    <!-- ── Guest Controls ── -->
+                    <li class="nav-item">
+                        <a class="nav-link-pill {% if request.endpoint == 'about' %}active{% endif %}" href="/about">
+                            <i class="fas fa-info-circle"></i><span>About</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-pill {% if request.endpoint == 'contact' %}active{% endif %}" href="/contact">
+                            <i class="fas fa-envelope"></i><span>Contact</span>
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav align-items-lg-center gap-2">
                     <li class="nav-item">
                         <a class="nav-link-pill" href="/login">
                             <i class="fas fa-sign-in-alt"></i><span>Login</span>
@@ -305,8 +286,8 @@
                             <i class="fas fa-user-plus me-1"></i>Get Started
                         </a>
                     </li>
-                    {% endif %}
                 </ul>
+                {% endif %}
 
             </div>
         </div>
@@ -333,7 +314,7 @@
     <!-- Footer -->
     <footer>
         <div class="container">
-            <div class="row g-4 mb-3 text-start">
+            <div class="row g-3 mb-2 text-start">
                 <div class="col-md-5">
                     <h6 class="fw-bold mb-2"><i class="fas fa-graduation-cap me-2 text-primary"></i>Career Recommendation System</h6>
                     <p class="text-muted small mb-0">
