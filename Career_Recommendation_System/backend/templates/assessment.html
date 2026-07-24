@@ -1,0 +1,1428 @@
+{% extends "base.html" %}
+
+{% block title %}Career Assessment - Career Recommender{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12">
+    <!-- Progress Indicator -->
+    <div class="mb-8">
+        <div class="progress" style="height: 8px;">
+            <div id="progress-bar" class="progress-bar bg-gradient-purple-500" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="8"></div>
+        </div>
+        <div class="d-flex justify-content-between mt-2">
+            <span>Step <span id="current-step">1</span> of 8</span>
+            <span id="step-title">Personal Details</span>
+        </div>
+    </div>
+
+    <!-- Assessment Form -->
+    <form id="assessment-form" action="/assessment" method="POST">
+        <!-- Section 1: Personal Details -->
+        <div id="section-1" class="assessment-section active">
+            <h2 class="section-title mb-4">Personal Details</h2>
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="full_name" class="form-label">Full Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="full_name" name="full_name" required>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="age" class="form-label">Age <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="age" name="age" min="16" max="100" required>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="gender" class="form-label">Gender <span class="text-danger">*</span></label>
+                        <select class="form-select" id="gender" name="gender" required>
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="education_level" class="form-label">Education Level <span class="text-danger">*</span></label>
+                        <select class="form-select" id="education_level" name="education_level" required>
+                            <option value="">Select Education Level</option>
+                            <option value="High School">High School</option>
+                            <option value="Bachelor's">Bachelor's Degree</option>
+                            <option value="Master's">Master's Degree</option>
+                            <option value="PhD">PhD</option>
+                            <option value="Diploma">Diploma</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="specialization" class="form-label">Specialization</label>
+                        <input type="text" class="form-control" id="specialization" name="specialization">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="cgpa" class="form-label">CGPA (0-4.0)</label>
+                        <input type="number" class="form-control" id="cgpa" name="cgpa" min="0" max="4" step="0.01">
+                    </div>
+                </div>
+                <!-- NEW: Academic context fields -->
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="stream" class="form-label">Academic Stream <span class="text-danger">*</span></label>
+                        <select class="form-select" id="stream" name="stream" required>
+                            <option value="">Select Stream</option>
+                            <option value="Science">Science (PCM / PCB)</option>
+                            <option value="Commerce">Commerce</option>
+                            <option value="Arts">Arts / Humanities</option>
+                            <option value="Vocational">Vocational</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="current_course" class="form-label">Current Course / Degree</label>
+                        <select class="form-select" id="current_course" name="current_course">
+                            <option value="">Select Course</option>
+                            <option value="12th">12th / Higher Secondary</option>
+                            <option value="B.Tech">B.Tech / B.E.</option>
+                            <option value="BCA">BCA</option>
+                            <option value="BBA">BBA</option>
+                            <option value="B.Sc">B.Sc</option>
+                            <option value="B.Com">B.Com</option>
+                            <option value="BA">BA</option>
+                            <option value="Diploma">Diploma</option>
+                            <option value="M.Tech">M.Tech / M.E.</option>
+                            <option value="MCA">MCA</option>
+                            <option value="MBA">MBA</option>
+                            <option value="M.Sc">M.Sc</option>
+                            <option value="MA">MA</option>
+                            <option value="PhD">PhD</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="current_semester" class="form-label">Current Semester / Year</label>
+                        <input type="number" class="form-control" id="current_semester" name="current_semester" min="1" max="10" placeholder="e.g. 5">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="overall_percentage" class="form-label">Overall % / Score</label>
+                        <input type="number" class="form-control" id="overall_percentage" name="overall_percentage" min="0" max="100" step="0.1" placeholder="e.g. 78.5">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="attendance" class="form-label">Attendance %</label>
+                        <input type="number" class="form-control" id="attendance" name="attendance" min="0" max="100" step="0.1" placeholder="e.g. 85">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="backlogs" class="form-label">Active Backlogs</label>
+                        <input type="number" class="form-control" id="backlogs" name="backlogs" min="0" max="20" value="0">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Academic Performance -->
+        <div id="section-2" class="assessment-section">
+            <h2 class="section-title mb-2">Academic Performance</h2>
+
+            <!-- Subject Marks -->
+            <h5 class="fw-semibold text-secondary mb-3 mt-3"><i class="fas fa-book-open me-2"></i>Subject Marks (enter 0 if not applicable)</h5>
+            <div class="row g-3 mb-4">
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="math_score" class="form-label">Mathematics</label>
+                    <input type="number" class="form-control" id="math_score" name="math_score" min="0" max="100" step="0.1" placeholder="0–100">
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="physics_score" class="form-label">Physics</label>
+                    <input type="number" class="form-control" id="physics_score" name="physics_score" min="0" max="100" step="0.1" placeholder="0–100">
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="chemistry_score" class="form-label">Chemistry</label>
+                    <input type="number" class="form-control" id="chemistry_score" name="chemistry_score" min="0" max="100" step="0.1" placeholder="0–100">
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="cs_score" class="form-label">Computer Science</label>
+                    <input type="number" class="form-control" id="cs_score" name="cs_score" min="0" max="100" step="0.1" placeholder="0–100">
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="english_score" class="form-label">English</label>
+                    <input type="number" class="form-control" id="english_score" name="english_score" min="0" max="100" step="0.1" placeholder="0–100">
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="biology_score" class="form-label">Biology</label>
+                    <input type="number" class="form-control" id="biology_score" name="biology_score" min="0" max="100" step="0.1" placeholder="0–100">
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="accountancy_score" class="form-label">Accountancy</label>
+                    <input type="number" class="form-control" id="accountancy_score" name="accountancy_score" min="0" max="100" step="0.1" placeholder="0–100">
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="economics_score" class="form-label">Economics</label>
+                    <input type="number" class="form-control" id="economics_score" name="economics_score" min="0" max="100" step="0.1" placeholder="0–100">
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="business_studies_score" class="form-label">Business Studies</label>
+                    <input type="number" class="form-control" id="business_studies_score" name="business_studies_score" min="0" max="100" step="0.1" placeholder="0–100">
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="statistics_score" class="form-label">Statistics</label>
+                    <input type="number" class="form-control" id="statistics_score" name="statistics_score" min="0" max="100" step="0.1" placeholder="0–100">
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="history_score" class="form-label">History</label>
+                    <input type="number" class="form-control" id="history_score" name="history_score" min="0" max="100" step="0.1" placeholder="0–100">
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="psychology_score" class="form-label">Psychology</label>
+                    <input type="number" class="form-control" id="psychology_score" name="psychology_score" min="0" max="100" step="0.1" placeholder="0–100">
+                </div></div>
+            </div>
+
+            <!-- Aptitude Skills -->
+            <h5 class="fw-semibold text-secondary mb-3"><i class="fas fa-brain me-2"></i>Aptitude & Reasoning (rate 0–10)</h5>
+            <p class="text-muted small mb-3">Rate your natural aptitude in each area</p>
+            <div class="row g-4">
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="mathematics" class="form-label">Mathematics</label>
+                        <input type="range" class="form-range" id="mathematics" name="mathematics" min="0" max="10" value="5">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="mathematics-value" class="text-center fw-bold">5</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="programming" class="form-label">Programming</label>
+                        <input type="range" class="form-range" id="programming" name="programming" min="0" max="10" value="5">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="programming-value" class="text-center fw-bold">5</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="communication" class="form-label">Communication</label>
+                        <input type="range" class="form-range" id="communication" name="communication" min="0" max="10" value="5">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="communication-value" class="text-center fw-bold">5</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="problem_solving" class="form-label">Problem Solving</label>
+                        <input type="range" class="form-range" id="problem_solving" name="problem_solving" min="0" max="10" value="5">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="problem_solving-value" class="text-center fw-bold">5</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="critical_thinking" class="form-label">Critical Thinking</label>
+                        <input type="range" class="form-range" id="critical_thinking" name="critical_thinking" min="0" max="10" value="5">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="critical_thinking-value" class="text-center fw-bold">5</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="analytical_thinking" class="form-label">Analytical Thinking</label>
+                        <input type="range" class="form-range" id="analytical_thinking" name="analytical_thinking" min="0" max="10" value="5">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="analytical_thinking-value" class="text-center fw-bold">5</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="presentation_skills" class="form-label">Presentation Skills</label>
+                        <input type="range" class="form-range" id="presentation_skills" name="presentation_skills" min="0" max="10" value="5">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="presentation_skills-value" class="text-center fw-bold">5</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="leadership" class="form-label">Leadership</label>
+                        <input type="range" class="form-range" id="leadership" name="leadership" min="0" max="10" value="5">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="leadership-value" class="text-center fw-bold">5</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aptitude Sliders (NEW) -->
+            <div class="row g-4 mt-1">
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="logical_reasoning" class="form-label">Logical Reasoning</label>
+                    <input type="range" class="form-range" id="logical_reasoning" name="logical_reasoning" min="0" max="10" value="5">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="logical_reasoning-value" class="text-center fw-bold">5</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="numerical_ability" class="form-label">Numerical Ability</label>
+                    <input type="range" class="form-range" id="numerical_ability" name="numerical_ability" min="0" max="10" value="5">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="numerical_ability-value" class="text-center fw-bold">5</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="spatial_ability" class="form-label">Spatial Ability</label>
+                    <input type="range" class="form-range" id="spatial_ability" name="spatial_ability" min="0" max="10" value="5">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="spatial_ability-value" class="text-center fw-bold">5</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="mechanical_aptitude" class="form-label">Mechanical Aptitude</label>
+                    <input type="range" class="form-range" id="mechanical_aptitude" name="mechanical_aptitude" min="0" max="10" value="5">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="mechanical_aptitude-value" class="text-center fw-bold">5</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="scientific_aptitude" class="form-label">Scientific Aptitude</label>
+                    <input type="range" class="form-range" id="scientific_aptitude" name="scientific_aptitude" min="0" max="10" value="5">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="scientific_aptitude-value" class="text-center fw-bold">5</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="language_aptitude" class="form-label">Language Aptitude</label>
+                    <input type="range" class="form-range" id="language_aptitude" name="language_aptitude" min="0" max="10" value="5">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="language_aptitude-value" class="text-center fw-bold">5</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="business_aptitude" class="form-label">Business Aptitude</label>
+                    <input type="range" class="form-range" id="business_aptitude" name="business_aptitude" min="0" max="10" value="5">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="business_aptitude-value" class="text-center fw-bold">5</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="creative_aptitude" class="form-label">Creative Aptitude</label>
+                    <input type="range" class="form-range" id="creative_aptitude" name="creative_aptitude" min="0" max="10" value="5">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="creative_aptitude-value" class="text-center fw-bold">5</div>
+                </div></div>
+            </div>
+        </div>
+
+        <!-- Section 3: Technical & Domain Skills -->
+        <div id="section-3" class="assessment-section">
+            <h2 class="section-title mb-2">Technical & Domain Skills</h2>
+
+            <!-- Programming & Tech -->
+            <h5 class="fw-semibold text-secondary mb-3 mt-3"><i class="fas fa-code me-2"></i>Programming & Technology (0–10)</h5>
+            <div class="row g-4">
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="python" class="form-label">Python</label>
+                        <input type="range" class="form-range" id="python" name="python" min="0" max="10" value="0">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="python-value" class="text-center fw-bold">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="java" class="form-label">Java</label>
+                        <input type="range" class="form-range" id="java" name="java" min="0" max="10" value="0">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="java-value" class="text-center fw-bold">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="cpp" class="form-label">C++</label>
+                        <input type="range" class="form-range" id="cpp" name="cpp" min="0" max="10" value="0">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="cpp-value" class="text-center fw-bold">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="sql" class="form-label">SQL</label
+                        <input type="range" class="form-range" id="sql" name="sql" min="0" max="10" value="0">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="sql-value" class="text-center fw-bold">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="html" class="form-label">HTML</label>
+                        <input type="range" class="form-range" id="html" name="html" min="0" max="10" value="0">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="html-value" class="text-center fw-bold">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="css" class="form-label">CSS</label>
+                        <input type="range" class="form-range" id="css" name="css" min="0" max="10" value="0">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="css-value" class="text-center fw-bold">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="javascript" class="form-label">JavaScript</label>
+                        <input type="range" class="form-range" id="javascript" name="javascript" min="0" max="10" value="0">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="javascript-value" class="text-center fw-bold">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="machine_learning" class="form-label">Machine Learning</label>
+                        <input type="range" class="form-range" id="machine_learning" name="machine_learning" min="0" max="10" value="0">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="machine_learning-value" class="text-center fw-bold">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="cloud_computing" class="form-label">Cloud Computing</label>
+                        <input type="range" class="form-range" id="cloud_computing" name="cloud_computing" min="0" max="10" value="0">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="cloud_computing-value" class="text-center fw-bold">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="cyber_security" class="form-label">Cyber Security</label>
+                        <input type="range" class="form-range" id="cyber_security" name="cyber_security" min="0" max="10" value="0">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="cyber_security-value" class="text-center fw-bold">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="networking" class="form-label">Networking</label>
+                        <input type="range" class="form-range" id="networking" name="networking" min="0" max="10" value="0">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="networking-value" class="text-center fw-bold">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="ai" class="form-label">AI</label>
+                        <input type="range" class="form-range" id="ai" name="ai" min="0" max="10" value="0">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="ai-value" class="text-center fw-bold">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="data_analysis" class="form-label">Data Analysis</label>
+                        <input type="range" class="form-range" id="data_analysis" name="data_analysis" min="0" max="10" value="0">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="data_analysis-value" class="text-center fw-bold">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Domain & Digital Skills (NEW) -->
+            <h5 class="fw-semibold text-secondary mb-3 mt-4"><i class="fas fa-briefcase me-2"></i>Domain & Digital Skills (0–10)</h5>
+            <div class="row g-4">
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="accounting_skill" class="form-label">Accounting</label>
+                    <input type="range" class="form-range" id="accounting_skill" name="accounting_skill" min="0" max="10" value="0">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="accounting_skill-value" class="text-center fw-bold">0</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="financial_analysis" class="form-label">Financial Analysis</label>
+                    <input type="range" class="form-range" id="financial_analysis" name="financial_analysis" min="0" max="10" value="0">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="financial_analysis-value" class="text-center fw-bold">0</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="marketing_skill" class="form-label">Marketing</label>
+                    <input type="range" class="form-range" id="marketing_skill" name="marketing_skill" min="0" max="10" value="0">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="marketing_skill-value" class="text-center fw-bold">0</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="patient_care" class="form-label">Patient Care</label>
+                    <input type="range" class="form-range" id="patient_care" name="patient_care" min="0" max="10" value="0">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="patient_care-value" class="text-center fw-bold">0</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="legal_research" class="form-label">Legal Research</label>
+                    <input type="range" class="form-range" id="legal_research" name="legal_research" min="0" max="10" value="0">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="legal_research-value" class="text-center fw-bold">0</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="content_writing" class="form-label">Content Writing</label>
+                    <input type="range" class="form-range" id="content_writing" name="content_writing" min="0" max="10" value="0">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="content_writing-value" class="text-center fw-bold">0</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="video_editing" class="form-label">Video Editing</label>
+                    <input type="range" class="form-range" id="video_editing" name="video_editing" min="0" max="10" value="0">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="video_editing-value" class="text-center fw-bold">0</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="digital_communication" class="form-label">Digital Communication</label>
+                    <input type="range" class="form-range" id="digital_communication" name="digital_communication" min="0" max="10" value="5">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="digital_communication-value" class="text-center fw-bold">5</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="ai_tool_usage" class="form-label">AI Tool Usage</label>
+                    <input type="range" class="form-range" id="ai_tool_usage" name="ai_tool_usage" min="0" max="10" value="5">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="ai_tool_usage-value" class="text-center fw-bold">5</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="online_collaboration" class="form-label">Online Collaboration</label>
+                    <input type="range" class="form-range" id="online_collaboration" name="online_collaboration" min="0" max="10" value="5">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="online_collaboration-value" class="text-center fw-bold">5</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="cyber_awareness" class="form-label">Cyber Awareness</label>
+                    <input type="range" class="form-range" id="cyber_awareness" name="cyber_awareness" min="0" max="10" value="5">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="cyber_awareness-value" class="text-center fw-bold">5</div>
+                </div></div>
+            </div>
+        </div>
+
+
+        <div id="section-4" class="assessment-section">
+            <h2 class="section-title mb-4">Soft Skills</h2>
+            <p class="text-muted mb-4">Rate your proficiency in each area (0-10 scale)</p>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="teamwork" class="form-label">Teamwork</label>
+                        <input type="range" class="form-range" id="teamwork" name="teamwork" min="0" max="10" value="5">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="teamwork-value" class="text-center fw-bold">5</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="creativity" class="form-label">Creativity</label>
+                        <input type="range" class="form-range" id="creativity" name="creativity" min="0" max="10" value="5">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="creativity-value" class="text-center fw-bold">5</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="decision_making" class="form-label">Decision Making</label>
+                        <input type="range" class="form-range" id="decision_making" name="decision_making" min="0" max="10" value="5">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small=0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="decision_making-value" class="text-center fw-bold">5</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="adaptability" class="form-label">Adaptability</label>
+                        <input type="range" class="form-range" id="adaptability" name="adaptability" min="0" max="10" value="5">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="adaptability-value" class="text-center fw-bold">5</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="time_management" class="form-label">Time Management</label>
+                        <input type="range" class="form-range" id="time_management" name="time_management" min="0" max="10" value="5">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="time_management-value" class="text-center fw-bold">5</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="confidence" class="form-label">Confidence</label>
+                        <input type="range" class="form-range" id="confidence" name="confidence" min="0" max="10" value="5">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="confidence-value" class="text-center fw-bold">5</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 5: Interests -->
+        <div id="section-5" class="assessment-section">
+            <h2 class="section-title mb-4">Interests</h2>
+            <p class="text-muted mb-4">Rate your interest level in each area (0-10 scale)</p>
+            <div class="row g-4">
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="artificial_intelligence" class="form-label">Artificial Intelligence</label>
+                        <input type="range" class="form-range" id="artificial_intelligence" name="artificial_intelligence" min="0" max="10" value="0">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="artificial_intelligence-value" class="text-center fw-bold">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="business" class="form-label">Business</label>
+                        <input type="range" class="form-range" id="business" name="business" min="0" max="10" value="0">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="business-value" class="text-center fw-bold">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="healthcare" class="form-label">Healthcare</label>
+                        <input type="range" class="form-range" id="healthcare" name="healthcare" min="0" max="10" value="0">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="healthcare-value" class="text-center fw-bold">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="education" class="form-label">Education</label>
+                        <input type="range" class="form-range" id="education" name="education" min="0" max="10" value="0">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="education-value" class="text-center fw-bold">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="finance" class="form-label">Finance</label>
+                        <input type="range" class="form-range" id="finance" name="finance" min="0" max="10" value="0">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="finance-value" class="text-center fw-bold">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="research" class="form-label">Research</label>
+                        <input type="range" class="form-range" id="research" name="research" min="0" max="10" value="0">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="research-value" class="text-center fw-bold">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="management" class="form-label">Management</label>
+                        <input type="range" class="form-range" id="management" name="management" min="0" max="10" value="0">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="management-value" class="text-center fw-bold">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="teaching" class="form-label">Teaching</label>
+                        <input type="range" class="form-range" id="teaching" name="teaching" min="0" max="10" value="0">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="teaching-value" class="text-center fw-bold">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="design" class="form-label">Design</label>
+                        <input type="range" class="form-range" id="design" name="design" min="0" max="10" value="0">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="design-value" class="text-center fw-bold">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="marketing" class="form-label">Marketing</label>
+                        <input type="range" class="form-range" id="marketing" name="marketing" min="0" max="10" value="0">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="marketing-value" class="text-center fw-bold">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="government_jobs" class="form-label">Government Jobs</label>
+                        <input type="range" class="form-range" id="government_jobs" name="government_jobs" min="0" max="10" value="0">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="government_jobs-value" class="text-center fw-bold">0</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="entrepreneurship" class="form-label">Entrepreneurship</label>
+                        <input type="range" class="form-range" id="entrepreneurship" name="entrepreneurship" min="0" max="10" value="0">
+                        <div class="d-flex justify-content-between mt-1">
+                            <small>0</small>
+                            <small>10</small>
+                        </div>
+                        <div id="entrepreneurship-value" class="text-center fw-bold">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Interests (NEW) -->
+            <div class="row g-4 mt-1">
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="technology_interest" class="form-label">Technology</label>
+                    <input type="range" class="form-range" id="technology_interest" name="technology_interest" min="0" max="10" value="5">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="technology_interest-value" class="text-center fw-bold">5</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="law_interest" class="form-label">Law / Legal</label>
+                    <input type="range" class="form-range" id="law_interest" name="law_interest" min="0" max="10" value="0">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="law_interest-value" class="text-center fw-bold">0</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="journalism_interest" class="form-label">Journalism / Media</label>
+                    <input type="range" class="form-range" id="journalism_interest" name="journalism_interest" min="0" max="10" value="0">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="journalism_interest-value" class="text-center fw-bold">0</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="psychology_interest" class="form-label">Psychology</label>
+                    <input type="range" class="form-range" id="psychology_interest" name="psychology_interest" min="0" max="10" value="0">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="psychology_interest-value" class="text-center fw-bold">0</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="defence_interest" class="form-label">Defence / Military</label>
+                    <input type="range" class="form-range" id="defence_interest" name="defence_interest" min="0" max="10" value="0">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="defence_interest-value" class="text-center fw-bold">0</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="robotics_interest" class="form-label">Robotics</label>
+                    <input type="range" class="form-range" id="robotics_interest" name="robotics_interest" min="0" max="10" value="0">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="robotics_interest-value" class="text-center fw-bold">0</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="animation_interest" class="form-label">Animation / VFX</label>
+                    <input type="range" class="form-range" id="animation_interest" name="animation_interest" min="0" max="10" value="0">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="animation_interest-value" class="text-center fw-bold">0</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="writing_interest" class="form-label">Writing / Literature</label>
+                    <input type="range" class="form-range" id="writing_interest" name="writing_interest" min="0" max="10" value="0">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="writing_interest-value" class="text-center fw-bold">0</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="social_service_interest" class="form-label">Social Service / NGO</label>
+                    <input type="range" class="form-range" id="social_service_interest" name="social_service_interest" min="0" max="10" value="0">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="social_service_interest-value" class="text-center fw-bold">0</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="environment_interest" class="form-label">Environment / Green</label>
+                    <input type="range" class="form-range" id="environment_interest" name="environment_interest" min="0" max="10" value="0">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="environment_interest-value" class="text-center fw-bold">0</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="arts_interest" class="form-label">Fine Arts / Music</label>
+                    <input type="range" class="form-range" id="arts_interest" name="arts_interest" min="0" max="10" value="0">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="arts_interest-value" class="text-center fw-bold">0</div>
+                </div></div>
+                <div class="col-md-3"><div class="mb-3">
+                    <label for="hospitality_interest" class="form-label">Hospitality / Tourism</label>
+                    <input type="range" class="form-range" id="hospitality_interest" name="hospitality_interest" min="0" max="10" value="0">
+                    <div class="d-flex justify-content-between mt-1"><small>0</small><small>10</small></div>
+                    <div id="hospitality_interest-value" class="text-center fw-bold">0</div>
+                </div></div>
+            </div>
+        </div>
+
+
+        <!-- Section 6: Experience & Internship -->
+        <div id="section-6" class="assessment-section">
+            <h2 class="section-title mb-4">Experience & Internship</h2>
+            <div class="row g-4">
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="projects_count" class="form-label">Projects Completed</label>
+                        <input type="number" class="form-control" id="projects_count" name="projects_count" min="0" value="0">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="internship_completed" class="form-label">Internship Completed?</label>
+                        <select class="form-select" id="internship_completed" name="internship_completed">
+                            <option value="No">No</option>
+                            <option value="Yes">Yes</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="internship_domain" class="form-label">Internship Domain</label>
+                        <select class="form-select" id="internship_domain" name="internship_domain">
+                            <option value="None">None / Not Applicable</option>
+                            <option value="Technology">Technology / IT</option>
+                            <option value="Healthcare">Healthcare / Medical</option>
+                            <option value="Finance">Finance / Banking</option>
+                            <option value="Marketing">Marketing / Media</option>
+                            <option value="Education">Education / Teaching</option>
+                            <option value="Engineering">Engineering / Manufacturing</option>
+                            <option value="Research">Research / Science</option>
+                            <option value="Law">Law / Legal</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="internship_duration" class="form-label">Internship Duration (months)</label>
+                        <input type="number" class="form-control" id="internship_duration" name="internship_duration" min="0" max="24" value="0">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="certification_count" class="form-label">Certifications Earned</label>
+                        <input type="number" class="form-control" id="certification_count" name="certification_count" min="0" value="0">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="volunteer_experience" class="form-label">Volunteer Experience?</label>
+                        <select class="form-select" id="volunteer_experience" name="volunteer_experience">
+                            <option value="No">No</option>
+                            <option value="Yes">Yes</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="community_service_hours" class="form-label">Community Service Hours</label>
+                        <input type="number" class="form-control" id="community_service_hours" name="community_service_hours" min="0" value="0">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label for="industrial_visit" class="form-label">Industrial / Field Visit?</label>
+                        <select class="form-select" id="industrial_visit" name="industrial_visit">
+                            <option value="No">No</option>
+                            <option value="Yes">Yes</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 7: Certifications -->
+        <div id="section-7" class="assessment-section">
+            <h2 class="section-title mb-4">Certifications</h2>
+            <p class="text-muted mb-4">Check all certifications you hold</p>
+            <div class="row g-4">
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="cloud_certification" name="cloud_certification" value="1">
+                            <label class="form-check-label" for="cloud_certification">
+                                Cloud Certification
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="python_certification" name="python_certification" value="1">
+                            <label class="form-check-label" for="python_certification">
+                                Python Certification
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="java_certification" name="java_certification" value="1">
+                            <label class="form-check-label" for="java_certification">
+                                Java Certification
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="data_science_certification" name="data_science_certification" value="1">
+                            <label class="form-check-label" for="data_science_certification">
+                                Data Science Certification
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="cyber_security_certification" name="cyber_security_certification" value="1">
+                            <label class="form-check-label" for="cyber_security_certification">
+                                Cyber Security Certification
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="networking_certification" name="networking_certification" value="1">
+                            <label class="form-check-label" for="networking_certification">
+                                Networking Certification
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="aws_certification" name="aws_certification" value="1">
+                            <label class="form-check-label" for="aws_certification">
+                                AWS Certification
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="azure_certification" name="azure_certification" value="1">
+                            <label class="form-check-label" for="azure_certification">
+                                Azure Certification
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="google_cloud_certification" name="google_cloud_certification" value="1">
+                            <label class="form-check-label" for="google_cloud_certification">
+                                Google Cloud Certification
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 8: Career Goals -->
+        <div id="section-8" class="assessment-section">
+            <h2 class="section-title mb-4">Career Goals</h2>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="preferred_industry" class="form-label">Preferred Industry</label>
+                        <select class="form-select" id="preferred_industry" name="preferred_industry">
+                            <option value="">Select Preferred Industry</option>
+                            <option value="Technology">Technology</option>
+                            <option value="Healthcare">Healthcare</option>
+                            <option value="Finance">Finance</option>
+                            <option value="Education">Education</option>
+                            <option value="Government">Government</option>
+                            <option value="Manufacturing">Manufacturing</option>
+                            <option value="Retail">Retail</option>
+                            <option value="Consulting">Consulting</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="preferred_work_style" class="form-label">Preferred Work Style</label>
+                        <select class="form-select" id="preferred_work_style" name="preferred_work_style">
+                            <option value="">Select Work Style</option>
+                            <option value="Remote">Remote</option>
+                            <option value="Hybrid">Hybrid</option>
+                            <option value="Office">Office</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="expected_salary_range" class="form-label">Expected Salary Range (Annual)</label>
+                        <input type="text" class="form-control" id="expected_salary_range" name="expected_salary_range" placeholder="e.g., $50,000 - $80,000">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="remote_preference" class="form-label">Remote/Office Preference</label>
+                        <select class="form-select" id="remote_preference" name="remote_preference">
+                            <option value="">Select Preference</option>
+                            <option value="Remote">Prefer Remote</option>
+                            <option value="Hybrid">Prefer Hybrid</option>
+                            <option value="Office">Prefer Office</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 9: Background & Career Preferences (NEW) -->
+        <div id="section-9" class="assessment-section">
+            <h2 class="section-title mb-4">Background & Career Preferences</h2>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="parent_education" class="form-label">Parent's Education Level</label>
+                        <select class="form-select" id="parent_education" name="parent_education">
+                            <option value="Graduate">Graduate</option>
+                            <option value="Post Graduate">Post Graduate</option>
+                            <option value="12th">12th / Intermediate</option>
+                            <option value="10th">10th / Matriculate</option>
+                            <option value="Primary">Primary / Below</option>
+                            <option value="Illiterate">Illiterate</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="annual_family_income" class="form-label">Annual Family Income (approx.)</label>
+                        <select class="form-select" id="annual_family_income" name="annual_family_income">
+                            <option value="Below 1 LPA">Below 1 LPA</option>
+                            <option value="1-3 LPA">1–3 LPA</option>
+                            <option value="3-6 LPA" selected>3–6 LPA</option>
+                            <option value="6-10 LPA">6–10 LPA</option>
+                            <option value="10-20 LPA">10–20 LPA</option>
+                            <option value="Above 20 LPA">Above 20 LPA</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="first_generation_learner" class="form-label">First Generation Learner?</label>
+                        <select class="form-select" id="first_generation_learner" name="first_generation_learner">
+                            <option value="No">No</option>
+                            <option value="Yes">Yes — first in family to pursue higher ed</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="preferred_location" class="form-label">Preferred Work Location</label>
+                        <select class="form-select" id="preferred_location" name="preferred_location">
+                            <option value="Urban">Metro / Urban City</option>
+                            <option value="Semi-Urban">Semi-Urban / Tier 2</option>
+                            <option value="Rural">Rural / Hometown</option>
+                            <option value="Abroad">Abroad</option>
+                            <option value="Anywhere">Anywhere / Flexible</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="abroad_studies_interest" class="form-label">Interested in Studying Abroad?</label>
+                        <select class="form-select" id="abroad_studies_interest" name="abroad_studies_interest">
+                            <option value="No">No</option>
+                            <option value="Yes">Yes</option>
+                            <option value="Maybe">Maybe / Open to it</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="research_interest_level" class="form-label">Interest in Research / PhD</label>
+                        <select class="form-select" id="research_interest_level" name="research_interest_level">
+                            <option value="None">None — prefer industry</option>
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High — strongly interested</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="govt_private" class="form-label">Job Preference</label>
+                        <select class="form-select" id="govt_private" name="govt_private">
+                            <option value="Private">Private Sector</option>
+                            <option value="Government">Government / PSU</option>
+                            <option value="Both">Open to Both</option>
+                            <option value="Startup">Startup</option>
+                            <option value="Freelance">Freelance / Self-Employed</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="leadership_style" class="form-label">Leadership Style</label>
+                        <select class="form-select" id="leadership_style" name="leadership_style">
+                            <option value="Democratic">Democratic / Collaborative</option>
+                            <option value="Autocratic">Autocratic / Directive</option>
+                            <option value="Laissez-faire">Laissez-faire / Hands-off</option>
+                            <option value="Transformational">Transformational / Visionary</option>
+                            <option value="Servant">Servant / Supportive</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="work_life_balance_preference" class="form-label">Work-Life Balance Priority</label>
+                        <select class="form-select" id="work_life_balance_preference" name="work_life_balance_preference">
+                            <option value="Work-Focused">Work-Focused — career first</option>
+                            <option value="Balanced" selected>Balanced</option>
+                            <option value="Life-Focused">Life-Focused — family/personal time first</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="d-flex justify-content-between mt-5">
+            <button type="button" id="prev-btn" class="btn btn-outline-purple-500 me-3" disabled>Previous Step</button>
+            <button type="submit" id="next-btn" class="btn btn-gradient-purple-500">Next Step</button>
+        </div>
+
+        <!-- Hidden input for current step tracking -->
+        <input type="hidden" name="current_step" id="current-step-input" value="1">
+    </form>
+</div>
+
+<!-- Loading Overlay (hidden by default) -->
+<div id="loading-overlay" class="d-none">
+    <div class="card border-0 shadow-lg text-center p-4" style="max-width: 400px;">
+        <div class="spinner-border text-primary mx-auto mb-3" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <h5 class="fw-bold text-primary mb-1">Analyzing Your Profile</h5>
+        <p class="text-muted small mb-0">Generating your personalized career recommendations using XGBoost ML model...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('assessment-form');
+        const sections = document.querySelectorAll('.assessment-section');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const progressBar = document.getElementById('progress-bar');
+        const currentStepSpan = document.getElementById('current-step');
+        const stepTitleSpan = document.getElementById('step-title');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const currentStepInput = document.getElementById('current-step-input');
+
+        let currentStep = 1;
+        const totalSections = sections.length;
+
+        // Section titles
+        const sectionTitles = [
+            'Personal Details',
+            'Academic Performance',
+            'Technical & Domain Skills',
+            'Soft Skills',
+            'Interests',
+            'Experience & Internship',
+            'Certifications',
+            'Career Goals',
+            'Background & Preferences'
+        ];
+
+        // Initialize range sliders
+        const rangeSliders = document.querySelectorAll('input[type="range"]');
+        rangeSliders.forEach(slider => {
+            const valueDisplay = document.getElementById(slider.id + '-value');
+            if (valueDisplay) {
+                valueDisplay.textContent = slider.value;
+                slider.addEventListener('input', () => {
+                    valueDisplay.textContent = slider.value;
+                });
+            }
+        });
+
+        // Update progress bar and UI
+        function updateProgress() {
+            const progressPercent = ((currentStep - 1) / (totalSections - 1)) * 100;
+            progressBar.style.width = progressPercent + '%';
+            progressBar.setAttribute('aria-valuenow', currentStep);
+            currentStepSpan.textContent = currentStep;
+            stepTitleSpan.textContent = sectionTitles[currentStep - 1];
+
+            // Update button states
+            prevBtn.disabled = currentStep === 1;
+            nextBtn.textContent = currentStep === totalSections ? 'Get Recommendations' : 'Next Step';
+
+            // Show/hide sections
+            sections.forEach((section, index) => {
+                if (index + 1 === currentStep) {
+                    section.classList.add('active');
+                    section.classList.remove('d-none');
+                } else {
+                    section.classList.remove('active');
+                    section.classList.add('d-none');
+                }
+            });
+        }
+
+        // Previous button handler
+        prevBtn.addEventListener('click', () => {
+            if (currentStep > 1) {
+                currentStep--;
+                updateProgress();
+            }
+        });
+
+        // Next button handler
+        nextBtn.addEventListener('click', function(e) {
+            if (currentStep < totalSections) {
+                // Validate current section before moving forward
+                if (validateSection(currentStep)) {
+                    currentStep++;
+                    updateProgress();
+                }
+            } else {
+                // Final submission
+                e.preventDefault();
+                if (validateForm()) {
+                    showLoading();
+                    // Form will submit normally after this
+                }
+            }
+        });
+
+        // Form submission
+        form.addEventListener('submit', function(e) {
+            if (currentStep < totalSections) {
+                e.preventDefault();
+                if (validateSection(currentStep)) {
+                    currentStep++;
+                    updateProgress();
+                }
+            } else {
+                // Final validation before submit
+                if (!validateForm()) {
+                    e.preventDefault();
+                } else {
+                    showLoading();
+                }
+            }
+        });
+
+        // Section validation
+        function validateSection(step) {
+            const section = sections[step - 1];
+            const inputs = section.querySelectorAll('input[required], select[required], textarea[required]');
+            let isValid = true;
+
+            inputs.forEach(input => {
+                if (!input.checkValidity()) {
+                    isValid = false;
+                    input.classList.add('is-invalid');
+                } else {
+                    input.classList.remove('is-invalid');
+                }
+            });
+
+            return isValid;
+        }
+
+        // Full form validation
+        function validateForm() {
+            let isValid = true;
+            const allInputs = form.querySelectorAll('input[required], select[required], textarea[required]');
+
+            allInputs.forEach(input => {
+                if (!input.checkValidity()) {
+                    isValid = false;
+                    input.classList.add('is-invalid');
+                } else {
+                    input.classList.remove('is-invalid');
+                }
+            });
+
+            return isValid;
+        }
+
+        // Show loading overlay
+        function showLoading() {
+            loadingOverlay.classList.remove('d-none');
+            // Disable form during loading
+            form.querySelectorAll('input, select, button, textarea').forEach(el => {
+                el.disabled = true;
+            });
+        }
+
+        // Initialize
+        updateProgress();
+    });
+</script>
+<style>
+    .assessment-section {
+        display: none;
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .assessment-section.active {
+        display: block;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .is-invalid {
+        border-color: #dc3545 !important;
+    }
+
+    .btn-gradient-purple-500 {
+        background: linear-gradient(to right, #6366f1, #8b5cf6);
+        border: none;
+        color: white;
+    }
+
+    .btn-gradient-purple-500:hover {
+        background: linear-gradient(to right, #4f46e5, #7c3aed);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .spinner-border {
+        animation-duration: 1.5s;
+    }
+
+    .section-title {
+        color: #4f46e5;
+        border-bottom: 2px solid #e5e7eb;
+        padding-bottom: 0.5rem;
+    }
+
+    /* Custom scrollbar for form */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #8b5cf6;
+        border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #6366f1;
+    }
+</style>
+{% endblock %}

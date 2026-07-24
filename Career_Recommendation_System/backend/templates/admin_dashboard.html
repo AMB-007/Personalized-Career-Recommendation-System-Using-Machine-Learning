@@ -1,0 +1,382 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard — Career Recommendation System{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="row g-0">
+
+        <!-- Sidebar -->
+        <div class="col-md-2 admin-sidebar no-print">
+            <div class="d-flex align-items-center gap-2 mb-4 px-1">
+                <i class="fas fa-shield-alt text-primary"></i>
+                <span class="fw-bold small">Admin Panel</span>
+            </div>
+            <nav class="d-flex flex-column gap-1">
+                <a href="#overview"    class="sidebar-link active" onclick="showSection('overview',this)"><i class="fas fa-tachometer-alt"></i>Overview</a>
+                <a href="#users"       class="sidebar-link"        onclick="showSection('users',this)"><i class="fas fa-users"></i>Users</a>
+                <a href="#predictions" class="sidebar-link"        onclick="showSection('predictions',this)"><i class="fas fa-chart-line"></i>Predictions</a>
+                <a href="#feedback"    class="sidebar-link"        onclick="showSection('feedback',this)"><i class="fas fa-comments"></i>Feedback</a>
+                <a href="#analytics"   class="sidebar-link"        onclick="showSection('analytics',this)"><i class="fas fa-chart-bar"></i>Analytics</a>
+                <hr class="my-2">
+                <a href="/admin/export" class="sidebar-link"><i class="fas fa-download"></i>Export Report</a>
+                <a href="/admin/logout" class="sidebar-link text-danger"><i class="fas fa-sign-out-alt"></i>Logout</a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-10 px-4">
+
+            <!-- ── Overview Section ── -->
+            <div id="section-overview">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <div>
+                        <h5 class="fw-bold mb-0">Dashboard Overview</h5>
+                        <p class="text-muted small mb-0">Welcome back, {{ session.admin_name or 'Admin' }}</p>
+                    </div>
+                    <span class="badge bg-primary">{{ now.strftime('%d %b %Y') if now else '' }}</span>
+                </div>
+
+                <!-- Stats Row -->
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-md-3">
+                        <div class="admin-stat">
+                            <i class="fas fa-users fa-lg text-primary mb-2"></i>
+                            <h2>{{ stats.total_users if stats and stats.total_users else 0 }}</h2>
+                            <p class="text-muted small mb-0">Total Users</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="admin-stat border-success">
+                            <i class="fas fa-chart-line fa-lg text-success mb-2"></i>
+                            <h2>{{ stats.total_predictions if stats and stats.total_predictions else 0 }}</h2>
+                            <p class="text-muted small mb-0">Predictions</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="admin-stat border-warning">
+                            <i class="fas fa-comments fa-lg text-warning mb-2"></i>
+                            <h2>{{ stats.total_feedback if stats and stats.total_feedback else 0 }}</h2>
+                            <p class="text-muted small mb-0">Feedback</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="admin-stat border-info">
+                            <i class="fas fa-robot fa-lg text-info mb-2"></i>
+                            <h2>82.33%</h2>
+                            <p class="text-muted small mb-0">Model Accuracy</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-7">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header fw-semibold">
+                                <i class="fas fa-chart-bar me-2 text-primary"></i>Top 10 Recommended Careers
+                            </div>
+                            <div class="card-body"><canvas id="careerBarChart" height="220"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header fw-semibold">
+                                <i class="fas fa-chart-pie me-2 text-primary"></i>User Education Distribution
+                            </div>
+                            <div class="card-body"><canvas id="userPieChart" height="220"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header fw-semibold"><i class="fas fa-history me-2 text-primary"></i>Recent Registrations</div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr><th>Name</th><th>Email</th><th>Education</th><th>Joined</th><th>Status</th></tr>
+                                </thead>
+                                <tbody>
+                                    {% if recent_users %}
+                                    {% for u in recent_users %}
+                                    <tr>
+                                        <td class="fw-semibold small">{{ u.full_name }}</td>
+                                        <td class="text-muted small">{{ u.email }}</td>
+                                        <td class="small">{{ u.education_level if u.education_level else '—' }}</td>
+                                        <td class="text-muted small">{{ u.created_at.strftime('%d %b %Y') if u.created_at else '—' }}</td>
+                                        <td><span class="badge bg-success">Active</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% else %}
+                                    <tr><td colspan="5" class="text-center py-4 text-muted">No users yet</td></tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Users Section ── -->
+            <div id="section-users" class="d-none">
+                <h5 class="fw-bold mb-4">User Management</h5>
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header d-flex align-items-center gap-3">
+                        <span class="fw-semibold">All Users ({{ all_users|length if all_users else 0 }})</span>
+                        <input type="text" class="form-control form-control-sm ms-auto" style="max-width:220px;"
+                               placeholder="Search users..." id="userSearch" oninput="filterTable('userTable', this.value)">
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0" id="userTable">
+                                <thead>
+                                    <tr><th>#</th><th>Name</th><th>Email</th><th>CGPA</th><th>Predictions</th><th>Joined</th><th class="no-print">Action</th></tr>
+                                </thead>
+                                <tbody>
+                                    {% if all_users %}
+                                    {% for u in all_users %}
+                                    <tr>
+                                        <td class="text-muted small">{{ loop.index }}</td>
+                                        <td class="fw-semibold small">{{ u.full_name }}</td>
+                                        <td class="text-muted small">{{ u.email }}</td>
+                                        <td class="small">{{ u.cgpa if u.cgpa else '—' }}</td>
+                                        <td class="small">{{ u.prediction_count if u.prediction_count else 0 }}</td>
+                                        <td class="text-muted small">{{ u.created_at.strftime('%d %b %Y') if u.created_at else '—' }}</td>
+                                        <td class="no-print">
+                                            <button class="btn btn-outline-danger btn-sm delete-user-btn"
+                                                    data-user-id="{{ u.user_id if u.user_id else u.get('id', 1) }}">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% else %}
+                                    <tr><td colspan="7" class="text-center py-4 text-muted">No users found</td></tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Predictions Section ── -->
+            <div id="section-predictions" class="d-none">
+                <h5 class="fw-bold mb-4">Prediction History</h5>
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header d-flex align-items-center gap-3">
+                        <span class="fw-semibold">All Predictions ({{ all_predictions|length if all_predictions else 0 }})</span>
+                        <input type="text" class="form-control form-control-sm ms-auto" style="max-width:220px;"
+                               placeholder="Search..." oninput="filterTable('predTable', this.value)">
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0" id="predTable">
+                                <thead>
+                                    <tr><th>#</th><th>User</th><th>Top Career</th><th>Confidence</th><th>Date</th></tr>
+                                </thead>
+                                <tbody>
+                                    {% if all_predictions %}
+                                    {% for p in all_predictions %}
+                                    <tr>
+                                        <td class="text-muted small">{{ loop.index }}</td>
+                                        <td class="small">{{ p.full_name if p.full_name else p.get('user_id', 'Student') }}</td>
+                                        <td class="fw-semibold small">{{ p.career_name if p.career_name else p.get('top_career', 'Career Match') }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="progress flex-grow-1" style="max-width:70px;">
+                                                    <div class="progress-bar" data-width="{{ p.confidence_score if p.confidence_score else p.get('confidence', 80) }}"></div>
+                                                </div>
+                                                <span class="small">{{ "%.1f"|format(p.confidence_score|float) if p.confidence_score else "80.0" }}%</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-muted small">{{ p.created_at.strftime('%d %b %Y') if p.created_at else '—' }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% else %}
+                                    <tr><td colspan="5" class="text-center py-4 text-muted">No predictions yet</td></tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Feedback Section ── -->
+            <div id="section-feedback" class="d-none">
+                <h5 class="fw-bold mb-4">User Feedback</h5>
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr><th>#</th><th>User</th><th>Subject</th><th>Rating</th><th>Message</th><th>Date</th></tr>
+                                </thead>
+                                <tbody>
+                                    {% if all_feedback %}
+                                    {% for fb in all_feedback %}
+                                    <tr>
+                                        <td class="text-muted small">{{ loop.index }}</td>
+                                        <td class="small">{{ fb.full_name if fb.full_name else 'Anonymous' }}</td>
+                                        <td><span class="badge bg-primary">{{ fb.subject if fb.subject else 'General' }}</span></td>
+                                        <td class="text-warning small">
+                                            {% for _ in range(fb.rating if fb.rating else 5) %}&#9733;{% endfor %}
+                                        </td>
+                                        <td class="small text-muted">{{ fb.message[:60] if fb.message else '' }}...</td>
+                                        <td class="text-muted small">{{ fb.created_at.strftime('%d %b %Y') if fb.created_at else '—' }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% else %}
+                                    <tr><td colspan="6" class="text-center py-4 text-muted">No feedback yet</td></tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Analytics Section ── -->
+            <div id="section-analytics" class="d-none">
+                <h5 class="fw-bold mb-4">Analytics</h5>
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header fw-semibold"><i class="fas fa-chart-line me-2 text-primary"></i>Registrations Over Time</div>
+                            <div class="card-body"><canvas id="regLineChart" height="220"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header fw-semibold"><i class="fas fa-chart-pie me-2 text-primary"></i>Education Level Distribution</div>
+                            <div class="card-body"><canvas id="eduDoughnut" height="220"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Chart data (Jinja2 renders these as valid JSON) -->
+<script id="careerDataJson" type="application/json">{{ top_careers | tojson | safe if top_careers else '[]' }}</script>
+<script id="eduDataJson"    type="application/json">{{ edu_distribution | tojson | safe if edu_distribution else '[]' }}</script>
+<script id="regDataJson"    type="application/json">{{ reg_trend | tojson | safe if reg_trend else '[]' }}</script>
+
+<script>
+function showSection(name, el) {
+    event.preventDefault();
+    document.querySelectorAll('[id^="section-"]').forEach(s => s.classList.add('d-none'));
+    document.getElementById('section-' + name).classList.remove('d-none');
+    document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+    el.classList.add('active');
+}
+
+function filterTable(tableId, query) {
+    const rows = document.getElementById(tableId).querySelectorAll('tbody tr');
+    const q = query.toLowerCase();
+    rows.forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+}
+
+// Apply progress bar widths from data attributes
+document.querySelectorAll('.progress-bar[data-width]').forEach(function (bar) {
+    bar.style.width = bar.dataset.width + '%';
+});
+
+// Wire up delete buttons
+document.querySelectorAll('.delete-user-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        deleteUser(parseInt(this.dataset.userId));
+    });
+});
+
+const careerData = JSON.parse(document.getElementById('careerDataJson').textContent);
+const eduData    = JSON.parse(document.getElementById('eduDataJson').textContent);
+const regData    = JSON.parse(document.getElementById('regDataJson').textContent);
+
+const careerCtx = document.getElementById('careerBarChart').getContext('2d');
+new Chart(careerCtx, {
+    type: 'bar',
+    data: {
+        labels: careerData.map(c => c.career),
+        datasets: [{
+            label: 'Recommendations',
+            data: careerData.map(c => c.count),
+            backgroundColor: '#1a237e',
+            borderRadius: 4,
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { x: { beginAtZero: true } }
+    }
+});
+
+const pieCtx = document.getElementById('userPieChart').getContext('2d');
+new Chart(pieCtx, {
+    type: 'doughnut',
+    data: {
+        labels: eduData.map(e => e.level),
+        datasets: [{
+            data: eduData.map(e => e.count),
+            backgroundColor: ['#1a237e','#1565c0','#2e7d32','#e65100','#c62828','#01579b'],
+        }]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+});
+
+const eduCtx = document.getElementById('eduDoughnut').getContext('2d');
+new Chart(eduCtx, {
+    type: 'doughnut',
+    data: {
+        labels: eduData.map(e => e.level),
+        datasets: [{ data: eduData.map(e => e.count), backgroundColor: ['#1a237e','#1565c0','#2e7d32','#e65100','#c62828'] }]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+});
+
+const regCtx = document.getElementById('regLineChart').getContext('2d');
+new Chart(regCtx, {
+    type: 'line',
+    data: {
+        labels: regData.map(r => r.date),
+        datasets: [{
+            label: 'Registrations',
+            data: regData.map(r => r.count),
+            borderColor: '#1a237e',
+            backgroundColor: 'rgba(26,35,126,0.08)',
+            fill: true,
+            tension: 0.4,
+        }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } } }
+});
+
+async function deleteUser(uid) {
+    const result = await Swal.fire({
+        title: 'Delete User?',
+        text: 'This action cannot be undone.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#c62828',
+        confirmButtonText: 'Yes, Delete',
+    });
+    if (result.isConfirmed) {
+        const res = await fetch(`/admin/api/delete-user/${uid}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) { Swal.fire({ icon: 'success', title: 'Deleted!', timer: 1200, showConfirmButton: false }); location.reload(); }
+        else Swal.fire({ icon: 'error', title: 'Error', text: data.message });
+    }
+}
+</script>
+{% endblock %}
+

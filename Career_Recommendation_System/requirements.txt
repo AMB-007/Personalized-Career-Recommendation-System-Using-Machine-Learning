@@ -1,0 +1,39 @@
+# Career Recommendation System - Requirements
+
+## Core Dependencies
+flask==2.3.3
+werkzeug==2.3.7
+jinja2==3.1.2
+itsdangerous==2.1.2
+click==8.1.6
+markupsafe==2.1.3
+
+## Database
+mysql-connector-python==8.2.0
+
+## Machine Learning
+xgboost==2.0.3
+scikit-learn==1.3.0
+numpy==1.24.3
+pandas==2.0.3
+scipy==1.11.1
+joblib==1.3.2
+
+## Security
+bcrypt==4.0.1
+cryptography==41.0.3
+
+## Visualization & Charts
+# Chart.js is loaded via CDN in templates
+
+## Utilities
+python-dotenv==1.0.0
+requests==2.31.0
+
+## Testing (for development)
+pytest==7.4.2
+pytest-cov==4.1.0
+pytest-mock==3.11.1
+
+## Development
+gunicorn==21.2.0

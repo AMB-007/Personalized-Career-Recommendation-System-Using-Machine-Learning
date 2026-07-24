@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+{% block title %}Feedback — Career Recommendation System{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+
+            <div class="section-header mb-4">
+                <h4 class="section-title"><i class="fas fa-comment-dots me-2 text-primary"></i>Submit Feedback</h4>
+                <p class="text-muted small mb-0">Help us improve the recommendation system with your valuable feedback.</p>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div id="error-alert" class="alert alert-danger d-none"></div>
+                    <div id="success-alert" class="alert alert-success d-none"></div>
+
+                    <form id="feedbackForm" novalidate>
+
+                        <!-- Overall Rating -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Overall Experience</label>
+                            <div class="d-flex gap-3" id="ratingStars">
+                                {% for i in range(1, 6) %}
+                                <label class="star-label" style="cursor:pointer;font-size:1.75rem;color:#cbd5e1;" data-val="{{ i }}">
+                                    <input type="radio" name="rating" value="{{ i }}" class="d-none"> &#9733;
+                                </label>
+                                {% endfor %}
+                            </div>
+                            <input type="hidden" id="ratingValue" value="">
+                        </div>
+
+                        <!-- Recommendation Accuracy -->
+                        <div class="mb-3">
+                            <label class="form-label">How accurate were the career recommendations?</label>
+                            <select class="form-select" id="accuracy_rating" required>
+                                <option value="">Select accuracy</option>
+                                <option value="5">Highly Accurate</option>
+                                <option value="4">Mostly Accurate</option>
+                                <option value="3">Somewhat Accurate</option>
+                                <option value="2">Not Very Accurate</option>
+                                <option value="1">Not Accurate at All</option>
+                            </select>
+                        </div>
+
+                        <!-- Feedback Type -->
+                        <div class="mb-3">
+                            <label class="form-label">Feedback Type</label>
+                            <select class="form-select" id="feedback_type">
+                                <option value="general">General Feedback</option>
+                                <option value="bug">Bug Report</option>
+                                <option value="suggestion">Feature Suggestion</option>
+                                <option value="appreciation">Appreciation</option>
+                            </select>
+                        </div>
+
+                        <!-- Message -->
+                        <div class="mb-3">
+                            <label class="form-label">Your Feedback <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="message" rows="5"
+                                      placeholder="Tell us about your experience, what worked well, what can be improved..."
+                                      required></textarea>
+                            <div class="form-text d-flex justify-content-between">
+                                <span>Min 20 characters</span>
+                                <span id="charCount">0 / 1000</span>
+                            </div>
+                        </div>
+
+                        <!-- Would Recommend -->
+                        <div class="mb-4">
+                            <label class="form-label">Would you recommend this system to others?</label>
+                            <div class="d-flex gap-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="would_recommend" id="recYes" value="1" checked>
+                                    <label class="form-check-label" for="recYes">Yes</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="would_recommend" id="recNo" value="0">
+                                    <label class="form-check-label" for="recNo">No</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100" id="submitBtn">
+                            <span id="btnText"><i class="fas fa-paper-plane me-2"></i>Submit Feedback</span>
+                            <span id="btnSpinner" class="d-none">
+                                <span class="spinner-border spinner-border-sm me-2"></span>Submitting...
+                            </span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Past Feedback Sidebar -->
+        <div class="col-lg-4 mt-4 mt-lg-0">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header"><i class="fas fa-history me-2 text-primary"></i>Your Past Feedback</div>
+                <div class="card-body p-0">
+                    {% if past_feedback %}
+                    <ul class="list-group list-group-flush">
+                        {% for fb in past_feedback %}
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="fw-semibold small">{{ fb.feedback_type|title }}</span>
+                                <span class="text-muted" style="font-size:.75rem;">
+                                    {{ fb.created_at.strftime('%d %b') if fb.created_at else '' }}
+                                </span>
+                            </div>
+                            <p class="mb-1 small text-muted">{{ fb.message[:80] }}{% if fb.message|length > 80 %}...{% endif %}</p>
+                            <div class="text-warning" style="font-size:.75rem;">
+                                {% for _ in range(fb.rating or 0) %}&#9733;{% endfor %}
+                                {% for _ in range(5 - (fb.rating or 0)) %}&#9734;{% endfor %}
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="fas fa-comment-slash fa-2x mb-2 d-block"></i>
+                        <p class="small">No feedback submitted yet.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Star rating interaction
+const stars = document.querySelectorAll('.star-label');
+stars.forEach(star => {
+    star.addEventListener('click', function () {
+        const val = parseInt(this.dataset.val);
+        document.getElementById('ratingValue').value = val;
+        stars.forEach((s, i) => {
+            s.style.color = i < val ? '#f59e0b' : '#cbd5e1';
+        });
+    });
+    star.addEventListener('mouseenter', function () {
+        const val = parseInt(this.dataset.val);
+        stars.forEach((s, i) => { s.style.color = i < val ? '#f59e0b' : '#cbd5e1'; });
+    });
+});
+document.getElementById('ratingStars').addEventListener('mouseleave', function () {
+    const val = parseInt(document.getElementById('ratingValue').value) || 0;
+    stars.forEach((s, i) => { s.style.color = i < val ? '#f59e0b' : '#cbd5e1'; });
+});
+
+// Char counter
+const msgEl = document.getElementById('message');
+const countEl = document.getElementById('charCount');
+msgEl.addEventListener('input', function () {
+    countEl.textContent = `${this.value.length} / 1000`;
+    if (this.value.length > 1000) this.value = this.value.slice(0, 1000);
+});
+
+// Submit
+document.getElementById('feedbackForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const errDiv = document.getElementById('error-alert');
+    const sucDiv = document.getElementById('success-alert');
+    errDiv.classList.add('d-none'); sucDiv.classList.add('d-none');
+
+    const rating = document.getElementById('ratingValue').value;
+    const message = msgEl.value.trim();
+
+    if (!rating) { errDiv.textContent = 'Please select a star rating.'; errDiv.classList.remove('d-none'); return; }
+    if (message.length < 20) { errDiv.textContent = 'Feedback must be at least 20 characters.'; errDiv.classList.remove('d-none'); return; }
+
+    document.getElementById('btnText').classList.add('d-none');
+    document.getElementById('btnSpinner').classList.remove('d-none');
+    document.getElementById('submitBtn').disabled = true;
+
+    try {
+        const res = await fetch('/api/feedback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                rating: parseInt(rating),
+                accuracy_rating: parseInt(document.getElementById('accuracy_rating').value) || 3,
+                feedback_type: document.getElementById('feedback_type').value,
+                message,
+                would_recommend: document.querySelector('input[name="would_recommend"]:checked').value
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            sucDiv.textContent = 'Thank you! Your feedback has been submitted.';
+            sucDiv.classList.remove('d-none');
+            document.getElementById('feedbackForm').reset();
+            stars.forEach(s => s.style.color = '#cbd5e1');
+            document.getElementById('ratingValue').value = '';
+            countEl.textContent = '0 / 1000';
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            errDiv.textContent = data.message || 'Failed to submit feedback.';
+            errDiv.classList.remove('d-none');
+        }
+    } catch (err) {
+        errDiv.textContent = 'An error occurred. Please try again.';
+        errDiv.classList.remove('d-none');
+    } finally {
+        document.getElementById('btnText').classList.remove('d-none');
+        document.getElementById('btnSpinner').classList.add('d-none');
+        document.getElementById('submitBtn').disabled = false;
+    }
+});
+</script>
+{% endblock %}

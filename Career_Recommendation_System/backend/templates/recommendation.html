@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Career Recommendations — Career Recommendation System{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- Header Banner -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div>
+                    <span class="badge bg-primary px-3 py-2 rounded-pill fw-semibold mb-2">
+                        <i class="fas fa-robot me-1"></i> XGBoost Predictions
+                    </span>
+                    <h2 class="fw-bold mb-1">Your Career Recommendations</h2>
+                    <p class="text-muted small mb-0">Based on your academic profile, technical skills, soft skills, and interest assessment</p>
+                </div>
+                <div class="d-flex gap-2 no-print">
+                    <button class="btn btn-outline-primary" onclick="window.print()">
+                        <i class="fas fa-print me-1"></i>Print Report
+                    </button>
+                    <a href="/assessment" class="btn btn-primary">
+                        <i class="fas fa-redo me-1"></i>Retake Assessment
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Stats Bar -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="stat-card border-primary">
+                <div class="stat-value text-primary">5</div>
+                <div class="stat-label">Top Career Matches</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card border-success">
+                <div class="stat-value text-success">{{ overall_confidence }}</div>
+                <div class="stat-label">Top Match Confidence</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card border-info">
+                <div class="stat-value text-info">82.33%</div>
+                <div class="stat-label">ML Model Accuracy</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top 5 Recommended Careers Grid -->
+    <div class="section-header mb-3">
+        <h4 class="section-title"><i class="fas fa-star me-2 text-warning"></i>Top 5 Career Matches</h4>
+    </div>
+
+    <div class="row g-4 mb-5">
+        {% for rec in recommendations %}
+        <div class="col-lg-6">
+            <div class="recommendation-card h-100 {% if loop.first %}top-pick{% endif %}">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rank-badge {% if loop.first %}gold{% endif %}">
+                            {{ loop.index }}
+                        </div>
+                        <h5 class="fw-bold mb-0">{{ rec.career_name }}</h5>
+                    </div>
+                    <span class="confidence-badge">
+                        {{ rec.confidence_score }}% match
+                    </span>
+                </div>
+
+                <p class="text-muted small mb-3">
+                    {{ rec.description }}
+                </p>
+
+                <!-- Key Specs -->
+                <div class="row g-2 mb-3 bg-light p-2 rounded text-center small">
+                    <div class="col-4">
+                        <span class="text-muted d-block" style="font-size:0.75rem;">Avg Salary</span>
+                        <span class="fw-semibold text-success">{{ rec.average_salary }}</span>
+                    </div>
+                    <div class="col-4">
+                        <span class="text-muted d-block" style="font-size:0.75rem;">Demand Level</span>
+                        <span class="fw-semibold text-primary">{{ rec.demand_level }}</span>
+                    </div>
+                    <div class="col-4">
+                        <span class="text-muted d-block" style="font-size:0.75rem;">Growth Rate</span>
+                        <span class="fw-semibold text-success">{{ rec.growth_rate }}%</span>
+                    </div>
+                </div>
+
+                <!-- Skills & Certs preview -->
+                <div class="mb-3">
+                    <span class="text-muted small d-block mb-1">Key Skills Required:</span>
+                    <div>
+                        {% for skill in rec.required_skills.split(',')[:4] %}
+                        <span class="skill-tag">{{ skill.strip() }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="pt-3 border-top d-flex justify-content-between align-items-center">
+                    <a href="/career/{{ rec.career_name|urlencode }}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-search me-1"></i>Explore Career Details
+                    </a>
+                    <button class="btn btn-sm btn-light border" onclick="bookmarkCareer('{{ rec.career_name }}')">
+                        <i class="fas fa-bookmark me-1 text-muted"></i>Save
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Detailed Insights Section for #1 Recommended Career -->
+    <div class="row g-4">
+        <!-- Left: Requirements & Outlook -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header fw-semibold">
+                    <i class="fas fa-info-circle me-2 text-primary"></i>Top Recommendation Breakdown: {{ top_career }}
+                </div>
+                <div class="card-body p-4">
+                    <h6 class="fw-bold text-primary mb-2">Description</h6>
+                    <p class="text-muted small mb-4">{{ career_description }}</p>
+
+                    <h6 class="fw-bold text-primary mb-2">Required Skills</h6>
+                    <ul class="small text-muted ps-3 mb-4">
+                        {% for skill in required_skills %}
+                        <li>{{ skill }}</li>
+                        {% endfor %}
+                    </ul>
+
+                    <h6 class="fw-bold text-primary mb-2">Recommended Certifications</h6>
+                    <ul class="small text-muted ps-3 mb-4">
+                        {% for cert in recommended_certifications %}
+                        <li>{{ cert }}</li>
+                        {% endfor %}
+                    </ul>
+
+                    <h6 class="fw-bold text-primary mb-2">Future Scope & Trends</h6>
+                    <p class="text-muted small mb-0">{{ future_trends }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Career Growth Roadmap -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header fw-semibold">
+                    <i class="fas fa-road me-2 text-primary"></i>Suggested Career Roadmap
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-flex gap-3 mb-3">
+                        <div class="d-flex align-items-center justify-content-center bg-primary text-white rounded-circle flex-shrink-0" style="width:30px;height:30px;font-size:0.8rem;font-weight:700;">1</div>
+                        <div>
+                            <h6 class="fw-semibold mb-1 small">Phase 1: Foundation</h6>
+                            <p class="text-muted small mb-0">Master core programming, analytical aptitude, and domain fundamentals.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 mb-3">
+                        <div class="d-flex align-items-center justify-content-center bg-primary text-white rounded-circle flex-shrink-0" style="width:30px;height:30px;font-size:0.8rem;font-weight:700;">2</div>
+                        <div>
+                            <h6 class="fw-semibold mb-1 small">Phase 2: Projects & Skill Building</h6>
+                            <p class="text-muted small mb-0">Build hands-on projects, participate in hackathons, and earn key certifications.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 mb-3">
+                        <div class="d-flex align-items-center justify-content-center bg-primary text-white rounded-circle flex-shrink-0" style="width:30px;height:30px;font-size:0.8rem;font-weight:700;">3</div>
+                        <div>
+                            <h6 class="fw-semibold mb-1 small">Phase 3: Internship / Entry Role</h6>
+                            <p class="text-muted small mb-0">Apply for entry-level roles or internships in target companies.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3">
+                        <div class="d-flex align-items-center justify-content-center bg-success text-white rounded-circle flex-shrink-0" style="width:30px;height:30px;font-size:0.8rem;font-weight:700;">4</div>
+                        <div>
+                            <h6 class="fw-semibold mb-1 small">Phase 4: Domain Specialist</h6>
+                            <p class="text-muted small mb-0">Advance to senior specialist or lead roles with continuous learning.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function bookmarkCareer(careerName) {
+    try {
+        const res = await fetch('/api/bookmark', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ career_name: careerName })
+        });
+        const data = await res.json();
+        if (data.success) {
+            Swal.fire({ icon: 'success', title: 'Bookmarked!', text: careerName + ' has been saved.', timer: 1500, showConfirmButton: false });
+        } else {
+            Swal.fire({ icon: 'error', title: 'Error', text: data.message || 'Failed to bookmark career.' });
+        }
+    } catch (e) {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'An unexpected error occurred.' });
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}Career Recommendation System — AI-Powered Career Guidance{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section text-center py-5">
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+                <span class="badge bg-light text-primary px-3 py-2 rounded-pill fw-semibold mb-3">
+                    <i class="fas fa-microchip me-1"></i> XGBoost Machine Learning Model · 82.33% Accuracy
+                </span>
+                <h1 class="display-4 fw-bold mb-3">Discover Your Perfect Career Path</h1>
+                <p class="lead mb-4 opacity-90 mx-auto" style="max-width: 700px;">
+                    Personalized career recommendations powered by Machine Learning. Our system analyzes your academic background, technical skills, soft skills, interests, and career goals to predict your ideal career direction.
+                </p>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="/register" class="btn btn-light btn-lg px-4 fw-bold text-primary shadow-sm">
+                        <i class="fas fa-rocket me-2"></i>Get Started Free
+                    </a>
+                    <a href="/assessment" class="btn btn-outline-light btn-lg px-4 fw-semibold">
+                        <i class="fas fa-clipboard-check me-2"></i>Take Assessment
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Counter Banner -->
+<section class="bg-white py-4 border-bottom">
+    <div class="container">
+        <div class="row text-center g-3">
+            <div class="col-6 col-md-3">
+                <div class="p-2">
+                    <h3 class="fw-bold text-primary mb-0">82.33%</h3>
+                    <p class="text-muted small mb-0">Model Accuracy</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-2">
+                    <h3 class="fw-bold text-primary mb-0">75+</h3>
+                    <p class="text-muted small mb-0">Career Paths</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-2">
+                    <h3 class="fw-bold text-primary mb-0">7,500</h3>
+                    <p class="text-muted small mb-0">Training Profiles</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-2">
+                    <h3 class="fw-bold text-primary mb-0">157</h3>
+                    <p class="text-muted small mb-0">Profile Attributes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Why Choose Us Section -->
+<section id="features" class="py-5">
+    <div class="container py-3">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Why Choose Our Career Recommender?</h2>
+            <p class="text-muted mx-auto" style="max-width: 600px;">
+                Designed specifically for MCA & STEM students to bridge the gap between academic education and industry career expectations.
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card h-100">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">AI-Powered Predictions</h5>
+                    <p class="text-muted small mb-0">
+                        Our XGBoost classifier evaluates your 157-attribute profile against 75 career domains to calculate probability-backed recommendations.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card h-100">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Comprehensive Analytics</h5>
+                    <p class="text-muted small mb-0">
+                        Visualize your soft and hard skills on interactive radar charts, track prediction history, and inspect career growth trends.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card h-100">
+                    <div class="feature-icon">
+                        <i class="fas fa-road"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Personalized Roadmaps</h5>
+                    <p class="text-muted small mb-0">
+                        Receive step-by-step career development roadmaps, recommended industry certifications, and key technologies to master.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card h-100">
+                    <div class="feature-icon">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Future-Ready Careers</h5>
+                    <p class="text-muted small mb-0">
+                        Discover high-demand emerging careers in AI, Cloud Computing, Cybersecurity, Data Science, and Full Stack Development.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5 bg-white border-top border-bottom">
+    <div class="container py-3">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">How It Works</h2>
+            <p class="text-muted">Simple 3-step process to unlock your ideal career path</p>
+        </div>
+
+        <div class="row g-4 text-center">
+            <div class="col-md-4">
+                <div class="p-3">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-circle mb-3" style="width: 64px; height: 64px; font-size: 1.5rem;">
+                        <i class="fas fa-edit"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">1. Fill Assessment</h5>
+                    <p class="text-muted small mb-0">
+                        Complete an 8-section form detailing your academic scores, technical skills, soft skills, interests, and preferences.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="p-3">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-circle mb-3" style="width: 64px; height: 64px; font-size: 1.5rem;">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">2. ML Analysis</h5>
+                    <p class="text-muted small mb-0">
+                        Our trained XGBoost Machine Learning model processes your input parameters and computes match probabilities across 75 careers.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="p-3">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-circle mb-3" style="width: 64px; height: 64px; font-size: 1.5rem;">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">3. Get Recommendations</h5>
+                    <p class="text-muted small mb-0">
+                        Review your Top-5 career matches with confidence percentages, salary insights, required skills, and course recommendations.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action Banner -->
+<section class="py-5 text-center bg-light">
+    <div class="container py-3">
+        <div class="card border-0 shadow-sm p-4 p-md-5 mx-auto" style="max-width: 800px; background-color: var(--surface);">
+            <div class="card-body">
+                <i class="fas fa-graduation-cap fa-3x text-primary mb-3"></i>
+                <h3 class="fw-bold mb-2">Ready to Discover Your Career Domain?</h3>
+                <p class="text-muted mb-4">Start your free personalized assessment now and get instant AI-guided career recommendations.</p>
+                <a href="/register" class="btn btn-primary btn-lg px-4">
+                    <i class="fas fa-user-plus me-2"></i>Create Free Account
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

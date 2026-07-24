@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Career Recommendation System{% endblock %}</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+
+    {% block head %}{% endblock %}
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg sticky-top" id="mainNavbar">
+        <div class="container">
+
+            <!-- Brand -->
+            <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+                <div class="navbar-brand-icon">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <div class="d-none d-sm-block">
+                    <span class="navbar-brand-title">CareerPath</span>
+                    <span class="navbar-brand-sub d-none d-md-inline">AI Recommender</span>
+                </div>
+            </a>
+
+            <!-- Mobile toggler -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-bar"></span>
+                <span class="navbar-toggler-bar"></span>
+                <span class="navbar-toggler-bar"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+
+                <!-- ── Left Nav: Public + User Links ── -->
+                <ul class="navbar-nav me-auto align-items-lg-center gap-lg-1">
+
+                    <li class="nav-item">
+                        <a class="nav-link-pill {% if request.endpoint == 'index' %}active{% endif %}" href="/">
+                            <i class="fas fa-home"></i><span>Home</span>
+                        </a>
+                    </li>
+
+                    {% if session.user_id %}
+                    <!-- ── Authenticated User Links ── -->
+                    <li class="nav-item">
+                        <a class="nav-link-pill {% if request.endpoint == 'dashboard' %}active{% endif %}" href="/dashboard">
+                            <i class="fas fa-th-large"></i><span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-pill {% if request.endpoint == 'assessment' %}active{% endif %}" href="/assessment">
+                            <i class="fas fa-clipboard-check"></i><span>Assessment</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-pill {% if request.endpoint == 'view_recommendation' %}active{% endif %}" href="/recommendation">
+                            <i class="fas fa-chart-line"></i><span>Results</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-pill {% if request.endpoint == 'feedback_page' %}active{% endif %}" href="/feedback">
+                            <i class="fas fa-comment-dots"></i><span>Feedback</span>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    <li class="nav-item">
+                        <a class="nav-link-pill {% if request.endpoint == 'about' %}active{% endif %}" href="/about">
+                            <i class="fas fa-info-circle"></i><span>About</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-pill {% if request.endpoint == 'contact' %}active{% endif %}" href="/contact">
+                            <i class="fas fa-envelope"></i><span>Contact</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- ── Right Nav: Account Controls ── -->
+                <ul class="navbar-nav align-items-lg-center gap-2">
+
+                    {% if session.user_id %}
+                    <!-- Assessment CTA (desktop only) -->
+                    <li class="nav-item d-none d-lg-block">
+                        <a href="/assessment" class="btn btn-nav-cta">
+                            <i class="fas fa-magic me-1"></i>New Assessment
+                        </a>
+                    </li>
+
+                    <!-- User account dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-user-toggle" href="#" id="userDropdown" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="nav-user-avatar">
+                                {{ (session.full_name or 'U')[0].upper() }}
+                            </div>
+                            <div class="nav-user-info d-none d-lg-block">
+                                <span class="nav-user-name">{{ session.full_name.split()[0] if session.full_name else 'Account' }}</span>
+                                <span class="nav-user-role">Student</span>
+                            </div>
+                            <i class="fas fa-chevron-down nav-user-caret d-none d-lg-block"></i>
+                        </a>
+
+                        <ul class="dropdown-menu dropdown-menu-end nav-dropdown shadow" aria-labelledby="userDropdown">
+                            <!-- User header -->
+                            <li class="nav-dropdown-header">
+                                <div class="nav-dropdown-avatar">{{ (session.full_name or 'U')[0].upper() }}</div>
+                                <div>
+                                    <div class="fw-semibold text-dark" style="font-size:.9rem;">{{ session.full_name or 'Student' }}</div>
+                                    <div class="text-muted" style="font-size:.78rem;">Signed in as Student</div>
+                                </div>
+                            </li>
+                            <li><hr class="dropdown-divider my-1"></li>
+
+                            <!-- Navigation items -->
+                            <li>
+                                <a class="dropdown-item nav-dropdown-item" href="/dashboard">
+                                    <span class="nav-dropdown-icon bg-primary-soft"><i class="fas fa-th-large text-primary"></i></span>
+                                    <span>My Dashboard</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item nav-dropdown-item" href="/profile">
+                                    <span class="nav-dropdown-icon bg-info-soft"><i class="fas fa-id-card text-info"></i></span>
+                                    <span>My Profile</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item nav-dropdown-item" href="/recommendation">
+                                    <span class="nav-dropdown-icon bg-success-soft"><i class="fas fa-chart-line text-success"></i></span>
+                                    <span>My Results</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item nav-dropdown-item" href="/feedback">
+                                    <span class="nav-dropdown-icon bg-warning-soft"><i class="fas fa-comment-dots text-warning"></i></span>
+                                    <span>Give Feedback</span>
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li>
+                                <a class="dropdown-item nav-dropdown-item text-danger" href="/logout">
+                                    <span class="nav-dropdown-icon bg-danger-soft"><i class="fas fa-sign-out-alt text-danger"></i></span>
+                                    <span>Sign Out</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    {% elif session.admin_id %}
+                    <!-- ── Admin Session Controls ── -->
+                    <li class="nav-item">
+                        <span class="nav-admin-badge"><i class="fas fa-shield-alt me-1"></i>Admin</span>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-user-toggle" href="#" id="adminDropdown" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="nav-user-avatar nav-user-avatar--admin">
+                                <i class="fas fa-user-shield"></i>
+                            </div>
+                            <div class="nav-user-info d-none d-lg-block">
+                                <span class="nav-user-name">{{ session.admin_name or 'Admin' }}</span>
+                                <span class="nav-user-role">Administrator</span>
+                            </div>
+                            <i class="fas fa-chevron-down nav-user-caret d-none d-lg-block"></i>
+                        </a>
+
+                        <ul class="dropdown-menu dropdown-menu-end nav-dropdown shadow" aria-labelledby="adminDropdown">
+                            <li class="nav-dropdown-header">
+                                <div class="nav-dropdown-avatar nav-dropdown-avatar--admin"><i class="fas fa-user-shield"></i></div>
+                                <div>
+                                    <div class="fw-semibold text-dark" style="font-size:.9rem;">{{ session.admin_name or 'Administrator' }}</div>
+                                    <div class="text-muted" style="font-size:.78rem;"><i class="fas fa-shield-alt me-1 text-danger"></i>Admin Session</div>
+                                </div>
+                            </li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li>
+                                <a class="dropdown-item nav-dropdown-item" href="/admin/dashboard">
+                                    <span class="nav-dropdown-icon bg-primary-soft"><i class="fas fa-tachometer-alt text-primary"></i></span>
+                                    <span>Admin Dashboard</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item nav-dropdown-item" href="/admin/export">
+                                    <span class="nav-dropdown-icon bg-success-soft"><i class="fas fa-download text-success"></i></span>
+                                    <span>Export Report</span>
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li>
+                                <a class="dropdown-item nav-dropdown-item text-danger" href="/admin/logout">
+                                    <span class="nav-dropdown-icon bg-danger-soft"><i class="fas fa-sign-out-alt text-danger"></i></span>
+                                    <span>Admin Logout</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    {% else %}
+                    <!-- ── Guest Controls ── -->
+                    <li class="nav-item">
+                        <a class="nav-link-pill" href="/login">
+                            <i class="fas fa-sign-in-alt"></i><span>Login</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-nav-register" href="/register">
+                            <i class="fas fa-user-plus me-1"></i>Get Started
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow-1">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="container mt-3">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category if category in ['success','danger','warning','info'] else 'info' }} alert-dismissible fade show mb-2" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row g-4 mb-3 text-start">
+                <div class="col-md-5">
+                    <h6 class="fw-bold mb-2"><i class="fas fa-graduation-cap me-2 text-primary"></i>Career Recommendation System</h6>
+                    <p class="text-muted small mb-0">
+                        MCA Major Project. Personalized Machine Learning career recommendations powered by XGBoost classifier (82.33% accuracy) trained on multi-dimensional student profile data.
+                    </p>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="fw-bold mb-2">Quick Navigation</h6>
+                    <ul class="list-unstyled small mb-0">
+                        <li class="mb-1"><a href="/">Home</a></li>
+                        <li class="mb-1"><a href="/about">About Project</a></li>
+                        <li class="mb-1"><a href="/contact">Contact Support</a></li>
+                        <li class="mb-1"><a href="/feedback">Feedback</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <h6 class="fw-bold mb-2">Admin Portal</h6>
+                    <p class="text-muted small mb-2">Restricted system administration & analytics</p>
+                    <a href="/admin/login" class="btn btn-outline-light btn-sm"><i class="fas fa-shield-alt me-1"></i>Admin Login</a>
+                </div>
+            </div>
+            <div class="border-top pt-3 text-center small text-muted">
+                &copy; 2026 Career Recommendation System. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+    // Scroll-aware navbar shadow
+    (function () {
+        var nav = document.getElementById('mainNavbar');
+        if (!nav) return;
+        window.addEventListener('scroll', function () {
+            nav.classList.toggle('navbar--scrolled', window.scrollY > 10);
+        }, { passive: true });
+    })();
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
