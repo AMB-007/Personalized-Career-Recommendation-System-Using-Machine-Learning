@@ -1,69 +1,75 @@
-# AI Career Recommendation System
+# 🚀 AI Career Recommendation System
 
-An intelligent, full-stack application that leverages machine learning to recommend suitable career paths based on a student's academic performance, skills, interests, and various other metrics.
-
----
-
-## 🌟 Key Features
-
-- **High-Accuracy ML Model**: Utilizes a high-capacity Decision Tree / Random Forest model combined with TF-IDF on textual data (skills, interests, certifications). Evaluated on 270+ career classes with 95%+ accuracy.
-- **Robust Backend API**: Built with Flask and MySQL, providing a fully normalized relational database (15 tables) storage for users, education profiles, and student profiles.
-- **Modern Frontend**: Interactive and responsive user interface built with React 19 and Vite, using React Router for seamless navigation.
-- **User Roles & Authentication**: Supports student and administrative roles with secure JWT-based authentication and password hashing (Werkzeug).
-- **Comprehensive API**: Exposes REST endpoints for AI prediction, user management, profile updates, and more.
+An intelligent, full-stack platform leveraging Machine Learning to recommend highly personalized career paths based on a student's academic performance, psychometric traits, technical skills, and interests.
 
 ---
 
-## 🛠 Tech Stack
+## ✨ Key Features
 
-### Frontend
-- **React 19**
-- **Vite** (Build tool and dev server)
-- **React Router DOM** (Routing)
+- **🧠 Advanced ML Engine:** Utilizes an **XGBoost / Soft-Voting Ensemble** model trained on 61 distinct features (demographics, psychometrics, academics, and skills) to predict top-5 career matches with 90%+ accuracy.
+- **📊 SHAP Explainability (XAI):** Provides transparent AI recommendations by calculating feature importances (e.g., showing *why* a career was recommended based on specific skills or interests).
+- **🛡️ Fallback Prediction Mode:** If the trained ML artifacts are missing or corrupted, the backend gracefully falls back to a mocked, heuristic-based recommendation engine so the UI remains fully functional.
+- **⚡ Modern Frontend:** Interactive, responsive, and dynamic UI built with React 19, Vite, and detailed CSS design tokens.
+- **🔒 Secure Backend:** Flask REST API backed by a normalized 15-table MySQL database, utilizing JWT authentication and secure password hashing.
+- **📈 Comprehensive Dashboard:** Visualizes the student's career readiness score, verified skills, recommended learning roadmap, and prediction history.
+
+---
+
+## 🛠️ Tech Stack
+
+### Client-Side (Frontend)
+- **React 19** & **Vite**
+- **React Router DOM** (Client-side routing)
 - **Axios** (HTTP client for API requests)
+- **Vanilla CSS** (Custom Design System & Tokens)
 
-### Backend
-- **Python 3**
-- **Flask** & **Flask-CORS** (RESTful API)
+### Server-Side (Backend)
+- **Python 3.10+**
+- **Flask** & **Flask-CORS** (RESTful API framework)
 - **MySQL** & `mysql-connector-python` (Relational Database)
-- **Scikit-Learn, Pandas, Numpy, Joblib** (Machine Learning Pipeline)
-- **PyJWT & Werkzeug** (Authentication & Security)
+- **PyJWT** & **Werkzeug** (Authentication & Security)
+
+### Machine Learning Pipeline
+- **XGBoost**, **LightGBM**, **CatBoost** (Tree-based ensemble models)
+- **Scikit-Learn** (Label Encoding, Ordinal Encoding, Standard Scaling)
+- **Pandas** & **Numpy** (Data processing)
+- **SHAP** (Explainable AI)
 
 ---
 
-## 🏗 Project Pipeline Architecture
+## 🏗️ Architecture & ML Pipeline
 
 ```mermaid
 graph TD
     %% Frontend Layer
-    subgraph Frontend [Client - React + Vite]
-        UI[User Interface] --> |Collects User Profile, Skills & Scores| APIClient[Axios HTTP Client]
+    subgraph Frontend [Client - React]
+        UI[Assessment Wizard] --> |Collects 61 Features| APIClient[Axios HTTP Client]
     end
 
     %% Backend Layer
     subgraph Backend [Server - Flask]
-        APIClient -->|JSON Payload via POST| Router[Flask REST API /predict/career]
-        Router --> Auth[JWT Authentication / Role Check]
-        Auth --> Controller[Prediction Controller]
+        APIClient -->|JSON POST| Router[REST API /api/assessment/submit]
+        Router --> Auth[JWT Check]
+        Auth --> Controller[Feature Extraction]
     end
 
     %% ML Pipeline Layer
-    subgraph ML [Machine Learning Pipeline]
-        Controller --> Preprocessor[Data Preprocessing Module]
-        Preprocessor --> |Feature Encoder & Scaler| Transformed[Numerical Features]
-        Preprocessor --> |TF-IDF Vectorizer| Text[Textual Features]
-        Transformed & Text --> Concat[Feature Array]
-        Concat --> Model[Decision Tree / Random Forest Model]
-        Model --> Output[Top-5 Career Recommendations]
+    subgraph ML [Machine Learning Engine]
+        Controller --> Preprocessor[Data Preprocessing]
+        Preprocessor --> |OrdinalEncoder| Cat[Categorical Features]
+        Preprocessor --> |StandardScaler| Num[Numerical Features]
+        Cat & Num --> Model[XGBoost Model / Ensemble]
+        Model --> Output[Top-5 Predictions & Confidences]
+        Model --> SHAP[SHAP Explainer]
     end
 
     %% Database Layer
-    subgraph Database [MySQL 15-Table Relational DB]
-        Controller <--> DB[(User & Profile Data)]
+    subgraph Database [MySQL 15-Table DB]
+        Controller <--> DB[(career_predictions table)]
     end
 
     %% Response
-    Output --> |JSON Response| Router
+    Output & SHAP --> |JSON Response| Router
     Router --> |HTTP 200 OK| UI
 ```
 
@@ -74,17 +80,20 @@ graph TD
 ```text
 Career_Recommendation_System/
 ├── backend/
-│   ├── app.py                 # Main Flask application and API routes
-│   ├── train_model.py         # ML pipeline script (TF-IDF + Feature Engineering)
-│   ├── import_data.py         # Script to seed database / import datasets
-│   ├── models/                # Directory storing trained ML models (.joblib, .pkl)
+│   ├── app.py                 # Core Flask application and ML inference endpoints
+│   ├── career_system_db.sql   # SQL schema for the 15-table database
+│   ├── models/                # Trained ML artifacts (.pkl files, encoders, scaler)
 │   ├── requirements.txt       # Python dependencies
 │   └── .env                   # Environment variables (Database credentials)
 ├── frontend/
-│   ├── src/                   # React components, pages (Home, Register, Profile)
-│   ├── package.json           # Node.js dependencies and scripts
+│   ├── src/
+│   │   ├── components/        # Reusable UI components (Navbar, Charts)
+│   │   ├── pages/             # Route pages (Home, Dashboard, StudentProfile, etc.)
+│   │   ├── index.css          # Core styles & Design tokens
+│   │   └── main.jsx           # React mounting point
+│   ├── package.json           # Node.js dependencies
 │   └── vite.config.js         # Vite configuration
-└── test_api.py                # Example script to test the prediction API payload
+└── README.md                  # Project Documentation
 ```
 
 ---
@@ -92,55 +101,50 @@ Career_Recommendation_System/
 ## 🚀 Getting Started
 
 ### Prerequisites
-
-- Node.js (v18+)
-- Python (v3.8+)
-- MySQL Server
+- **Node.js** (v18+)
+- **Python** (v3.10+)
+- **MySQL Server**
 
 ### 1. Database Setup
-
 1. Start your local MySQL server.
-2. Create a database named `career_recommendation_db` (or as specified in your environment variables).
-3. The database tables (like `users`, `student_profiles`, `education_profiles`, etc.) will automatically initialize upon starting the Flask application.
+2. Create a new database named `career_system_db`.
+3. Import the schema provided in `backend/career_system_db.sql`:
+   ```bash
+   mysql -u root -p career_system_db < backend/career_system_db.sql
+   ```
 
 ### 2. Backend Setup
-
 1. Navigate to the `backend` directory:
    ```bash
    cd backend
    ```
-2. Create a virtual environment and activate it:
+2. Create and activate a virtual environment:
    ```bash
    python -m venv venv
-   # On Windows:
+   # Windows:
    .\venv\Scripts\activate
-   # On macOS/Linux:
+   # macOS/Linux:
    source venv/bin/activate
    ```
 3. Install the Python dependencies:
    ```bash
    pip install -r requirements.txt
    ```
-4. Create a `.env` file in the `backend` directory with the following content (adjust values to your local MySQL setup):
+4. Create a `.env` file in the `backend` directory (matching your MySQL setup):
    ```env
    DB_HOST=localhost
    DB_USER=root
-   DB_PASSWORD=abc123
-   DB_NAME=career_recommendation_db
+   DB_PASSWORD=your_mysql_password
+   DB_NAME=career_system_db
    JWT_SECRET=career_super_secret_key_2026
    ```
-5. Train the Machine Learning model (this will generate the necessary `.pkl` and `.joblib` files in `backend/models/`):
-   ```bash
-   python train_model.py
-   ```
-6. Start the Flask server:
+5. Start the Flask server:
    ```bash
    python app.py
    ```
-   The backend will run on `http://127.0.0.1:5000`.
+   *The backend will run on `http://127.0.0.1:5000`.*
 
 ### 3. Frontend Setup
-
 1. Open a new terminal and navigate to the `frontend` directory:
    ```bash
    cd frontend
@@ -153,54 +157,21 @@ Career_Recommendation_System/
    ```bash
    npm run dev
    ```
-   The frontend will be accessible at `http://localhost:5173`.
+   *The frontend will be accessible at `http://localhost:5173`.*
 
 ---
 
-## 🧠 Machine Learning Details
+## 🧠 Machine Learning Integration Details
 
-The recommendation engine (`backend/train_model.py`) is engineered to capture complex patterns across user profiles.
+The recommendation engine (`backend/app.py`) loads highly optimized `.pkl` artifacts on startup. 
 
-- **Categorical Features**: `Gender`, `Education_Level`, `Stream`, `Specialization`, `Olympiad_Participation`, `Research_Experience`, `Volunteer_Activities`, `Club_Activities`.
-- **Textual Features**: Combines `Skills`, `Interests`, and `Certifications` using a **TF-IDF Vectorizer**.
-- **Model**: High-capacity Decision Tree Classifier (acting as a tree-based estimator).
-- **Metrics**: Calculates Top-1 and Top-5 accuracy across a broad spectrum of career recommendations.
-
----
-
-## 📡 API Usage Example
-
-To test the career prediction endpoint directly, you can run the provided `test_api.py` script:
-
-```bash
-python test_api.py
-```
-
-This sends a JSON payload containing academic scores, RIASEC scores, and skills to the `/api/predict/career` endpoint. 
-
-**Example Payload:**
-```json
-{
-  "Age": 17,
-  "Gender": "Female",
-  "Location_Type": "Urban",
-  "Education_Level": "Class 11-12",
-  "Current_Class_Or_Year": "Class 12",
-  "Board": "CBSE",
-  "Stream": "Science - PCM",
-  "Specialization": "Not Applicable",
-  "Specialization_Group": "STEM",
-  "Math_Score": 85.5,
-  "Science_Score": 88.0,
-  "Social_Science_Score": 75.0,
-  "English_Score": 82.0,
-  "Overall_Academic_Percentage": 84.5,
-  "Total_RIASEC_Score": 330.0
-}
-```
+**The Pipeline:**
+1. **Data Extraction:** Converts the frontend's nested JSON payload into a strict 61-feature Pandas DataFrame.
+2. **Preprocessing:** Applies a trained `OrdinalEncoder` for categorical strings (e.g., Degree, Board) and a `StandardScaler` for numeric values.
+3. **Inference:** Feeds the processed data into the `XGBClassifier` to extract `predict_proba()` confidences.
+4. **Resilience:** Features a built-in **Mock Prediction Fallback**. If the ML artifacts (`career_model.pkl`) fail to load due to serialization issues across environments, the backend dynamically switches to heuristic-based recommendations. This ensures the frontend Dashboard never breaks.
 
 ---
 
 ## 📄 License
-
 This project is licensed under the MIT License.
