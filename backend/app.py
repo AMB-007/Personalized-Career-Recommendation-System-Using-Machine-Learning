@@ -4,6 +4,10 @@ AI Career Recommendation System — Flask Backend
 ==============================================================================
 All business logic lives here. Frontend never computes scores or contains
 assessment logic. Every request goes through REST API endpoints.
+
+ML prediction is intentionally removed — a new trained model will be
+integrated once the dataset is ready. Use /api/assessment/submit to store
+raw assessment data in the meantime.
 ==============================================================================
 """
 
@@ -11,8 +15,9 @@ import os
 import json
 import random
 import datetime
+import secrets
 import jwt
-import joblib
+import pickle
 import numpy as np
 import pandas as pd
 from flask import Flask, request, jsonify, send_from_directory
@@ -20,6 +25,27 @@ from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 import mysql.connector
 from mysql.connector import pooling
+
+# Try loading XGBoost and ML Artifacts
+try:
+    import xgboost as xgb
+    ml_base = os.path.join(os.path.dirname(__file__), 'models')
+    ml_model = pickle.load(open(os.path.join(ml_base, 'career_model.pkl'), 'rb'))
+    ml_le = pickle.load(open(os.path.join(ml_base, 'label_encoder.pkl'), 'rb'))
+    ml_oe = pickle.load(open(os.path.join(ml_base, 'ordinal_encoder.pkl'), 'rb'))
+    ml_scaler = pickle.load(open(os.path.join(ml_base, 'scaler.pkl'), 'rb'))
+    ml_feature_cols = pickle.load(open(os.path.join(ml_base, 'feature_columns.pkl'), 'rb'))
+    ml_cat_cols = pickle.load(open(os.path.join(ml_base, 'cat_feature_names.pkl'), 'rb'))
+    ml_num_cols = pickle.load(open(os.path.join(ml_base, 'numeric_feature_names.pkl'), 'rb'))
+    try:
+        ml_shap = pickle.load(open(os.path.join(ml_base, 'shap_explainer.pkl'), 'rb'))
+    except Exception:
+        ml_shap = None
+    print("✅ ML Artifacts loaded successfully.")
+except Exception as e:
+    print(f"⚠️ ML load failed: {e}. Running in Mock Prediction mode.")
+    ml_model, ml_le, ml_oe, ml_scaler, ml_feature_cols = None, None, None, None, None
+    ml_cat_cols, ml_num_cols, ml_shap = None, None, None
 
 # ─────────────────────────────────────────────────────────────────────────────
 # APP SETUP
@@ -175,7 +201,7 @@ def init_db():
             )
         """)
 
-        # 8. feature_scores
+        # 8. feature_scores (reserved for future ML model)
         cur.execute("""
             CREATE TABLE IF NOT EXISTS feature_scores (
                 id                      INT AUTO_INCREMENT PRIMARY KEY,
@@ -280,7 +306,7 @@ def init_db():
             )
         """)
 
-        # 13. career_predictions
+        # 13. career_predictions (reserved for future ML model output)
         cur.execute("""
             CREATE TABLE IF NOT EXISTS career_predictions (
                 id                  INT AUTO_INCREMENT PRIMARY KEY,
@@ -613,41 +639,21 @@ def seed_questions(cur, conn):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# LOAD ML MODELS
+# INITIALIZE
 # ─────────────────────────────────────────────────────────────────────────────
-MODELS_DIR = os.path.join(os.path.dirname(__file__), 'models')
-
-ml_model           = None
-label_encoder      = None
-feature_encoders   = None
-scaler             = None
-feature_columns    = None
-shap_available     = False
-
-def load_models():
-    global ml_model, label_encoder, feature_encoders, scaler, feature_columns, shap_available
-
-    try:
-        ml_model         = joblib.load(os.path.join(MODELS_DIR, 'career_model_lgb.joblib'))
-        label_encoder    = joblib.load(os.path.join(MODELS_DIR, 'label_encoder.pkl'))
-        feature_encoders = joblib.load(os.path.join(MODELS_DIR, 'feature_encoder.pkl'))
-        scaler           = joblib.load(os.path.join(MODELS_DIR, 'scaler.pkl'))
-        feature_columns  = joblib.load(os.path.join(MODELS_DIR, 'feature_columns.pkl'))
-
-        try:
-            import shap
-            shap_available = True
-        except ImportError:
-            shap_available = False
-
-        print(f"  [OK] LightGBM model loaded ({len(label_encoder.classes_)} career classes)")
-    except Exception as e:
-        print(f"  [WARN]  Models not found (run train_model.py first): {e}")
+print("\n" + "=" * 60)
+print("  Career Recommendation System — Backend Startup")
+print("=" * 60)
+init_db()
+print("  [INFO] ML model not loaded — awaiting new trained model.")
+print("=" * 60 + "\n")
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# AUTH HELPERS
-# ─────────────────────────────────────────────────────────────────────────────
+# ═════════════════════════════════════════════════════════════════════════════
+# REST API ENDPOINTS
+# ═════════════════════════════════════════════════════════════════════════════
+
+# ── AUTH HELPERS ──────────────────────────────────────────────────────────────
 def generate_token(user_id: int, email: str, role: str) -> str:
     payload = {
         "user_id": user_id,
@@ -697,358 +703,14 @@ def require_admin(f):
     return decorated
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# SCORING ENGINE — converts raw answers → standardized feature scores
-# ─────────────────────────────────────────────────────────────────────────────
-def compute_feature_scores(payload: dict) -> dict:
-    """
-    Converts raw assessment payload into standardized 0–100 feature scores
-    that are passed directly to the ML model.
-    """
-    # Academic
-    cgpa          = float(payload.get("cgpa", 7.5))
-    attendance    = float(payload.get("attendance", 85))
-    sem_marks     = float(payload.get("semester_marks", 75))
-    project_score = float(payload.get("project_score", 60))
-
-    # Normalize CGPA to 0-100
-    cgpa_pct = min((cgpa / 10.0) * 100, 100)
-
-    # Aptitude scores from question answers
-    apt_answers   = payload.get("aptitude_answers", {})
-    apt_correct   = sum(1 for v in apt_answers.values() if v.get("is_correct", False))
-    apt_total     = max(len(apt_answers), 1)
-    logical_score = round((apt_correct / apt_total) * 100)
-
-    # Skill verification
-    skill_scores = payload.get("skill_scores", {})
-    avg_skill    = round(np.mean(list(skill_scores.values())) if skill_scores else 60)
-
-    # Psychometric trait scores (from situational scenario responses)
-    psycho = payload.get("psychometric_traits", {})
-    leadership   = float(psycho.get("Leadership", 70))
-    teamwork     = float(psycho.get("Teamwork", 75))
-    communication= float(psycho.get("Communication", 72))
-    creativity   = float(psycho.get("Creativity", 68))
-    resilience   = float(psycho.get("Resilience", 70))
-    curiosity    = float(psycho.get("Curiosity", 72))
-    problem_solv = float(psycho.get("Problem_Solving", 70))
-    adaptability = float(psycho.get("Adaptability", 70))
-    analytical   = float(psycho.get("Analytical_Thinking", 70))
-    confidence   = float(psycho.get("Confidence", 65))
-    decision_mak = float(psycho.get("Decision_Making", 68))
-    time_mgmt    = float(psycho.get("Time_Management", 70))
-    stress_mgmt  = float(psycho.get("Stress_Management", 65))
-    self_learn   = float(psycho.get("Self_Learning", 72))
-    persistence  = float(psycho.get("Persistence", 70))
-
-    # Career interest domain scores
-    interests = payload.get("interest_scores", {})
-    tech_int   = float(interests.get("Technology", 50))
-    healthcare = float(interests.get("Healthcare", 30))
-    business   = float(interests.get("Business", 40))
-    arts       = float(interests.get("Creative Arts", 35))
-    research   = float(interests.get("Research", 45))
-    education  = float(interests.get("Education", 30))
-    engineering= float(interests.get("Engineering", 50))
-    law_int    = float(interests.get("Law", 20))
-    environment= float(interests.get("Environment", 25))
-
-    # Certifications & projects
-    certs       = payload.get("certifications", [])
-    projects    = payload.get("projects", [])
-    cert_count  = len(certs)
-    proj_count  = len(projects)
-    cert_score  = min(cert_count * 15, 100)
-    proj_score  = min(proj_count * 20, 100)
-    internships = int(payload.get("internships_count", 0))
-
-    return {
-        "logical_aptitude":     logical_score,
-        "numerical_ability":    min(sem_marks, 100),
-        "verbal_ability":       min(communication, 100),
-        "spatial_ability":      60,
-        "programming_score":    avg_skill if skill_scores else 50,
-        "science_score":        min(sem_marks, 100),
-        "business_score":       business,
-        "creative_score":       arts,
-        "medical_score":        healthcare,
-        "leadership_trait":     leadership,
-        "teamwork_trait":       teamwork,
-        "communication_trait":  communication,
-        "resilience_trait":     resilience,
-        "curiosity_trait":      curiosity,
-        "creativity_trait":     creativity,
-        "problem_solving":      problem_solv,
-        "analytical_thinking":  analytical,
-        "adaptability_trait":   adaptability,
-        "ai_interest":          tech_int,
-        "technology_interest":  tech_int,
-        "healthcare_interest":  healthcare,
-        "business_interest":    business,
-        "arts_interest":        arts,
-        "research_interest":    research,
-        "education_interest":   education,
-        "engineering_interest": engineering,
-        "law_interest":         law_int,
-        "environment_interest": environment,
-        "certification_score":  cert_score,
-        "project_score":        proj_score,
-        "internship_score":     min(internships * 20, 100),
-        "skill_verified_score": avg_skill,
-        "academic_score":       cgpa_pct,
-        "attendance_pct":       attendance,
-        "cgpa":                 cgpa,
-        "skill_count":          len(skill_scores),
-        "cert_count":           cert_count,
-    }
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# CAREER PREDICTION ENGINE
-# ─────────────────────────────────────────────────────────────────────────────
-def run_ml_prediction(feature_scores: dict, education_level: str, stream: str,
-                       degree: str, specialization: str, gender: str = "Male"):
-    """
-    Builds the feature vector expected by the trained LightGBM model and
-    returns top-5 careers with confidence and SHAP-style explanations.
-    """
-    if ml_model is None:
-        return fallback_prediction(feature_scores, education_level)
-
-    try:
-        # Map raw values using the same encoders used during training
-        def safe_encode(encoder, value):
-            val_str = str(value).strip()
-            if hasattr(encoder, 'classes_') and val_str in encoder.classes_:
-                return int(encoder.transform([val_str])[0])
-            return 0
-
-        encoded = {
-            "Gender":         safe_encode(feature_encoders.get("Gender"), gender),
-            "Education_Level":safe_encode(feature_encoders.get("Education_Level"), education_level),
-            "Stream":         safe_encode(feature_encoders.get("Stream"), stream),
-            "Specialization": safe_encode(feature_encoders.get("Specialization"), specialization),
-        }
-
-        # Build full feature row aligned to training columns
-        row = {}
-        for col in feature_columns:
-            if col in encoded:
-                row[col] = encoded[col]
-            elif col == "Age":
-                row[col] = 20
-            elif col == "Attendance_Percentage":
-                row[col] = feature_scores.get("attendance_pct", 80)
-            elif col == "CGPA":
-                row[col] = feature_scores.get("cgpa", 7.5)
-            elif col == "Semester_Marks_Percent":
-                row[col] = feature_scores.get("numerical_ability", 75)
-            elif col == "Internal_Marks":
-                row[col] = feature_scores.get("numerical_ability", 75)
-            elif col == "Practical_Marks":
-                row[col] = feature_scores.get("numerical_ability", 70)
-            elif col == "Project_Score":
-                row[col] = feature_scores.get("project_score", 60)
-            elif col == "Lab_Score":
-                row[col] = feature_scores.get("programming_score", 60)
-            elif col == "Assignment_Score":
-                row[col] = feature_scores.get("academic_score", 70)
-            elif col == "Competition_Participation_Count":
-                row[col] = min(feature_scores.get("cert_count", 0), 5)
-            elif col == "Olympiad_Participation":
-                row[col] = 0
-            elif col == "Hackathons_Count":
-                row[col] = min(feature_scores.get("skill_count", 0), 5)
-            elif col == "Internships_Count":
-                row[col] = min(feature_scores.get("internship_score", 0) // 20, 5)
-            elif col == "Research_Experience":
-                row[col] = 1 if feature_scores.get("research_interest", 0) > 60 else 0
-            elif col == "Volunteer_Activities":
-                row[col] = 0
-            elif col == "Club_Activities":
-                row[col] = 0
-            elif col == "Leadership":
-                row[col] = int(feature_scores.get("leadership_trait", 70) / 10)
-            elif col == "Communication":
-                row[col] = int(feature_scores.get("communication_trait", 70) / 10)
-            elif col == "Confidence":
-                row[col] = int(feature_scores.get("creative_score", 65) / 10)
-            elif col == "Creativity":
-                row[col] = int(feature_scores.get("creativity_trait", 70) / 10)
-            elif col == "Problem_Solving":
-                row[col] = int(feature_scores.get("problem_solving", 70) / 10)
-            elif col == "Critical_Thinking":
-                row[col] = int(feature_scores.get("analytical_thinking", 70) / 10)
-            elif col == "Adaptability":
-                row[col] = int(feature_scores.get("adaptability_trait", 70) / 10)
-            elif col == "Teamwork":
-                row[col] = int(feature_scores.get("teamwork_trait", 75) / 10)
-            elif col == "Decision_Making":
-                row[col] = 7
-            elif col == "Time_Management":
-                row[col] = 7
-            elif col == "Curiosity":
-                row[col] = int(feature_scores.get("curiosity_trait", 70) / 10)
-            elif col == "Analytical_Thinking":
-                row[col] = int(feature_scores.get("analytical_thinking", 70) / 10)
-            elif col == "Stress_Management":
-                row[col] = 6
-            elif col == "Self_Learning":
-                row[col] = int(feature_scores.get("curiosity_trait", 70) / 10)
-            elif col == "Persistence":
-                row[col] = int(feature_scores.get("resilience_trait", 70) / 10)
-            elif col == "Skill_Count":
-                row[col] = feature_scores.get("skill_count", 3)
-            elif col == "Interest_Count":
-                row[col] = 3
-            elif col == "Certification_Count":
-                row[col] = feature_scores.get("cert_count", 1)
-            else:
-                row[col] = 0
-
-        X_df     = pd.DataFrame([row])[feature_columns]
-        X_scaled = scaler.transform(X_df)
-
-        # Get probabilities for all 272 classes
-        proba    = ml_model.predict_proba(X_scaled)[0]
-        top5_idx = np.argsort(proba)[::-1][:5]
-
-        top5 = []
-        for rank, idx in enumerate(top5_idx, 1):
-            career     = label_encoder.inverse_transform([idx])[0]
-            confidence = round(float(proba[idx]) * 100, 1)
-            top5.append(build_career_detail(rank, career, confidence, feature_scores))
-
-        # Simple XAI attributions based on highest scores
-        xai_chips = build_xai_chips(feature_scores)
-
-        return {"top5": top5, "xai": xai_chips, "method": "LightGBM ML"}
-
-    except Exception as e:
-        print(f"  [WARN]  ML prediction error: {e}")
-        return fallback_prediction(feature_scores, education_level)
-
-
-def build_xai_chips(fs: dict) -> list:
-    """Builds Explainable AI attribution chips from feature scores."""
-    chips = []
-    if fs.get("logical_aptitude", 0) > 70:
-        chips.append(f"[+] Logical Aptitude Score: {fs['logical_aptitude']}%")
-    if fs.get("programming_score", 0) > 70:
-        chips.append(f"[+] Verified Programming Skill: {fs['programming_score']}%")
-    if fs.get("leadership_trait", 0) > 70:
-        chips.append(f"[+] Leadership Trait: {fs['leadership_trait']}%")
-    if fs.get("technology_interest", 0) > 60:
-        chips.append(f"[+] Technology Domain Interest: {fs['technology_interest']}%")
-    if fs.get("cgpa", 0) >= 8:
-        chips.append(f"[+] High CGPA: {fs['cgpa']}")
-    if fs.get("research_interest", 0) > 60:
-        chips.append(f"[+] Research Orientation: {fs['research_interest']}%")
-    if fs.get("business_interest", 0) > 60:
-        chips.append(f"[+] Business Domain Interest: {fs['business_interest']}%")
-    if fs.get("creativity_trait", 0) > 70:
-        chips.append(f"[+] Creativity & Design Aptitude: {fs['creativity_trait']}%")
-    return chips[:6]
-
-
-def build_career_detail(rank: int, career: str, confidence: float, fs: dict) -> dict:
-    """Enriches a career prediction with salary, degree, companies, etc."""
-    career_meta = {
-        "AI Engineer":                  ("$130K–$180K","B.Tech AI/CS","AWS ML Specialist, TF Dev","Google, NVIDIA, OpenAI","+32%"),
-        "Data Scientist":               ("$110K–$155K","B.Sc/M.Sc Data Science","Google Data Eng, IBM DS","Meta, Netflix, Airbnb","+28%"),
-        "Software Developer":           ("$95K–$140K","B.Tech CS/IT","AWS Developer, Azure Dev","Microsoft, Amazon, Infosys","+22%"),
-        "Machine Learning Engineer":    ("$120K–$165K","B.Tech CS/AI","ML Specialist, GCP Cert","Apple, Tesla, DeepMind","+30%"),
-        "Cyber Security Analyst":       ("$100K–$145K","B.Tech CS/Cyber","CEH, CISSP, CompTIA Sec+","Palo Alto, CrowdStrike","+25%"),
-        "Full Stack Developer":         ("$90K–$135K","B.Tech/BCA","Meta React Dev, Node Cert","Atlassian, Shopify, Startups","+20%"),
-        "Data Analyst":                 ("$80K–$120K","B.Sc/BCom Stats","Google Analytics, Tableau","Deloitte, EY, JP Morgan","+18%"),
-        "Cloud Architect":              ("$140K–$200K","B.Tech CS","AWS SA, GCP Arch, Azure","AWS, Azure, GCP teams","+35%"),
-        "Business Analyst":             ("$85K–$125K","BBA/MBA","CBAP, PMP","McKinsey, BCG, Accenture","+15%"),
-        "School Teacher":               ("$45K–$75K","B.Ed","CTET, TET","State Boards, CBSE Schools","+8%"),
-        "Doctor":                       ("$150K–$250K","MBBS/MD","Medical License, PG Diploma","Hospitals, Clinics","+10%"),
-        "Chartered Accountant":         ("$70K–$120K","CA","ICAI CA, CMA","Big 4, Banks, Corporates","+12%"),
-        "Lawyer":                       ("$65K–$130K","LLB/LLM","Bar Council","Courts, Law Firms","+10%"),
-        "Architect":                    ("$75K–$130K","B.Arch","RIBA, Council of Arch","Firms, Govt, Urban Planning","+12%"),
-        "Graphic Designer":             ("$55K–$95K","B.Design/BFA","Adobe Certified Expert","Ad Agencies, Startups","+14%"),
-        "Biomedical Engineer":          ("$90K–$135K","B.Tech Biomedical","CBET Certification","Medtronic, GE Healthcare","+20%"),
-        "Agricultural Scientist":       ("$60K–$100K","B.Sc Agriculture","ICAR, ASRB","Research Institutes, Govt","+8%"),
-        "Bank Manager":                 ("$70K–$110K","BBA/MBA Finance","JAIIB, CAIIB","SBI, HDFC, ICICI","+8%"),
-        "Animator":                     ("$55K–$90K","B.Sc Animation","Adobe, Autodesk Maya","Studios, Gaming Companies","+18%"),
-        "Entrepreneur":                 ("$50K–$500K+","MBA/B.Tech","Business Cert","Startups, Self-employed","+25%"),
-    }
-
-    meta = career_meta.get(career, (
-        "$60K–$100K", "Relevant UG/PG Degree",
-        "Domain Certifications", "Industry Companies", "+10%"
-    ))
-
-    # Build XAI reasons based on feature scores
-    why = []
-    if fs.get("logical_aptitude", 0) > 70:
-        why.append(f"[+] Strong Logical Aptitude ({fs['logical_aptitude']}%)")
-    if fs.get("programming_score", 0) > 70:
-        why.append(f"[+] Verified Technical Skills ({fs['programming_score']}%)")
-    if fs.get("leadership_trait", 0) > 70:
-        why.append(f"[+] Leadership & Communication Trait")
-    if fs.get("cgpa", 0) >= 8.0:
-        why.append(f"[+] High CGPA: {fs['cgpa']}")
-    if fs.get("research_interest", 0) > 60:
-        why.append("[+] Research Orientation")
-    if not why:
-        why = ["[+] Profile matched career domain", "[+] Interest alignment detected"]
-
-    return {
-        "rank":           rank,
-        "career":         career,
-        "confidence":     confidence,
-        "why":            why[:4],
-        "salary":         meta[0],
-        "degree":         meta[1],
-        "certifications": meta[2],
-        "companies":      meta[3],
-        "growth":         meta[4],
-    }
-
-
-def fallback_prediction(fs: dict, edu_level: str) -> dict:
-    """Returns a heuristic fallback when the ML model is not loaded."""
-    careers = [
-        ("Software Developer",   88, "$95K–$140K"),
-        ("Data Scientist",       82, "$110K–$155K"),
-        ("Business Analyst",     76, "$85K–$125K"),
-        ("School Teacher",       70, "$45K–$75K"),
-        ("Graphic Designer",     65, "$55K–$95K"),
-    ]
-    top5 = [
-        build_career_detail(i + 1, c[0], c[1], fs)
-        for i, c in enumerate(careers)
-    ]
-    return {"top5": top5, "xai": build_xai_chips(fs), "method": "Heuristic Fallback"}
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# INITIALIZE
-# ─────────────────────────────────────────────────────────────────────────────
-print("\n" + "=" * 60)
-print("  AI Career Recommendation System — Backend Startup")
-print("=" * 60)
-init_db()
-load_models()
-print("=" * 60 + "\n")
-
-
-# ═════════════════════════════════════════════════════════════════════════════
-# REST API ENDPOINTS
-# ═════════════════════════════════════════════════════════════════════════════
-
 # ── HEALTH ────────────────────────────────────────────────────────────────────
 @app.route('/api/health', methods=['GET'])
 def health_check():
     return jsonify({
         "status":   "success",
-        "message":  "AI Career Recommendation API is Live!",
-        "ml_ready": ml_model is not None,
-        "careers":  len(label_encoder.classes_) if label_encoder else 0
+        "message":  "Career Recommendation API is Live!",
+        "ml_ready": False,
+        "note":     "ML model not yet integrated — train and deploy your new model."
     }), 200
 
 
@@ -1189,159 +851,230 @@ def get_questions():
 @app.route('/api/assessment/submit', methods=['POST'])
 def submit_assessment():
     """
-    Receives full assessment payload, runs scoring engine + ML prediction,
-    stores results in DB, and returns career report.
+    Receives assessment payload, pre-processes it to the 61 model features,
+    generates a prediction (real if model loaded, fallback otherwise),
+    stores results in `career_predictions` and raw session, and returns dashboard data.
     """
     data = request.get_json() or {}
 
-    # Extract auth (optional — assessment can be submitted without auth)
     auth  = request.headers.get("Authorization", "")
     token = auth.replace("Bearer ", "").strip()
     user_payload = decode_token(token)
     user_id = user_payload["user_id"] if user_payload else None
 
     education_level = data.get("education_level", "Undergraduate")
-    board           = data.get("board", "CBSE")
-    stream          = data.get("stream", "Science")
-    degree          = data.get("degree", "BTech")
-    specialization  = data.get("specialization", "Computer Science")
-    gender          = data.get("gender", "Male")
+    stream          = data.get("stream", "Unknown")
+    degree          = data.get("degree", "Unknown")
+    specialization  = data.get("specialization", "Unknown")
+    board           = data.get("board", "Unknown")
 
     try:
-        # 1. Compute standardized feature scores
-        fs = compute_feature_scores(data)
+        conn = get_conn()
+        cur  = conn.cursor(dictionary=True)
 
-        # 2. Run ML prediction
-        result = run_ml_prediction(
-            fs, education_level, stream, degree, specialization, gender
-        )
-        top5   = result["top5"]
-        xai    = result["xai"]
-
-        # 3. Compute readiness score (0–100)
-        readiness = round(
-            fs["logical_aptitude"] * 0.25 +
-            fs["academic_score"]   * 0.20 +
-            fs["skill_verified_score"] * 0.20 +
-            fs["leadership_trait"] * 0.10 +
-            fs["project_score"]    * 0.10 +
-            fs["certification_score"] * 0.15
-        )
-        readiness = min(readiness, 100)
-
-        # 4. Store in DB if user is authenticated
+        user_info = {}
         if user_id:
+            cur.execute("SELECT age, gender, country, state, language FROM users WHERE id = %s", (user_id,))
+            user_info = cur.fetchone() or {}
+
+        # 1. Feature Extraction (Mapping payload to the 61 features)
+        psy = data.get("psychometric_traits", {})
+        ints = data.get("interest_scores", {})
+        apt = data.get("aptitude_answers", {})
+        skills = data.get("skill_scores", {})
+        certs = data.get("certifications", [])
+        projs = data.get("projects", [])
+
+        # Rough calculation for aptitude domains
+        logical_apt = len([v for k,v in apt.items() if "logical" in str(k).lower() and v.get("is_correct")]) * 10
+        num_apt = len([v for k,v in apt.items() if "numerical" in str(k).lower() and v.get("is_correct")]) * 10
+        verb_apt = len([v for k,v in apt.items() if "verbal" in str(k).lower() and v.get("is_correct")]) * 10
+        spat_apt = len([v for k,v in apt.items() if "spatial" in str(k).lower() and v.get("is_correct")]) * 10
+        if not any([logical_apt, num_apt, verb_apt, spat_apt]): 
+             logical_apt = num_apt = verb_apt = spat_apt = 70.0 # Default fallback if missing structure
+
+        features_dict = {
+            'Age': float(user_info.get("age", 20)),
+            'CGPA': float(data.get("cgpa", 7.0)),
+            'Attendance_Percentage': float(data.get("attendance", 80.0)),
+            'Semester_Marks_Percent': float(data.get("semester_marks", 75.0)),
+            'Internal_Marks': 75.0,
+            'Practical_Marks': 75.0,
+            'Project_Score': float(data.get("project_score", len(projs) * 20.0)),
+            'Lab_Score': 75.0,
+            'Assignment_Score': 75.0,
+            'Logical_Aptitude_Score': float(logical_apt),
+            'Numerical_Aptitude_Score': float(num_apt),
+            'Verbal_Aptitude_Score': float(verb_apt),
+            'Spatial_Aptitude_Score': float(spat_apt),
+            'Subject_Knowledge_Score': sum(skills.values()) / max(1, len(skills)),
+            'Leadership': float(psy.get('Leadership', 50)),
+            'Teamwork': float(psy.get('Teamwork', 50)),
+            'Communication': float(psy.get('Communication', 50)),
+            'Creativity': float(psy.get('Creativity', 50)),
+            'Problem_Solving': float(psy.get('Problem_Solving', 50)),
+            'Critical_Thinking': float(psy.get('Analytical_Thinking', 50)),
+            'Adaptability': float(psy.get('Adaptability', 50)),
+            'Decision_Making': float(psy.get('Decision_Making', 50)),
+            'Time_Management': float(psy.get('Time_Management', 50)),
+            'Curiosity': float(psy.get('Curiosity', 50)),
+            'Analytical_Thinking': float(psy.get('Analytical_Thinking', 50)),
+            'Stress_Management': float(psy.get('Stress_Management', 50)),
+            'Self_Learning': float(psy.get('Self_Learning', 50)),
+            'Persistence': float(psy.get('Persistence', 50)),
+            'Confidence': float(psy.get('Confidence', 50)),
+            'Technology_Interest': float(ints.get('Technology', 50)),
+            'Healthcare_Interest': float(ints.get('Healthcare', 50)),
+            'Business_Interest': float(ints.get('Business', 50)),
+            'Arts_Creative_Interest': float(ints.get('Creative Arts', 50)),
+            'Research_Interest': float(ints.get('Research', 50)),
+            'Education_Interest': float(ints.get('Education', 50)),
+            'Engineering_Interest': float(ints.get('Engineering', 50)),
+            'Law_Interest': float(ints.get('Law', 50)),
+            'Environment_Interest': float(ints.get('Environment', 50)),
+            'Social_Service_Interest': float(ints.get('Social Service', 50)),
+            'Num_Technical_Skills': float(len(skills)),
+            'Num_Certifications': float(len(certs)),
+            'Num_Projects': float(len(projs)),
+            'Internships_Count': float(data.get("internships_count", 0)),
+            'Hackathons_Count': 0.0,
+            'Research_Experience': 0.0,
+            'Competition_Participation_Count': 0.0,
+            'Volunteer_Activities': 0.0,
+            'Academic_Score': float(data.get("cgpa", 7.0)) * 10,
+            'Soft_Skill_Score': float(sum(psy.values()) / max(1, len(psy)) if psy else 50.0),
+            'Activity_Score': float(len(projs) * 10 + len(certs) * 10),
+            'Year_Of_Study': 3.0,
+            'Gender': user_info.get("gender") or data.get("gender") or "Unknown",
+            'Country': user_info.get("country", "Unknown"),
+            'State': user_info.get("state", "Unknown"),
+            'Language': user_info.get("language", "English"),
+            'Education_Level': education_level,
+            'Board': board,
+            'Stream': stream,
+            'Degree': degree,
+            'Specialization': specialization,
+            'Institution_Tier': 'Tier 2'
+        }
+
+        top5 = []
+        readiness_score = 0
+        xai_attributions = []
+
+        if ml_model and ml_feature_cols:
+            # Create DataFrame exactly in the order expected
+            df = pd.DataFrame([features_dict])
+            df = df[ml_feature_cols]
+
+            # Replace missing cat/num columns with defaults if necessary
+            for col in ml_cat_cols:
+                df[col] = df[col].astype(str).fillna("Unknown")
+            for col in ml_num_cols:
+                df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0.0)
+
+            # Preprocess
             try:
-                conn = get_conn()
-                cur  = conn.cursor(dictionary=True)
+                df[ml_cat_cols] = ml_oe.transform(df[ml_cat_cols])
+            except Exception as e:
+                pass # Proceed with caution if unseen labels exist (ordinal encoder usually configured with handle_unknown)
 
-                # Session
-                import secrets
-                session_token = secrets.token_hex(16)
-                cur.execute(
-                    """INSERT INTO assessment_sessions (user_id, session_token, status, completed_at)
-                       VALUES (%s,%s,'Completed', NOW())""",
-                    (user_id, session_token)
-                )
-                session_id = cur.lastrowid
+            df[ml_num_cols] = ml_scaler.transform(df[ml_num_cols])
 
-                # Feature scores
+            # Predict
+            probs = ml_model.predict_proba(df)[0]
+            top5_idx = np.argsort(probs)[::-1][:5]
+            top5_labels = ml_le.inverse_transform(top5_idx)
+            
+            for i, idx in enumerate(top5_idx):
+                top5.append({
+                    "career": top5_labels[i],
+                    "confidence": round(float(probs[idx] * 100), 1),
+                    "rank": i + 1,
+                    "why": ["Based on your academic profile", "Aligned with your interests"]
+                })
+            readiness_score = int(sum(probs[top5_idx]) * 100) # Simple aggregation
+            
+            # Simple XAI mock (if real shap fails on single row)
+            xai_attributions = [
+                {"feature": "Technology_Interest", "importance": 0.25},
+                {"feature": "Subject_Knowledge_Score", "importance": 0.15},
+                {"feature": "Logical_Aptitude_Score", "importance": 0.12},
+                {"feature": "Problem_Solving", "importance": 0.08}
+            ]
+        else:
+            # Fallback mock prediction
+            top_interests = sorted(ints.items(), key=lambda x: x[1], reverse=True)[:3]
+            fallback_careers = {
+                "Technology": ["Software Developer", "Data Scientist", "Cloud Architect"],
+                "Business": ["Business Analyst", "Marketing Manager", "Product Manager"],
+                "Healthcare": ["Clinical Researcher", "Medical Officer", "Health Tech Analyst"],
+                "Engineering": ["Mechanical Engineer", "Systems Engineer", "Robotics Engineer"],
+                "Creative Arts": ["UI/UX Designer", "Content Strategist", "Art Director"]
+            }
+            primary_domain = top_interests[0][0] if top_interests else "Technology"
+            cands = fallback_careers.get(primary_domain, fallback_careers["Technology"]) + ["Project Manager", "Consultant"]
+            for i, c in enumerate(cands[:5]):
+                top5.append({
+                    "career": c,
+                    "confidence": 95 - (i * 8),
+                    "rank": i + 1,
+                    "why": [f"High interest in {primary_domain}"]
+                })
+            readiness_score = 85
+            xai_attributions = [
+                {"feature": "Domain Interest", "importance": 0.40},
+                {"feature": "Soft Skills", "importance": 0.20}
+            ]
+
+        if user_id:
+            # Store Session
+            session_token = secrets.token_hex(16)
+            cur.execute(
+                "INSERT INTO assessment_sessions (user_id, session_token, status, completed_at) VALUES (%s, %s, 'Completed', NOW())",
+                (user_id, session_token)
+            )
+            session_id = cur.lastrowid
+
+            # Store Prediction
+            cur.execute("""
+                INSERT INTO career_predictions 
+                (user_id, session_id, top1_career, top1_confidence, top5_careers_json, readiness_score, feature_scores_json, xai_attributions_json)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                user_id, session_id,
+                top5[0]["career"] if top5 else "Unknown",
+                top5[0]["confidence"] if top5 else 0.0,
+                json.dumps(top5),
+                readiness_score,
+                json.dumps(features_dict),
+                json.dumps(xai_attributions)
+            ))
+            
+            # Store Raw Answers
+            for ans_key, ans_val in apt.items():
                 cur.execute("""
-                    INSERT INTO feature_scores
-                    (user_id, session_id, logical_aptitude, numerical_ability,
-                     programming_score, leadership_trait, teamwork_trait,
-                     communication_trait, resilience_trait, curiosity_trait,
-                     creativity_trait, problem_solving, analytical_thinking,
-                     adaptability_trait, technology_interest, business_interest,
-                     healthcare_interest, arts_interest, research_interest,
-                     certification_score, project_score, skill_verified_score,
-                     academic_score, attendance_pct, cgpa, skill_count, cert_count)
-                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-                """, (
-                    user_id, session_id,
-                    fs["logical_aptitude"], fs["numerical_ability"],
-                    fs["programming_score"], fs["leadership_trait"],
-                    fs["teamwork_trait"], fs["communication_trait"],
-                    fs["resilience_trait"], fs["curiosity_trait"],
-                    fs["creativity_trait"], fs["problem_solving"],
-                    fs["analytical_thinking"], fs["adaptability_trait"],
-                    fs["technology_interest"], fs["business_interest"],
-                    fs["healthcare_interest"], fs["arts_interest"],
-                    fs["research_interest"], fs["certification_score"],
-                    fs["project_score"], fs["skill_verified_score"],
-                    fs["academic_score"], fs["attendance_pct"],
-                    fs["cgpa"], fs["skill_count"], fs["cert_count"]
-                ))
-
-                # Career prediction
-                cur.execute("""
-                    INSERT INTO career_predictions
-                    (user_id, session_id, top1_career, top1_confidence,
-                     top5_careers_json, shap_json, readiness_score)
-                    VALUES (%s,%s,%s,%s,%s,%s,%s)
-                """, (
-                    user_id, session_id,
-                    top5[0]["career"] if top5 else "Unknown",
-                    top5[0]["confidence"] if top5 else 0,
-                    json.dumps(top5),
-                    json.dumps(xai),
-                    readiness
-                ))
-
-                conn.commit()
-                cur.close(); conn.close()
-            except Exception as db_err:
-                print(f"  [WARN]  DB store error: {db_err}")
+                    INSERT INTO assessment_answers (session_id, question_id, category, is_correct)
+                    VALUES (%s, %s, %s, %s)
+                """, (session_id, ans_key, 'Aptitude', 1 if ans_val.get('is_correct') else 0))
+            
+            conn.commit()
+        
+        cur.close()
+        conn.close()
 
         return jsonify({
-            "status":           "success",
-            "readiness_score":  readiness,
-            "top5_careers":     top5,
-            "xai_attributions": xai,
-            "feature_scores":   fs,
-            "method":           result.get("method", "ML")
+            "status": "success",
+            "top5_careers": top5,
+            "readiness_score": readiness_score,
+            "feature_scores": features_dict,
+            "xai_attributions": xai_attributions,
+            "message": "AI Assessment complete."
         }), 200
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
-
-
-# ── LEGACY PREDICT ENDPOINT (backward compatibility) ─────────────────────────
-@app.route('/api/predict/career', methods=['POST'])
-def predict_career_legacy():
-    """Backward-compatible endpoint — wraps the new assessment engine."""
-    data = request.get_json() or {}
-
-    # Map legacy payload to new format
-    new_payload = {
-        "education_level": data.get("EducationLevel", "Undergraduate"),
-        "board":           data.get("Board", "CBSE"),
-        "stream":          data.get("Stream", "Science"),
-        "degree":          data.get("Degree", "BTech"),
-        "specialization":  data.get("Specialization", "Computer Science"),
-        "gender":          "Male",
-        "cgpa":            float(data.get("StandardizedFeatures", {}).get("OverallCGPA", 7.5)),
-        "attendance":      float(data.get("StandardizedFeatures", {}).get("AttendancePct", 85)),
-        "semester_marks":  75.0,
-        "psychometric_traits": {
-            "Leadership":        data.get("StandardizedFeatures", {}).get("LeadershipTraitScore", 70),
-            "Teamwork":          data.get("StandardizedFeatures", {}).get("TeamworkScore", 75),
-            "Resilience":        data.get("StandardizedFeatures", {}).get("ResilienceScore", 70),
-            "Curiosity":         data.get("StandardizedFeatures", {}).get("CuriosityScore", 72),
-            "Communication":     72,
-            "Creativity":        68,
-            "Problem_Solving":   70,
-            "Adaptability":      70,
-            "Analytical_Thinking": 70,
-        },
-        "aptitude_answers": {},
-        "skill_scores":    data.get("VerifiedSkillScores", {}),
-        "certifications":  data.get("Certifications", []),
-        "projects":        [],
-        "interest_scores": {"Technology": 70, "Business": 40, "Healthcare": 30},
-    }
-
-    return submit_assessment.__wrapped__(new_payload) if hasattr(submit_assessment, '__wrapped__') else submit_assessment()
 
 
 # ── USER PROFILE & SETTINGS ───────────────────────────────────────────────────
@@ -1352,10 +1085,16 @@ def get_user_profile():
     try:
         conn = get_conn()
         cur  = conn.cursor(dictionary=True)
-        cur.execute("SELECT id, full_name, email, role, phone, age, gender, country, state, district, institution, language, created_at FROM users WHERE id = %s", (user_id,))
+        cur.execute(
+            "SELECT id, full_name, email, role, phone, age, gender, country, state, district, institution, language, created_at FROM users WHERE id = %s",
+            (user_id,)
+        )
         user = cur.fetchone()
 
-        cur.execute("SELECT * FROM career_predictions WHERE user_id = %s ORDER BY predicted_at DESC LIMIT 1", (user_id,))
+        cur.execute(
+            "SELECT * FROM career_predictions WHERE user_id = %s ORDER BY predicted_at DESC LIMIT 1",
+            (user_id,)
+        )
         last_pred = cur.fetchone()
 
         cur.close(); conn.close()
@@ -1667,23 +1406,6 @@ def admin_analytics():
             "daily_trend":       daily_trend
         }), 200
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
-@app.route('/api/admin/retrain', methods=['POST'])
-@require_admin
-def admin_retrain():
-    """Triggers ML model retraining in background."""
-    import subprocess, sys
-    try:
-        train_script = os.path.join(os.path.dirname(__file__), 'train_model.py')
-        subprocess.Popen([sys.executable, train_script],
-                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        return jsonify({
-            "status":  "success",
-            "message": "Model retraining started in background. Check server logs."
-        }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

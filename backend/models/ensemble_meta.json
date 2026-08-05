@@ -1,6 +1,0 @@
-{
-  "n_classes": 272,
-  "top1_accuracy": 0.3816,
-  "top5_accuracy": 0.7952,
-  "feature_count": 135
-}
