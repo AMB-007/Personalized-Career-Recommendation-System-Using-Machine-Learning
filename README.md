@@ -1,4 +1,4 @@
-﻿# 🚀 AI Career Recommendation System
+# 🚀 AI Career Recommendation System
 
 > An intelligent, full-stack platform that leverages Machine Learning to recommend highly personalized career paths based on a student's academic performance, psychometric traits, technical skills, and domain interests — with transparent AI explainability via SHAP.
 
@@ -6,8 +6,9 @@
 
 ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-3.1.3-000000?style=for-the-badge&logo=flask&logoColor=white)
-![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)
-![Vite](https://img.shields.io/badge/Vite-8.x-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0+-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
 ![XGBoost](https://img.shields.io/badge/XGBoost-3.3.0-FF6600?style=for-the-badge&logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
@@ -20,13 +21,13 @@
 
 - [Overview](#-overview)
 - [Key Features](#-key-features)
-- [Tech Stack](#️-tech-stack)
+- [Tech Stack](#%EF%B8%8F-tech-stack)
 - [System Architecture](#-system-architecture)
 - [Project Structure](#-project-structure)
-- [Database Schema](#-database-schema)
+- [Database Schema](#%EF%B8%8F-database-schema)
 - [API Reference](#-api-reference)
 - [ML Pipeline](#-machine-learning-pipeline)
-- [Frontend Pages](#-frontend-pages)
+- [Frontend Pages](#%EF%B8%8F-frontend-pages)
 - [Getting Started](#-getting-started)
 - [Environment Variables](#-environment-variables)
 - [Default Credentials](#-default-credentials)
@@ -39,7 +40,7 @@
 
 The **AI Career Recommendation System** is a full-stack web application designed to guide students across all education levels — from Class 7 to Postgraduate — towards the most suitable career paths. It combines a dynamic aptitude assessment engine, psychometric profiling, skill verification, and a trained XGBoost ML model to generate personalized top-5 career recommendations along with detailed SHAP-based explanations of *why* each career was recommended.
 
-The system is fully self-contained: it features a React 19 frontend, a Flask REST API backend, a normalized 15-table MySQL database, and a pre-trained ML pipeline — all deployable locally with minimal setup.
+The system is fully self-contained: it features a pure HTML/CSS/JS frontend, a Flask REST API backend, a normalized 15-table MySQL database, and a pre-trained ML pipeline — all deployable locally with minimal setup.
 
 ---
 
@@ -65,13 +66,11 @@ The system is fully self-contained: it features a React 19 frontend, a Flask RES
 
 ### 🖥️ Frontend (Client-Side)
 
-| Technology | Version | Purpose |
-|---|---|---|
-| React | 19.x | UI component framework |
-| Vite | 8.x | Build tool & dev server |
-| React Router DOM | 7.x | Client-side routing |
-| Axios | 1.x | HTTP client for API calls |
-| Vanilla CSS | — | Custom design system & tokens |
+| Technology | Purpose |
+|---|---|
+| HTML5 | Page structure and semantic markup |
+| Vanilla JavaScript | Client-side logic, DOM manipulation, API fetching |
+| Vanilla CSS | Custom design system & tokens (no frameworks) |
 
 ### ⚙️ Backend (Server-Side)
 
@@ -93,7 +92,7 @@ The system is fully self-contained: it features a React 19 frontend, a Flask RES
 | LightGBM | 4.7.0 | Ensemble component |
 | CatBoost | 1.2.10 | Ensemble component |
 | Scikit-Learn | 1.9.0 | Encoding, scaling, preprocessing |
-| SHAP | ≥0.46.0 | Explainable AI feature importances |
+| SHAP | >=0.46.0 | Explainable AI feature importances |
 | Pandas | 3.x | Data manipulation |
 | NumPy | 2.x | Numerical computation |
 
@@ -109,8 +108,8 @@ The system is fully self-contained: it features a React 19 frontend, a Flask RES
 
 ```mermaid
 graph TD
-    subgraph Frontend ["Client — React 19 + Vite"]
-        UI[Assessment Wizard / Student Profile] -->|Collects 61 Features| APIClient[Axios HTTP Client]
+    subgraph Frontend ["Client — HTML / Vanilla JS"]
+        UI[Assessment Wizard] -->|Collects 61 Features| APIClient[Axios HTTP Client]
         Dashboard[Dashboard Page] -->|Displays Results| APIClient
     end
 
@@ -126,7 +125,7 @@ graph TD
         Preprocessor -->|OrdinalEncoder| Cat[Categorical Features]
         Preprocessor -->|StandardScaler| Num[Numerical Features]
         Cat & Num --> Model[XGBoost Classifier]
-        Model --> Output["Top-5 Predictions + Confidence %"]
+        Model --> Output["Top-5 Predictions + Confidence"]
         Model --> SHAP[SHAP Explainer]
         SHAP --> Explanations[Feature Importances JSON]
     end
@@ -134,7 +133,6 @@ graph TD
     subgraph DB ["MySQL — 15 Normalized Tables"]
         Controller <-->|career_predictions| Pred[(Predictions Table)]
         DashCtrl <-->|users, feature_scores| Users[(Users & Scores)]
-        AuthCtrl <-->|users| UsersTbl[(Users Table)]
     end
 
     Controller -->|"If ML artifacts fail"| Fallback[Heuristic Mock Engine]
@@ -164,41 +162,32 @@ Career_Recommendation_System/
 │       ├── feature_columns.pkl         # Ordered list of all 61 feature column names
 │       ├── cat_feature_names.pkl       # List of categorical feature names
 │       ├── numeric_feature_names.pkl   # List of numeric feature names
-│       ├── model_type.pkl              # String identifier of the model type used
+│       ├── model_type.pkl              # String identifier of the model type
 │       ├── shap_explainer.pkl          # Pre-computed SHAP TreeExplainer
 │       └── career_dataset.csv          # Training dataset
 │
 ├── frontend/
-│   ├── index.html                  # HTML entry point
-│   ├── vite.config.js              # Vite build configuration
-│   ├── eslint.config.js            # ESLint configuration
-│   ├── package.json                # Node.js dependencies & scripts
-│   ├── public/                     # Static public assets
-│   └── src/
-│       ├── main.jsx                # React app entry — DOM mounting
-│       ├── App.jsx                 # Root component — router & layout
-│       ├── index.css               # Global CSS resets
-│       ├── App.css                 # Core application styles
-│       ├── design-tokens.css       # CSS custom properties (colors, spacing, typography)
-│       ├── config.js               # API base URL & global config
-│       ├── context/
-│       │   └── ThemeContext.jsx    # Dark/Light mode context provider
-│       ├── components/
-│       │   ├── Navbar.jsx              # Top navigation bar with auth state
-│       │   ├── ProtectedRoute.jsx      # HOC — redirects unauthenticated users
-│       │   ├── RadarChart.jsx          # SVG radar chart for skill visualization
-│       │   └── SkillGapAnalysis.jsx    # Skill gap analysis visualization
-│       └── pages/
-│           ├── Home.jsx                # Landing page with features & CTA
-│           ├── Login.jsx               # Student login form
-│           ├── Register.jsx            # Student registration form
-│           ├── StudentProfile.jsx      # Multi-step assessment wizard (61 features)
-│           ├── DynamicTest.jsx         # Adaptive aptitude test (MCQ engine)
-│           ├── Dashboard.jsx           # Prediction results, SHAP charts, roadmap
-│           ├── History.jsx             # Past prediction history & career trends
-│           ├── UserSettings.jsx        # Account settings & profile update
-│           ├── Admin.jsx               # Admin portal — users, questions, analytics
-│           └── AdminLogin.jsx          # Admin login form
+│   └── dist/
+│       ├── index.html              # Home page
+│       ├── login.html              # Login page
+│       ├── register.html           # Registration page
+│       ├── dashboard.html          # Career Dashboard
+│       ├── assessment.html         # 8-step assessment wizard
+│       ├── test.html               # Dynamic skill verification test
+│       ├── history.html            # Assessment history
+│       ├── settings.html           # User settings
+│       ├── admin.html              # Admin portal
+│       ├── admin-login.html        # Admin login
+│       ├── css/
+│       │   └── style.css           # Global design system & theme
+│       └── js/
+│           ├── app.js              # Shared utilities (Auth, Theme, API)
+│           ├── home.js             # Home page logic
+│           ├── dashboard.js        # Dashboard logic
+│           ├── assessment.js       # Assessment wizard logic
+│           ├── history.js          # History page logic
+│           ├── settings.js         # Settings logic
+│           └── admin.js            # Admin panel logic
 │
 ├── .gitattributes                  # Git line ending configuration
 └── README.md                       # This file
@@ -234,18 +223,18 @@ The system uses a **fully normalized 15-table MySQL schema**. All tables are aut
 
 ```mermaid
 erDiagram
-    users ||--o{ student_profiles : "has"
-    users ||--o{ education_profiles : "has"
-    users ||--o{ subject_marks : "has"
-    users ||--o{ assessment_sessions : "starts"
-    users ||--o{ feature_scores : "has"
-    users ||--o{ skill_verification : "has"
-    users ||--o{ projects : "has"
-    users ||--o{ certifications : "has"
-    users ||--o{ career_predictions : "receives"
-    users ||--o{ career_history : "has"
-    assessment_sessions ||--o{ assessment_answers : "contains"
-    question_bank ||--o{ assessment_answers : "referenced by"
+    users ||--o{ student_profiles : has
+    users ||--o{ education_profiles : has
+    users ||--o{ subject_marks : has
+    users ||--o{ assessment_sessions : starts
+    users ||--o{ feature_scores : has
+    users ||--o{ skill_verification : has
+    users ||--o{ projects : has
+    users ||--o{ certifications : has
+    users ||--o{ career_predictions : receives
+    users ||--o{ career_history : has
+    assessment_sessions ||--o{ assessment_answers : contains
+    question_bank ||--o{ assessment_answers : referenced
 
     users {
         int id PK
@@ -290,7 +279,6 @@ erDiagram
         string education_level
         string board
         string stream
-        string degree
         string correct_answer
         float weight
     }
@@ -300,7 +288,7 @@ erDiagram
 
 ## 📡 API Reference
 
-**Base URL:** `http://localhost:5000`
+**Base URL:** `http://localhost:5000`  
 **Authentication:** `Authorization: Bearer <JWT_TOKEN>` header
 
 ### 🔐 Auth Endpoints
@@ -458,7 +446,7 @@ Raw JSON Payload (Assessment)
   (61-feature dict → Pandas DataFrame)
          ↓
   Categorical Features → OrdinalEncoder
-  Numerical Features  → StandardScaler
+  Numerical Features   → StandardScaler
          ↓
        XGBoost Classifier
       predict_proba()
@@ -486,16 +474,16 @@ If `career_model.pkl` or any artifact fails to load at startup (e.g., Python ver
 
 | Route | Page | Auth Required | Description |
 |---|---|---|---|
-| `/` | Home | No | Landing page — features, how it works, CTA |
-| `/register` | Register | No | New student registration |
-| `/login` | Login | No | Student login |
-| `/admin-login` | Admin Login | No | Admin portal login |
-| `/assessment` | Student Profile | Yes | Multi-step wizard collecting all 61 features |
-| `/test` | Dynamic Test | Yes | Adaptive MCQ aptitude test |
-| `/dashboard` | Dashboard | Yes | ML results, SHAP chart, career roadmap |
-| `/history` | History | Yes | Past predictions timeline |
-| `/settings` | User Settings | Yes | Profile & account settings |
-| `/admin` | Admin Portal | Admin only | User management, question bank, analytics |
+| `/` or `/index.html` | Home | No | Landing page — features, how it works, CTA |
+| `/register.html` | Register | No | New student registration |
+| `/login.html` | Login | No | Student login |
+| `/admin-login.html` | Admin Login | No | Admin portal login |
+| `/assessment.html` | Assessment | ✅ Yes | Multi-step wizard collecting all 61 features |
+| `/test.html` | Dynamic Test | ✅ Yes | Adaptive MCQ aptitude test |
+| `/dashboard.html` | Dashboard | ✅ Yes | ML results, SHAP chart, career roadmap |
+| `/history.html` | History | ✅ Yes | Past predictions timeline |
+| `/settings.html` | User Settings | ✅ Yes | Profile & account settings |
+| `/admin.html` | Admin Portal | ✅ Admin only | User management, question bank, analytics |
 
 ---
 
@@ -530,7 +518,7 @@ cd Career_Recommendation_System
    ```bash
    mysql -u root -p career_system_db < backend/career_system_db.sql
    ```
-   > **Note:** The application also auto-creates all tables on first startup, so this step is optional if starting fresh.
+   > **Note:** The application auto-creates all tables on first startup via `init_db()`, so this step is optional if starting fresh.
 
 ---
 
@@ -552,7 +540,8 @@ source venv/bin/activate
 # Install all Python dependencies
 pip install -r requirements.txt
 
-# Create your .env file (see Environment Variables section)
+# Create your .env file (see Environment Variables section below)
+
 # Start the Flask development server
 python app.py
 ```
@@ -561,24 +550,7 @@ python app.py
 
 ---
 
-### Step 4 — Frontend Setup
-
-```bash
-# Open a new terminal and navigate to frontend
-cd frontend
-
-# Install Node.js dependencies
-npm install
-
-# Start the Vite development server
-npm run dev
-```
-
-> ✅ Frontend will be accessible at: **`http://localhost:5173`**
-
----
-
-### Step 5 — Verify Setup
+### Step 4 — Verify Setup
 
 Check the backend health endpoint:
 
@@ -595,6 +567,8 @@ Expected response:
 }
 ```
 
+> ✅ The frontend is automatically served by Flask at **`http://127.0.0.1:5000/`**. Open this URL in your browser to start using the system.
+
 ---
 
 ## 🔐 Environment Variables
@@ -602,10 +576,13 @@ Expected response:
 Create a `.env` file inside the `backend/` directory:
 
 ```env
+# MySQL Database
 DB_HOST=localhost
 DB_USER=root
 DB_PASSWORD=your_mysql_password
 DB_NAME=career_system_db
+
+# JWT Authentication
 JWT_SECRET=career_super_secret_key_2026
 ```
 
@@ -617,7 +594,7 @@ JWT_SECRET=career_super_secret_key_2026
 | `DB_NAME` | MySQL database name | `career_system_db` |
 | `JWT_SECRET` | Secret key for signing JWT tokens | `career_super_secret_key_2026` |
 
-> ⚠️ **Security:** Never commit your `.env` file to version control.
+> ⚠️ **Security:** Never commit your `.env` file to version control. It is already listed in `.gitignore`.
 
 ---
 
@@ -629,7 +606,7 @@ The backend seeds a default admin account on first startup:
 |---|---|---|
 | **Admin** | `admin@gmail.com` | `Admin@123` |
 
-> 🔒 Change this password immediately in a production environment.
+> 🔒 Change this password immediately after your first login in a production environment.
 
 ---
 
@@ -647,12 +624,8 @@ pip freeze > requirements.txt
 
 ### Frontend
 
-```bash
-npm run dev       # Start development server with HMR
-npm run build     # Build production bundle
-npm run preview   # Preview production build locally
-npm run lint      # Run ESLint
-```
+No build step is required! The frontend is pure HTML, CSS, and JS.
+You can edit the files in `frontend/dist/` directly and refresh your browser to see changes instantly.
 
 ---
 

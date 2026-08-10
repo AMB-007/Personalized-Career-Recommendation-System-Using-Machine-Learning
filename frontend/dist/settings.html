@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile Settings — CareerAI</title>
+  <meta name="description" content="Manage your CareerAI profile settings, demographics, and security." />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<div id="navbar-container"></div>
+<main class="page-wrapper">
+  <div class="settings-wrap">
+    <div class="card card-2xl">
+
+      <!-- Header -->
+      <div class="flex items-center gap-3 mb-4" style="border-bottom:1px solid var(--border);padding-bottom:1.5rem">
+        <div style="font-size:2.5rem;width:70px;height:70px;background:var(--badge-bg);border-radius:50%;display:flex;align-items:center;justify-content:center" id="settings-avatar">👤</div>
+        <div>
+          <h1 style="font-size:1.6rem;font-weight:800;color:var(--text-h)">Candidate Profile Settings</h1>
+          <p style="font-size:0.9rem;color:var(--text-muted)">Manage your personal demographics, institution, language preferences, and security.</p>
+        </div>
+      </div>
+
+      <div id="alert-box" class="hidden mb-3"></div>
+
+      <form id="settings-form">
+        <div class="settings-section-title" style="margin-top:0">Personal Demographics</div>
+        <div class="form-grid mb-4">
+          <div class="form-group">
+            <label for="full_name">Full Name *</label>
+            <input type="text" id="full_name" name="full_name" required />
+          </div>
+          <div class="form-group">
+            <label>Email Address (Read-Only)</label>
+            <input type="email" id="email" disabled style="opacity:0.7;cursor:not-allowed" />
+          </div>
+          <div class="form-group">
+            <label for="age">Age (Years) *</label>
+            <input type="number" id="age" name="age" min="8" max="100" required />
+          </div>
+          <div class="form-group">
+            <label for="gender">Gender *</label>
+            <select id="gender" name="gender">
+              <option value="Female">Female</option>
+              <option value="Male">Male</option>
+              <option value="Other">Other / Non-Binary</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="country">Country *</label>
+            <input type="text" id="country" name="country" required />
+          </div>
+          <div class="form-group">
+            <label for="state">State / Region *</label>
+            <input type="text" id="state" name="state" required />
+          </div>
+          <div class="form-group">
+            <label for="district">District / City *</label>
+            <input type="text" id="district" name="district" required />
+          </div>
+          <div class="form-group">
+            <label for="institution">School / College / Institution *</label>
+            <input type="text" id="institution" name="institution" required />
+          </div>
+          <div class="form-group">
+            <label for="language">Medium of Instruction / Language *</label>
+            <select id="language" name="language">
+              <option value="English">English</option>
+              <option value="Malayalam">Malayalam</option>
+              <option value="Hindi">Hindi</option>
+              <option value="Tamil">Tamil</option>
+              <option value="Other">Other Language</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="settings-section-title">Account Security &amp; Password</div>
+        <div class="form-grid mb-4">
+          <div class="form-group">
+            <label for="new_password">New Password (Optional)</label>
+            <input type="password" id="new_password" name="new_password" placeholder="Leave blank to keep current" />
+          </div>
+          <div class="form-group">
+            <label for="confirm_new_password">Confirm New Password</label>
+            <input type="password" id="confirm_new_password" placeholder="Confirm new password" />
+          </div>
+        </div>
+
+        <div class="flex justify-between items-center wrap gap-2 mt-4">
+          <div class="flex gap-2">
+            <button type="submit" class="btn btn-primary" id="save-btn">Save Profile Settings</button>
+            <a href="/dashboard.html" class="btn btn-secondary">Back to Dashboard</a>
+          </div>
+          <button type="button" class="btn btn-danger" id="delete-btn">🗑 Delete Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</main>
+
+<script src="/js/app.js"></script>
+<script src="/js/settings.js"></script>
+</body>
+</html>

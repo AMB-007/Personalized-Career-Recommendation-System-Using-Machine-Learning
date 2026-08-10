@@ -25,31 +25,45 @@ from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 import mysql.connector
 from mysql.connector import pooling
+import joblib  # Use joblib for sklearn artifacts (Python 3.14 pickle compatibility fix)
 
 # Try loading XGBoost and ML Artifacts
 try:
     import xgboost as xgb
+    import warnings
     ml_base = os.path.join(os.path.dirname(__file__), 'models')
-    ml_model = pickle.load(open(os.path.join(ml_base, 'career_model.pkl'), 'rb'))
-    ml_le = pickle.load(open(os.path.join(ml_base, 'label_encoder.pkl'), 'rb'))
-    ml_oe = pickle.load(open(os.path.join(ml_base, 'ordinal_encoder.pkl'), 'rb'))
-    ml_scaler = pickle.load(open(os.path.join(ml_base, 'scaler.pkl'), 'rb'))
+    # Use joblib for sklearn objects — pickle fails on Python 3.14 with STACK_GLOBAL error
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        ml_le         = joblib.load(os.path.join(ml_base, 'label_encoder.pkl'))
+        ml_oe         = joblib.load(os.path.join(ml_base, 'ordinal_encoder.pkl'))
+        ml_scaler     = joblib.load(os.path.join(ml_base, 'scaler.pkl'))
     ml_feature_cols = pickle.load(open(os.path.join(ml_base, 'feature_columns.pkl'), 'rb'))
-    ml_cat_cols = pickle.load(open(os.path.join(ml_base, 'cat_feature_names.pkl'), 'rb'))
-    ml_num_cols = pickle.load(open(os.path.join(ml_base, 'numeric_feature_names.pkl'), 'rb'))
+    ml_cat_cols     = pickle.load(open(os.path.join(ml_base, 'cat_feature_names.pkl'), 'rb'))
+    ml_num_cols     = pickle.load(open(os.path.join(ml_base, 'numeric_feature_names.pkl'), 'rb'))
+    # Try loading the XGBoost model — may fail if saved with a different XGBoost version
     try:
-        ml_shap = pickle.load(open(os.path.join(ml_base, 'shap_explainer.pkl'), 'rb'))
+        ml_model = joblib.load(os.path.join(ml_base, 'career_model.pkl'))
+        print("[OK] ML Artifacts loaded successfully (joblib).")
+    except Exception as model_err:
+        print(f"[WARN] career_model.pkl failed to load: {str(model_err)[:80]}")
+        print("    Encoders & scalers loaded — running in Mock Prediction mode.")
+        ml_model = None
+    try:
+        ml_shap = joblib.load(os.path.join(ml_base, 'shap_explainer.pkl'))
     except Exception:
         ml_shap = None
-    print("✅ ML Artifacts loaded successfully.")
 except Exception as e:
-    print(f"⚠️ ML load failed: {e}. Running in Mock Prediction mode.")
+    print(f"[WARN] ML load failed: {str(e)[:80]}. Running in Mock Prediction mode.")
     ml_model, ml_le, ml_oe, ml_scaler, ml_feature_cols = None, None, None, None, None
     ml_cat_cols, ml_num_cols, ml_shap = None, None, None
 
 # ─────────────────────────────────────────────────────────────────────────────
-# APP SETUP
+# APP SETUP — load .env first
 # ─────────────────────────────────────────────────────────────────────────────
+from dotenv import load_dotenv
+load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
+
 DIST_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist'))
 app = Flask(__name__, static_folder=DIST_FOLDER, static_url_path='')
 SECRET_KEY = os.environ.get('JWT_SECRET', 'career_super_secret_key_2026')
@@ -57,13 +71,13 @@ SECRET_KEY = os.environ.get('JWT_SECRET', 'career_super_secret_key_2026')
 CORS(app)
 
 # ─────────────────────────────────────────────────────────────────────────────
-# DATABASE POOL
+# DATABASE POOL — credentials from .env
 # ─────────────────────────────────────────────────────────────────────────────
 dbconfig = {
-    "database": "career_system_db",
-    "user":     "root",
-    "password": "abc123",
-    "host":     "localhost"
+    "database": os.environ.get("DB_NAME",     "career_system_db"),
+    "user":     os.environ.get("DB_USER",     "root"),
+    "password": os.environ.get("DB_PASSWORD", "abc123"),
+    "host":     os.environ.get("DB_HOST",     "localhost"),
 }
 db_pool = pooling.MySQLConnectionPool(pool_name="career_pool", pool_size=5, **dbconfig)
 
@@ -306,21 +320,32 @@ def init_db():
             )
         """)
 
-        # 13. career_predictions (reserved for future ML model output)
+        # 13. career_predictions
         cur.execute("""
             CREATE TABLE IF NOT EXISTS career_predictions (
-                id                  INT AUTO_INCREMENT PRIMARY KEY,
-                user_id             INT NOT NULL,
-                session_id          INT,
-                top1_career         VARCHAR(150),
-                top1_confidence     FLOAT,
-                top5_careers_json   LONGTEXT,
-                shap_json           LONGTEXT,
-                readiness_score     FLOAT DEFAULT 0,
-                predicted_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                id                    INT AUTO_INCREMENT PRIMARY KEY,
+                user_id               INT NOT NULL,
+                session_id            INT,
+                top1_career           VARCHAR(150),
+                top1_confidence       FLOAT,
+                top5_careers_json     LONGTEXT,
+                shap_json             LONGTEXT,
+                readiness_score       FLOAT DEFAULT 0,
+                feature_scores_json   LONGTEXT,
+                xai_attributions_json LONGTEXT,
+                predicted_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         """)
+        # Add missing columns if table already exists (migration for existing deployments)
+        for col_def in [
+            "ALTER TABLE career_predictions ADD COLUMN IF NOT EXISTS feature_scores_json LONGTEXT",
+            "ALTER TABLE career_predictions ADD COLUMN IF NOT EXISTS xai_attributions_json LONGTEXT",
+        ]:
+            try:
+                cur.execute(col_def)
+            except Exception:
+                pass
 
         # 14. career_history
         cur.execute("""
@@ -645,7 +670,10 @@ print("\n" + "=" * 60)
 print("  Career Recommendation System — Backend Startup")
 print("=" * 60)
 init_db()
-print("  [INFO] ML model not loaded — awaiting new trained model.")
+if ml_model is not None:
+    print("  [OK] XGBoost ML model loaded & active.")
+else:
+    print("  [INFO] Running in Mock Prediction mode — awaiting new trained model.")
 print("=" * 60 + "\n")
 
 
@@ -709,8 +737,8 @@ def health_check():
     return jsonify({
         "status":   "success",
         "message":  "Career Recommendation API is Live!",
-        "ml_ready": False,
-        "note":     "ML model not yet integrated — train and deploy your new model."
+        "ml_ready": ml_model is not None,
+        "note":     "XGBoost ML model loaded & active." if ml_model else "Running in Mock Prediction mode."
     }), 200
 
 
@@ -1037,11 +1065,14 @@ def submit_assessment():
 
             # Store Prediction
             cur.execute("""
-                INSERT INTO career_predictions 
-                (user_id, session_id, top1_career, top1_confidence, top5_careers_json, readiness_score, feature_scores_json, xai_attributions_json)
+                INSERT INTO career_predictions
+                (user_id, session_id, top1_career, top1_confidence,
+                 top5_careers_json, readiness_score,
+                 feature_scores_json, xai_attributions_json)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             """, (
-                user_id, session_id,
+                user_id,
+                session_id,
                 top5[0]["career"] if top5 else "Unknown",
                 top5[0]["confidence"] if top5 else 0.0,
                 json.dumps(top5),
@@ -1052,10 +1083,12 @@ def submit_assessment():
             
             # Store Raw Answers
             for ans_key, ans_val in apt.items():
+                q_id = int(ans_key) if str(ans_key).isdigit() else None
+                is_corr = 1 if (isinstance(ans_val, dict) and ans_val.get('is_correct')) else 0
                 cur.execute("""
                     INSERT INTO assessment_answers (session_id, question_id, category, is_correct)
                     VALUES (%s, %s, %s, %s)
-                """, (session_id, ans_key, 'Aptitude', 1 if ans_val.get('is_correct') else 0))
+                """, (session_id, q_id, 'Aptitude', is_corr))
             
             conn.commit()
         
@@ -1406,6 +1439,21 @@ def admin_analytics():
             "daily_trend":       daily_trend
         }), 200
 
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/admin/retrain', methods=['POST'])
+@require_admin
+def admin_retrain():
+    import subprocess
+    try:
+        py_exe = os.path.join(os.path.dirname(__file__), 'venv', 'Scripts', 'python.exe')
+        script = os.path.join(os.path.dirname(__file__), 'train_model.py')
+        if not os.path.exists(py_exe):
+            py_exe = 'python'
+        subprocess.Popen([py_exe, script], cwd=os.path.dirname(__file__))
+        return jsonify({"status": "success", "message": "Model retraining triggered in background"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

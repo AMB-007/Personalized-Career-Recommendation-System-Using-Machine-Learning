@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In — CareerAI</title>
+  <meta name="description" content="Sign in to your CareerAI account to continue your career assessment." />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<div id="navbar-container"></div>
+
+<main class="auth-page">
+  <div class="auth-card fade-up">
+    <div class="text-center mb-3">
+      <div class="auth-icon">🎯</div>
+      <h1>Welcome Back</h1>
+      <p class="subtitle mt-1">Sign in to continue your career assessment</p>
+    </div>
+
+    <div id="alert-box" class="hidden"></div>
+
+    <form id="login-form" style="display:flex;flex-direction:column;gap:1.25rem">
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com" required autocomplete="email" />
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password" />
+      </div>
+      <button type="submit" class="btn btn-primary btn-lg w-full" id="submit-btn" data-original-text="🔐 Sign In">
+        🔐 Sign In
+      </button>
+    </form>
+
+    <div class="auth-links">
+      <p>Don't have an account? <a href="/register.html">Create Account</a></p>
+      <p style="margin-top:0.5rem;font-size:0.85rem">Admin? <a href="/admin-login.html">Admin Login</a></p>
+    </div>
+  </div>
+</main>
+
+<script src="/js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  renderNavbar('login');
+
+  // Redirect if already logged in
+  if (Auth.isLoggedIn()) {
+    window.location.href = Auth.isAdmin() ? '/admin.html' : '/dashboard.html';
+    return;
+  }
+
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    UI.hideAlert('alert-box');
+    UI.setLoading('submit-btn', true, '⏳ Signing In...', '🔐 Sign In');
+
+    const email    = document.getElementById('email').value.trim().toLowerCase();
+    const password = document.getElementById('password').value;
+
+    try {
+      const data = await API.post('/api/auth/login', { email, password });
+      if (data.token && data.user) {
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('userInfo', JSON.stringify(data.user));
+        localStorage.setItem('user', JSON.stringify(data.user));
+        window.location.href = data.user.role === 'admin' ? '/admin.html' : '/dashboard.html';
+      } else {
+        UI.showAlert('alert-box', 'error', data.error || 'Invalid email or password.');
+      }
+    } catch (err) {
+      UI.showAlert('alert-box', 'error', 'Connection error. Make sure the backend is running.');
+    } finally {
+      UI.setLoading('submit-btn', false, '', '🔐 Sign In');
+    }
+  });
+});
+</script>
+</body>
+</html>
