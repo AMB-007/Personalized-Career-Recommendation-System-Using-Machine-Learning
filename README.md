@@ -1,368 +1,421 @@
-﻿# 🚀 AI Career Recommendation System
+# AI Career Recommendation System
 
-> An intelligent, full-stack platform that leverages Machine Learning to recommend highly personalized career paths based on a student's academic performance, psychometric traits, technical skills, and domain interests — with transparent AI explainability via SHAP.
+> **AI-powered career guidance for students from Class 7 to Postgraduate.**
+> Takes a 9-step adaptive assessment and returns your top-5 personalised career matches with full AI explainability — all running from one command.
 
 <div align="center">
 
 ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-3.1.3-000000?style=for-the-badge&logo=flask&logoColor=white)
-![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
-![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
-![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0+-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
 ![XGBoost](https://img.shields.io/badge/XGBoost-3.3.0-FF6600?style=for-the-badge&logo=python&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+![JavaScript](https://img.shields.io/badge/JavaScript-Vanilla-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![License](https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge)
 
 </div>
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
-- [Overview](#-overview)
-- [Key Features](#-key-features)
-- [Tech Stack](#%EF%B8%8F-tech-stack)
-- [System Architecture](#-system-architecture)
-- [Project Structure](#-project-structure)
-- [Database Schema](#%EF%B8%8F-database-schema)
-- [API Reference](#-api-reference)
-- [ML Pipeline](#-machine-learning-pipeline)
-- [Frontend Pages](#%EF%B8%8F-frontend-pages)
-- [Getting Started](#-getting-started)
-- [Environment Variables](#-environment-variables)
-- [Default Credentials](#-default-credentials)
-- [Contributing](#-contributing)
-- [License](#-license)
-
----
-
-## 🧩 Overview
-
-The **AI Career Recommendation System** is a full-stack web application designed to guide students across all education levels — from Class 7 to Postgraduate — towards the most suitable career paths. It combines a dynamic aptitude assessment engine, psychometric profiling, skill verification, and a trained XGBoost ML model to generate personalized top-5 career recommendations along with detailed SHAP-based explanations of *why* each career was recommended.
-
-The system is fully self-contained: it features a pure HTML/CSS/JS frontend, a Flask REST API backend, a normalized 15-table MySQL database, and a pre-trained ML pipeline. Both the **frontend and backend are served from a single command** — `python app.py` — run from the project root.
+- [What is this?](#what-is-this)
+- [Quick Start](#quick-start-5-minutes)
+- [Default Credentials](#default-login-credentials)
+- [What it does](#what-it-does)
+- [Pages](#pages)
+- [How it works](#how-it-works)
+- [Project Structure](#project-structure)
+- [Database Schema](#database-schema)
+- [ML Model Details](#ml-model-details)
+- [API Reference](#api-reference)
+- [Environment Variables](#environment-variables)
+- [Development Notes](#development-notes)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
-## ✨ Key Features
+## What is this?
 
-| Feature | Description |
-|---|---|
-| 🧠 **XGBoost ML Engine** | Trained on 61 features (demographics, psychometrics, academics, skills) to predict top-5 career matches with high accuracy |
-| 📊 **SHAP Explainability (XAI)** | Reveals exactly *which* skills, traits, or academic scores drove each career recommendation |
-| 🛡️ **Fallback Prediction Mode** | If ML artifacts fail to load, the backend gracefully switches to a heuristic engine so the UI never breaks |
-| 📝 **Dynamic Assessment Engine** | Adaptive question bank (200+ questions) filtered by education level, stream, board, and degree |
-| 🎓 **Multi-Level Education Support** | Supports Class 7–12 (All Boards), Undergraduate (BTech/BSc/BCA etc.), and Postgraduate levels |
-| 📈 **Comprehensive Dashboard** | Visualizes career readiness score, confidence charts, SHAP explanations, and learning roadmaps |
-| 👤 **Student Profile System** | Collects academic history, skills, certifications, projects, and interests in a structured wizard |
-| 🔄 **Prediction History** | Stores and displays all past assessment results with career trends over time |
-| 🔒 **JWT Authentication** | Secure login/register with token-based auth and role-based access control (Student / Admin) |
-| 🛠️ **Admin Portal** | Full admin dashboard with user management, question bank CRUD, and analytics |
-| 🌗 **Dark/Light Mode** | System-wide theme toggle with persisted preference |
-| ⚡ **Single Command Launch** | Both frontend and backend start with `python app.py` from the project root |
+Students often struggle to pick the right career. This system solves that by:
+
+1. Asking the student a smart adaptive quiz (difficulty adjusts in real time)
+2. Scoring **61 features** — academics, psychometric traits, skills, and interests
+3. Running those features through a trained **XGBoost ML model**
+4. Returning the **top-5 best-fit careers** with confidence percentages
+5. Explaining *why* each career was recommended using **SHAP (Explainable AI)**
+
+Everything — the web app, the REST API, and the ML engine — runs from a **single Python command**.
 
 ---
 
-## 🛠️ Tech Stack
+## Quick Start (5 minutes)
 
-### 🖥️ Frontend (Client-Side)
+### What you need before starting
 
-| Technology | Purpose |
-|---|---|
-| HTML5 | Page structure and semantic markup |
-| Vanilla JavaScript | Client-side logic, DOM manipulation, API fetching |
-| Vanilla CSS | Custom design system and tokens (no frameworks) |
-
-### ⚙️ Backend (Server-Side)
-
-| Technology | Version | Purpose |
+| Tool | Version | Download |
 |---|---|---|
-| Python | 3.10+ | Core runtime |
-| Flask | 3.1.3 | REST API framework and static file server |
-| Flask-CORS | 6.x | Cross-origin request handling |
-| PyJWT | 2.13.0 | JWT token generation and validation |
-| Werkzeug | 3.1.8 | Password hashing |
-| mysql-connector-python | 26.7.0 | MySQL connection pooling |
-| python-dotenv | 1.2.2 | Environment variable management |
+| Python | 3.10 or higher | [python.org](https://www.python.org/downloads/) |
+| MySQL | 8.0 or higher | [mysql.com](https://dev.mysql.com/downloads/) |
+| Git | Any | [git-scm.com](https://git-scm.com/) |
 
-### 🤖 Machine Learning Pipeline
-
-| Technology | Version | Purpose |
-|---|---|---|
-| XGBoost | 3.3.0 | Primary classification model |
-| LightGBM | 4.7.0 | Ensemble component |
-| CatBoost | 1.2.10 | Ensemble component |
-| Scikit-Learn | 1.9.0 | Encoding, scaling, preprocessing |
-| SHAP | >=0.46.0 | Explainable AI feature importances |
-| Pandas | 3.x | Data manipulation |
-| NumPy | 2.x | Numerical computation |
-
-### 🗄️ Database
-
-| Technology | Version | Purpose |
-|---|---|---|
-| MySQL | 8.0+ | Relational database (15 normalized tables) |
+> **No Node.js needed.** The frontend is plain HTML/CSS/JavaScript served directly by Flask.
 
 ---
 
-## 🏗️ System Architecture
+### Step 1 — Get the code
 
-```mermaid
-graph TD
-    subgraph Client ["Browser"]
-        UI[Assessment Wizard] -->|Collects 61 Features| APIClient[Fetch / JS Client]
-        Dashboard[Dashboard Page] -->|Displays Results| APIClient
-    end
-
-    subgraph Server ["Flask Server :5000  -  python app.py"]
-        APIClient -->|JSON POST /api/assessment/submit| Auth[JWT Middleware]
-        Auth --> Controller[Feature Extraction and Preprocessing]
-        APIClient -->|GET /api/dashboard| DashCtrl[Dashboard Controller]
-        APIClient -->|POST /api/auth/login| AuthCtrl[Auth Controller]
-        Server -->|Serves static files| Static["frontend/dist/ HTML/CSS/JS"]
-    end
-
-    subgraph ML ["Machine Learning Engine"]
-        Controller --> Preprocessor[Data Preprocessing]
-        Preprocessor -->|OrdinalEncoder| Cat[Categorical Features]
-        Preprocessor -->|StandardScaler| Num[Numerical Features]
-        Cat & Num --> Model[XGBoost Classifier]
-        Model --> Output["Top-5 Predictions + Confidence"]
-        Model --> SHAP[SHAP Explainer]
-        SHAP --> Explanations[Feature Importances JSON]
-    end
-
-    subgraph DB ["MySQL - 15 Normalized Tables"]
-        Controller <-->|career_predictions| Pred[(Predictions Table)]
-        DashCtrl <-->|users, feature_scores| Users[(Users and Scores)]
-    end
-
-    Controller -->|"If ML artifacts fail"| Fallback[Heuristic Mock Engine]
-    Fallback --> Output
-    Output & Explanations -->|JSON 200 OK| Dashboard
+```bash
+git clone https://github.com/AMB-007/Career_Recommendation_System.git
+cd Career_Recommendation_System
 ```
 
 ---
 
-## 📂 Project Structure
+### Step 2 — Set up the database
 
-```text
-Career_Recommendation_System/
-|
-|-- app.py                          # ROOT LAUNCHER - run this to start everything
-|
-|-- backend/
-|   |-- app.py                      # Core Flask app - all routes, ML inference, DB logic
-|   |-- career_system_db.sql        # Complete SQL schema for the 15-table database
-|   |-- requirements.txt            # Python package dependencies (pinned versions)
-|   |-- .env                        # Environment config - NOT committed to git
-|   |-- core/
-|   |   `-- db_config.py            # Database configuration helper
-|   `-- models/                     # Trained ML artifacts (loaded at server startup)
-|       |-- career_model.pkl            # Trained XGBoost / Ensemble model
-|       |-- label_encoder.pkl           # LabelEncoder for target class (career names)
-|       |-- ordinal_encoder.pkl         # OrdinalEncoder for categorical input features
-|       |-- scaler.pkl                  # StandardScaler for numeric input features
-|       |-- feature_columns.pkl         # Ordered list of all 61 feature column names
-|       |-- cat_feature_names.pkl       # List of categorical feature names
-|       |-- numeric_feature_names.pkl   # List of numeric feature names
-|       |-- model_type.pkl              # String identifier of the model type
-|       |-- shap_explainer.pkl          # Pre-computed SHAP TreeExplainer
-|       `-- career_dataset.csv          # Training dataset
-|
-|-- frontend/
-|   `-- dist/                       # Served as static files by Flask
-|       |-- index.html              # Home page
-|       |-- login.html              # Login page
-|       |-- register.html           # Registration page
-|       |-- dashboard.html          # Career Dashboard
-|       |-- assessment.html         # 8-step assessment wizard
-|       |-- test.html               # Dynamic skill verification test
-|       |-- history.html            # Assessment history
-|       |-- settings.html           # User settings
-|       |-- admin.html              # Admin portal
-|       |-- admin-login.html        # Admin login
-|       |-- css/
-|       |   `-- style.css           # Global design system and theme
-|       `-- js/
-|           |-- app.js              # Shared utilities (Auth, Theme, API)
-|           |-- home.js             # Home page logic
-|           |-- dashboard.js        # Dashboard logic
-|           |-- assessment.js       # Assessment wizard logic
-|           |-- history.js          # History page logic
-|           |-- settings.js         # Settings logic
-|           `-- admin.js            # Admin panel logic
-|
-|-- .gitattributes                  # Git line ending configuration
-`-- README.md                       # This file
+Open your MySQL client and run:
+
+```sql
+CREATE DATABASE career_system_db;
+```
+
+> The app automatically creates all 15 tables on first launch. No SQL import needed unless you want sample data.
+
+---
+
+### Step 3 — Create a Python virtual environment
+
+```bash
+# Go into the backend folder
+cd backend
+
+# Create the virtual environment
+python -m venv venv
+
+# Activate it
+# Windows:
+.\venv\Scripts\activate
+# Mac / Linux:
+source venv/bin/activate
+
+# Install all dependencies
+pip install -r requirements.txt
+
+# Return to the project root
+cd ..
 ```
 
 ---
 
-## 🗄️ Database Schema
+### Step 4 — Configure your database password
 
-The system uses a **fully normalized 15-table MySQL schema**. All tables are auto-created on first backend startup via `init_db()`.
+Create a file called `.env` inside the `backend/` folder:
 
-### Table Summary
-
-| # | Table | Purpose |
-|---|---|---|
-| 1 | `users` | Core user accounts (students and admins) |
-| 2 | `student_profiles` | Extended bio, LinkedIn, GitHub, portfolio |
-| 3 | `education_profiles` | Degree, board, stream, CGPA, attendance |
-| 4 | `subject_marks` | Per-subject marks by semester |
-| 5 | `question_bank` | 200+ adaptive MCQ questions |
-| 6 | `assessment_sessions` | Assessment session tracking |
-| 7 | `assessment_answers` | Per-question answers with correctness |
-| 8 | `feature_scores` | Computed 61-feature vector for ML input |
-| 9 | `skills` | Master skill catalog |
-| 10 | `skill_verification` | Per-student skill levels and verification |
-| 11 | `projects` | Student projects portfolio |
-| 12 | `certifications` | Student certifications |
-| 13 | `career_predictions` | ML output - top-5 careers + SHAP JSON |
-| 14 | `career_history` | Historical prediction timeline |
-| 15 | `roadmaps` | Career-specific learning roadmaps |
-
-### Entity Relationships
-
-```mermaid
-erDiagram
-    users ||--o{ student_profiles : has
-    users ||--o{ education_profiles : has
-    users ||--o{ subject_marks : has
-    users ||--o{ assessment_sessions : starts
-    users ||--o{ feature_scores : has
-    users ||--o{ skill_verification : has
-    users ||--o{ projects : has
-    users ||--o{ certifications : has
-    users ||--o{ career_predictions : receives
-    users ||--o{ career_history : has
-    assessment_sessions ||--o{ assessment_answers : contains
-    question_bank ||--o{ assessment_answers : referenced
-
-    users {
-        int id PK
-        string full_name
-        string email
-        string password_hash
-        string role
-        int age
-        string gender
-        string country
-        string institution
-    }
-
-    career_predictions {
-        int id PK
-        int user_id FK
-        string top1_career
-        float top1_confidence
-        longtext top5_careers_json
-        longtext shap_json
-        float readiness_score
-        timestamp predicted_at
-    }
-
-    feature_scores {
-        int id PK
-        int user_id FK
-        float logical_aptitude
-        float numerical_ability
-        float programming_score
-        float ai_interest
-        float leadership_trait
-        float cgpa
-        int skill_count
-    }
-
-    question_bank {
-        int id PK
-        text question_text
-        string category
-        string difficulty
-        string education_level
-        string board
-        string stream
-        string correct_answer
-        float weight
-    }
+```env
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your_mysql_password_here
+DB_NAME=career_system_db
+JWT_SECRET=career_super_secret_key_2026
 ```
+
+> Replace `your_mysql_password_here` with your actual MySQL password.
 
 ---
 
-## 📡 API Reference
+### Step 5 — Launch the app
 
-**Base URL:** `http://localhost:5000`
-**Authentication:** `Authorization: Bearer <JWT_TOKEN>` header
+From the **project root** folder, run:
 
-### 🔐 Auth Endpoints
+```bash
+python app.py
+```
 
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `GET` | `/api/health` | None | Health check - returns server and ML status |
-| `POST` | `/api/auth/register` | None | Register a new student account |
-| `POST` | `/api/auth/login` | None | Login and receive a JWT token |
+You will see:
 
-#### POST `/api/auth/register`
+```
+============================================================
+  AI Career Recommendation System
+  Starting server...
+============================================================
+[OK] Database initialised.
+
+  Frontend + Backend running at: http://127.0.0.1:5000
+  API health check:              http://127.0.0.1:5000/api/health
+  Press CTRL+C to stop.
+```
+
+Open **http://127.0.0.1:5000** in your browser. Done!
+
+---
+
+### Step 6 — Verify everything works
+
+Visit this URL in your browser or Postman:
+
+```
+GET http://localhost:5000/api/health
+```
+
+Expected response:
+
 ```json
 {
-  "full_name": "John Doe",
-  "email": "john@example.com",
-  "password": "StrongPass@123",
-  "phone": "9876543210",
-  "age": 21,
-  "gender": "Male",
-  "country": "India",
-  "state": "Tamil Nadu",
-  "institution": "Anna University"
+  "status": "ok",
+  "ml_loaded": true,
+  "message": "Career Recommendation System API is running"
 }
 ```
 
-#### POST `/api/auth/login`
-```json
-{ "email": "john@example.com", "password": "StrongPass@123" }
+---
+
+## Default Login Credentials
+
+| Role | Email | Password |
+|---|---|---|
+| Admin | `admin@gmail.com` | `Admin@123` |
+
+> Change the admin password after your first login.
+
+---
+
+## What it does
+
+| Feature | Details |
+|---|---|
+| Adaptive Assessment | 200+ questions that adjust based on your education level, stream, and board |
+| ML Career Prediction | XGBoost model trained on 35,000+ records across 272 career labels |
+| SHAP Explainability | Shows exactly which factors (skills, marks, traits) influenced each recommendation |
+| Top-5 Career Results | Ranked career matches with confidence percentages |
+| Career Readiness Score | A single composite score showing how job-ready you are today |
+| Learning Roadmap | Step-by-step path to reach your recommended career |
+| Prediction History | View all past assessments and how your profile changed over time |
+| Admin Dashboard | Manage users, edit the question bank, and view platform analytics |
+| JWT Authentication | Secure login with role-based access (Student vs Admin) |
+| Dark / Light Mode | Theme preference is saved across sessions |
+| Single Command Launch | `python app.py` starts the entire system — no separate frontend server needed |
+
+---
+
+## Pages
+
+| URL | Page | Needs Login |
+|---|---|---|
+| `/` | Home — landing page | No |
+| `/register.html` | Create a student account | No |
+| `/login.html` | Student login | No |
+| `/admin-login.html` | Admin login | No |
+| `/assessment.html` | 9-step career assessment wizard | Yes |
+| `/test.html` | Adaptive aptitude quiz | Yes |
+| `/dashboard.html` | Your ML results, SHAP chart, and roadmap | Yes |
+| `/history.html` | Past prediction history | Yes |
+| `/settings.html` | Profile and account settings | Yes |
+| `/admin.html` | Admin portal | Admin only |
+
+---
+
+## How it works
+
 ```
-**Response:**
+Student fills the assessment form
+              |
+              v
+   Flask API receives 61 input features
+              |
+              v
+   OrdinalEncoder  +  StandardScaler
+   (categorical)       (numerical)
+              |
+              v
+       XGBoost Classifier
+              |
+         _____|_____
+        |           |
+     Top-5       SHAP Explainer
+   Careers +    (why each career
+   Confidence    was recommended)
+        |           |
+        |___________|
+              |
+              v
+   Saved to MySQL  -->  Shown on Dashboard
+```
+
+> If the ML model fails to load (e.g. Python version mismatch), the system automatically falls back to a rule-based heuristic engine. The UI never breaks.
+
+---
+
+## Project Structure
+
+```
+Career_Recommendation_System/
+|
+|-- app.py                     <-- START HERE: run this to launch everything
+|
+|-- backend/
+|   |-- app.py                 Flask application (all API routes, ML logic, DB)
+|   |-- requirements.txt       Python dependencies
+|   |-- .env                   Your database credentials (never commit this)
+|   |-- career_system_db.sql   SQL schema backup (optional)
+|   |
+|   |-- core/
+|   |   `-- db_config.py       Database connection helper
+|   |
+|   `-- models/                Trained ML files (auto-loaded at startup)
+|       |-- career_model.pkl       The trained XGBoost model
+|       |-- label_encoder.pkl      Career name encoder
+|       |-- ordinal_encoder.pkl    Categorical feature encoder
+|       |-- scaler.pkl             Numerical feature scaler
+|       |-- feature_columns.pkl    All 61 feature names in order
+|       |-- shap_explainer.pkl     Pre-computed SHAP explainer
+|       `-- career_dataset.csv     Training dataset (35K+ rows, 272 careers)
+|
+|-- frontend/
+|   `-- dist/                  Web pages (served by Flask automatically)
+|       |-- index.html
+|       |-- login.html
+|       |-- register.html
+|       |-- assessment.html
+|       |-- dashboard.html
+|       |-- history.html
+|       |-- settings.html
+|       |-- admin.html
+|       |-- css/style.css      Global design system and theme
+|       `-- js/
+|           |-- app.js         Shared utilities (auth, theme, navbar)
+|           |-- home.js
+|           |-- assessment.js
+|           |-- dashboard.js
+|           |-- history.js
+|           |-- settings.js
+|           `-- admin.js
+|
+`-- README.md
+```
+
+---
+
+## Database Schema
+
+All 15 tables are created automatically on first run. No manual SQL import needed.
+
+| Table | What it stores |
+|---|---|
+| `users` | Student and admin accounts |
+| `student_profiles` | Bio, LinkedIn, GitHub, portfolio links |
+| `education_profiles` | Degree, stream, board, CGPA, attendance |
+| `subject_marks` | Marks per subject per semester |
+| `question_bank` | The 200+ adaptive MCQ questions |
+| `assessment_sessions` | Each time a student starts an assessment |
+| `assessment_answers` | Each answer given during an assessment |
+| `feature_scores` | The 61 computed ML input features per session |
+| `skills` | Master skill catalog |
+| `skill_verification` | Which skills a student has verified and at what level |
+| `projects` | Student project portfolio |
+| `certifications` | Student certifications |
+| `career_predictions` | ML output — top-5 careers + SHAP values |
+| `career_history` | Timeline of all past predictions |
+| `roadmaps` | Learning roadmaps per career path |
+
+---
+
+## ML Model Details
+
+### Input Features (61 total)
+
+| Category | Examples | Count |
+|---|---|---|
+| Demographics | Age, Gender, Country, State | 4 |
+| Academics | CGPA, Attendance %, Semester Marks | 3 |
+| Education Context | Level, Board, Stream, Degree, Specialization | 5 |
+| Aptitude Scores | Logical, Numerical, Verbal, Spatial | 4 |
+| Psychometric Traits | Leadership, Teamwork, Curiosity, Creativity, Resilience, Problem Solving... | 8 |
+| Interest Scores | AI, Technology, Healthcare, Business, Arts, Research, Law, Engineering... | 10 |
+| Skill Scores | Programming, Science, Business, Creative, Medical | 7 |
+| Certifications & Projects | Cert score, Project score, Internship score, Verified skill score | 4 |
+| Computed | Academic composite score, Career readiness composite | 2+ |
+
+### Output: 272 Career Labels
+
+Covers every major field — Software Engineering, Medicine, Law, Design, Finance, Research, Education, and more.
+
+---
+
+## API Reference
+
+**Base URL:** `http://localhost:5000`
+
+Protected endpoints require this header:
+```
+Authorization: Bearer <your_jwt_token>
+```
+
+---
+
+### Authentication
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| GET | `/api/health` | None | Check if the server is running |
+| POST | `/api/auth/register` | None | Create a new student account |
+| POST | `/api/auth/login` | None | Login and get a JWT token |
+
+#### Register — `POST /api/auth/register`
+
+```json
+{
+  "full_name": "Arjun Sharma",
+  "email": "arjun@example.com",
+  "password": "MyPass@123",
+  "phone": "9876543210",
+  "age": 20,
+  "gender": "Male",
+  "country": "India",
+  "state": "Karnataka",
+  "institution": "RV College of Engineering"
+}
+```
+
+#### Login — `POST /api/auth/login`
+
+Request:
+```json
+{ "email": "arjun@example.com", "password": "MyPass@123" }
+```
+
+Response:
 ```json
 {
   "status": "success",
-  "token": "<JWT>",
-  "user": { "id": 1, "full_name": "John Doe", "role": "student" }
+  "token": "eyJhbGciOiJIUzI1NiIsInR5...",
+  "user": { "id": 1, "full_name": "Arjun Sharma", "role": "student" }
 }
 ```
 
 ---
 
-### 👤 User Endpoints
+### Student Endpoints
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `GET` | `/api/user/profile` | Student JWT | Get current user's full profile |
-| `PUT` | `/api/user/profile` | Student JWT | Update profile fields |
-| `GET` | `/api/dashboard` | Student JWT | Get prediction results, roadmap and SHAP data |
-| `GET` | `/api/history` | Student JWT | Get list of past career predictions |
+| GET | `/api/user/profile` | Student JWT | Get your full profile |
+| PUT | `/api/user/profile` | Student JWT | Update your profile |
+| GET | `/api/dashboard` | Student JWT | Get your latest career prediction results |
+| GET | `/api/history` | Student JWT | Get all your past predictions |
 
 ---
 
-### 📝 Assessment Endpoints
+### Assessment
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `GET` | `/api/questions` | None | Fetch filtered questions by education level, stream, board |
-| `POST` | `/api/assessment/submit` | Optional JWT | Submit assessment - triggers ML prediction - returns dashboard data |
+| GET | `/api/questions` | None | Fetch questions (filter by level, board, stream) |
+| POST | `/api/assessment/submit` | Optional | Submit answers and trigger ML prediction |
 
-#### GET `/api/questions` — Query Parameters
+#### Submit Assessment — `POST /api/assessment/submit`
 
-| Parameter | Type | Example | Description |
-|---|---|---|---|
-| `education_level` | string | `Undergraduate` | Education level filter |
-| `stream` | string | `Science` | Stream filter (Higher Secondary) |
-| `board` | string | `CBSE` | Board filter |
-| `degree` | string | `BTech` | Degree filter |
-| `specialization` | string | `Computer Science` | Specialization filter |
-| `limit` | int | `20` | Max questions to return (default: 20) |
-
-#### POST `/api/assessment/submit` — Request Body
+Request:
 ```json
 {
   "education_level": "Undergraduate",
@@ -383,334 +436,116 @@ erDiagram
     "business_interest": 2
   },
   "skill_scores": { "Python": 4, "Machine Learning": 3 },
-  "certifications": ["AWS Certified", "Google Data Analytics"],
-  "projects": ["ML Sentiment Analysis"]
+  "certifications": ["AWS Certified"],
+  "projects": ["ML Sentiment Analyser"]
 }
 ```
 
-**Response:**
+Response:
 ```json
 {
   "status": "success",
   "top_career": "Data Scientist",
   "top5": [
-    { "career": "Data Scientist", "confidence": 0.87 },
-    { "career": "ML Engineer", "confidence": 0.76 }
+    { "career": "Data Scientist",  "confidence": 0.87 },
+    { "career": "ML Engineer",     "confidence": 0.76 },
+    { "career": "AI Researcher",   "confidence": 0.61 },
+    { "career": "Data Analyst",    "confidence": 0.54 },
+    { "career": "Cloud Architect", "confidence": 0.48 }
   ],
   "readiness_score": 82.4,
   "shap_top_features": [
-    { "feature": "AI Interest", "value": 0.34 },
+    { "feature": "AI Interest",       "value": 0.34 },
     { "feature": "Programming Score", "value": 0.28 }
-  ],
-  "roadmap": {}
+  ]
 }
 ```
 
 ---
 
-### 🛡️ Admin Endpoints
-
-> All admin endpoints require an **Admin JWT** token.
+### Admin Endpoints (Admin JWT required)
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/api/admin/users` | List all registered users |
-| `PUT` | `/api/admin/users/<uid>/role` | Promote/demote user role |
-| `DELETE` | `/api/admin/users/<uid>` | Delete a user account |
-| `GET` | `/api/admin/questions` | List all questions in question bank |
-| `POST` | `/api/admin/questions` | Add a new question |
-| `PUT` | `/api/admin/questions/<qid>` | Edit an existing question |
-| `DELETE` | `/api/admin/questions/<qid>` | Soft-delete a question |
-| `GET` | `/api/admin/analytics` | Platform analytics (students, assessments, top careers, daily trend) |
+| GET | `/api/admin/users` | List all registered users |
+| PUT | `/api/admin/users/<id>/role` | Change a user's role (student or admin) |
+| DELETE | `/api/admin/users/<id>` | Delete a user account |
+| GET | `/api/admin/questions` | List all questions in the question bank |
+| POST | `/api/admin/questions` | Add a new question |
+| PUT | `/api/admin/questions/<id>` | Edit an existing question |
+| DELETE | `/api/admin/questions/<id>` | Remove a question |
+| GET | `/api/admin/analytics` | Platform stats — users, assessments, top careers |
 
 ---
 
-## 🤖 Machine Learning Pipeline
+## Environment Variables
 
-### Feature Engineering (61 Features)
+Create `backend/.env` with these values:
 
-| Category | Examples | Count |
+| Variable | What it does | Default |
 |---|---|---|
-| **Demographics** | Age, Gender, Country, State | 4 |
-| **Academics** | CGPA, Attendance %, Semester Marks | 3 |
-| **Education Context** | Education Level, Board, Stream, Degree, Specialization | 5 |
-| **Aptitude Scores** | Logical, Numerical, Verbal, Spatial | 4 |
-| **Psychometric Traits** | Leadership, Teamwork, Communication, Resilience, Curiosity, Creativity, Problem Solving, Adaptability | 8 |
-| **Interest Scores** | AI, Technology, Healthcare, Business, Arts, Research, Education, Engineering, Law, Environment | 10 |
-| **Skills and Experience** | Programming, Science, Business, Creative, Medical scores; Skill count, Cert count | 7 |
-| **Certifications and Projects** | Certification score, Project score, Internship score, Skill verified score | 4 |
-| **Computed Scores** | Academic score, Career readiness composite | 2+ |
-
-### Inference Flow
-
-```
-Raw JSON Payload (Assessment)
-         ↓
-   Feature Extraction
-  (61-feature dict → Pandas DataFrame)
-         ↓
-  Categorical Features → OrdinalEncoder
-  Numerical Features   → StandardScaler
-         ↓
-       XGBoost Classifier
-      predict_proba()
-         ↓
-  Top-5 Classes + Confidence Scores
-         ↓
-    SHAP TreeExplainer
-  (Per-feature contribution values)
-         ↓
-  Store in career_predictions table
-         ↓
-  Return JSON to Frontend Dashboard
-```
-
-### Fallback Mode
-
-If `career_model.pkl` or any artifact fails to load at startup (e.g., Python version mismatch), the backend automatically activates a **heuristic-based Mock Prediction Engine** that:
-- Uses weighted interest scores and skill scores to rank careers
-- Returns the same JSON structure as the real ML model
-- Ensures the frontend Dashboard always renders correctly
-
----
-
-## 🖥️ Frontend Pages
-
-| Route | Page | Auth Required | Description |
-|---|---|---|---|
-| `/` or `/index.html` | Home | No | Landing page - features, how it works, CTA |
-| `/register.html` | Register | No | New student registration |
-| `/login.html` | Login | No | Student login |
-| `/admin-login.html` | Admin Login | No | Admin portal login |
-| `/assessment.html` | Assessment | Yes | Multi-step wizard collecting all 61 features |
-| `/test.html` | Dynamic Test | Yes | Adaptive MCQ aptitude test |
-| `/dashboard.html` | Dashboard | Yes | ML results, SHAP chart, career roadmap |
-| `/history.html` | History | Yes | Past predictions timeline |
-| `/settings.html` | User Settings | Yes | Profile and account settings |
-| `/admin.html` | Admin Portal | Admin only | User management, question bank, analytics |
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- **Python** v3.10+ — [Download](https://www.python.org/downloads/)
-- **MySQL Server** v8.0+ — [Download](https://dev.mysql.com/downloads/)
-- **Git** — [Download](https://git-scm.com/)
-
-> **Node.js is NOT required** — the frontend is pure HTML/CSS/JS served directly by Flask.
-
----
-
-### Step 1 — Clone the Repository
-
-```bash
-git clone https://github.com/your-username/Career_Recommendation_System.git
-cd Career_Recommendation_System
-```
-
----
-
-### Step 2 — Database Setup
-
-1. Start your local MySQL server.
-2. Open MySQL shell and create the database:
-   ```sql
-   CREATE DATABASE career_system_db;
-   ```
-3. *(Optional)* Import the provided schema dump:
-   ```bash
-   mysql -u root -p career_system_db < backend/career_system_db.sql
-   ```
-   > **Note:** All 15 tables are auto-created on first startup via `init_db()`, so importing the SQL dump is optional.
-
----
-
-### Step 3 — Python Environment Setup
-
-```bash
-# Navigate to the backend directory to create the virtual environment
-cd backend
-
-# Create a virtual environment
-python -m venv venv
-
-# Activate the virtual environment
-# Windows:
-.\venv\Scripts\activate
-# macOS / Linux:
-source venv/bin/activate
-
-# Install all Python dependencies
-pip install -r requirements.txt
-
-# Return to the project root
-cd ..
-```
-
----
-
-### Step 4 — Configure Environment Variables
-
-Create a `.env` file inside the `backend/` directory:
-
-```env
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=your_mysql_password
-DB_NAME=career_system_db
-JWT_SECRET=career_super_secret_key_2026
-```
-
----
-
-### Step 5 — Start the Application
-
-Run **one command** from the **project root**:
-
-```bash
-python app.py
-```
-
-The root `app.py` launcher will:
-- Set up the correct Python path and working directory
-- Initialise the database (create all 15 tables and seed the admin account)
-- Load all ML artifacts from `backend/models/`
-- Start the Flask server which serves **both the API and the frontend**
-
-Expected output:
-
-```
-============================================================
-  AI Career Recommendation System
-  Starting server...
-============================================================
-[OK] Database initialised.
-
-  ✅  Frontend + Backend running at: http://127.0.0.1:5000
-  ✅  API health check:              http://127.0.0.1:5000/api/health
-  Press CTRL+C to stop.
-```
-
-Open **`http://127.0.0.1:5000`** in your browser to use the system.
-
----
-
-### Step 6 — Verify Setup
-
-Check the backend health endpoint:
-
-```
-GET http://localhost:5000/api/health
-```
-
-Expected response:
-```json
-{
-  "status": "ok",
-  "ml_loaded": true,
-  "message": "Career Recommendation System API is running"
-}
-```
-
----
-
-## 🔐 Environment Variables
-
-Create a `.env` file inside the `backend/` directory:
-
-```env
-# MySQL Database
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=your_mysql_password
-DB_NAME=career_system_db
-
-# JWT Authentication
-JWT_SECRET=career_super_secret_key_2026
-```
-
-| Variable | Description | Default |
-|---|---|---|
-| `DB_HOST` | MySQL server host | `localhost` |
+| `DB_HOST` | MySQL server address | `localhost` |
 | `DB_USER` | MySQL username | `root` |
 | `DB_PASSWORD` | MySQL password | *(required)* |
 | `DB_NAME` | MySQL database name | `career_system_db` |
-| `JWT_SECRET` | Secret key for signing JWT tokens | `career_super_secret_key_2026` |
+| `JWT_SECRET` | Secret key used to sign login tokens | `career_super_secret_key_2026` |
 
-> Warning: Never commit your `.env` file to version control. It is already listed in `.gitignore`.
-
----
-
-## 🔑 Default Credentials
-
-The backend seeds a default admin account on first startup:
-
-| Role | Email | Password |
-|---|---|---|
-| **Admin** | `admin@gmail.com` | `Admin@123` |
-
-> Change this password immediately after your first login in a production environment.
+> **Important:** Never push your `.env` file to GitHub. Add it to `.gitignore`.
 
 ---
 
-## 🧑‍💻 Development Reference
+## Development Notes
 
-### Running the Application
+### Running the app
 
 ```bash
-# From the project root (recommended) - starts everything in one command
+# From the project root (recommended)
 python app.py
 
-# Alternatively, run the backend directly (from backend/ with venv active)
+# Or run the backend directly (cd into backend/ first with venv active)
 cd backend
 python app.py
 ```
 
-### Frontend Development
+### Editing the frontend
 
-No build step is required. The frontend is pure HTML, CSS, and JS.
-Edit files in `frontend/dist/` directly and refresh your browser to see changes instantly.
+No build tools needed. Edit any `.html`, `.css`, or `.js` file inside `frontend/dist/` and refresh your browser to see changes immediately.
 
-### Updating Python Dependencies
+### Adding Python packages
 
 ```bash
 cd backend
-# Install a new package
 pip install <package-name>
-# Save updated dependencies
 pip freeze > requirements.txt
 ```
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
-1. Fork the repository
-2. Create your feature branch: `git checkout -b feature/your-feature-name`
-3. Commit your changes: `git commit -m 'feat: add your feature'`
-4. Push to the branch: `git push origin feature/your-feature-name`
-5. Open a Pull Request
+1. Fork this repository
+2. Create a feature branch: `git checkout -b feature/my-feature`
+3. Make your changes and commit: `git commit -m "feat: describe what you changed"`
+4. Push and open a Pull Request
 
-### Commit Convention
+### Commit message guide
 
-| Prefix | Usage |
+| Prefix | When to use |
 |---|---|
-| `feat:` | New feature |
-| `fix:` | Bug fix |
-| `docs:` | Documentation changes |
-| `refactor:` | Code restructuring |
-| `chore:` | Build process or tooling changes |
+| `feat:` | Adding a new feature |
+| `fix:` | Fixing a bug |
+| `docs:` | Documentation only changes |
+| `refactor:` | Code cleanup with no behaviour change |
+| `chore:` | Build scripts, dependency updates |
 
 ---
 
-## 📄 License
+## License
 
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+MIT License — free to use, modify, and distribute with attribution.
 
 ---
 
 <div align="center">
-Made with ❤️ | AI Career Recommendation System
+Built with Python · Flask · XGBoost · SHAP · Vanilla HTML/CSS/JS · MySQL
 </div>
