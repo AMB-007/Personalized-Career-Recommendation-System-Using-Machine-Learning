@@ -10,7 +10,13 @@
 <body>
 <div id="navbar-container"></div>
 
-<main class="page-wrapper">
+<!-- Subtle background orbs -->
+<div class="orb-bg" aria-hidden="true" style="opacity:0.4">
+  <div class="orb orb-1" style="opacity:0.15"></div>
+  <div class="orb orb-3" style="opacity:0.1"></div>
+</div>
+
+<main class="page-wrapper" style="position:relative;z-index:1">
   <div id="dashboard-content">
     <div class="loading-state"><div class="spinner"></div><p>Loading your career dashboard...</p></div>
   </div>

@@ -246,4 +246,19 @@ const UI = {
 /* ── INIT ON EVERY PAGE ──────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   ThemeManager.init();
+
+  // Scroll-reveal animation for .reveal elements
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('revealed');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach((el, i) => {
+    el.style.transitionDelay = `${i * 0.06}s`;
+    revealObserver.observe(el);
+  });
 });

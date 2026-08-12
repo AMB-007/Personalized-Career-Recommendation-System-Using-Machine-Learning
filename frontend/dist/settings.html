@@ -14,10 +14,10 @@
     <div class="card card-2xl">
 
       <!-- Header -->
-      <div class="flex items-center gap-3 mb-4" style="border-bottom:1px solid var(--border);padding-bottom:1.5rem">
-        <div style="font-size:2.5rem;width:70px;height:70px;background:var(--badge-bg);border-radius:50%;display:flex;align-items:center;justify-content:center" id="settings-avatar">👤</div>
+      <div class="flex items-center gap-3 mb-4" style="border-bottom:1px solid var(--border);padding-bottom:1.75rem">
+        <div style="width:72px;height:72px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0;box-shadow:var(--shadow-glow-sm)" id="settings-avatar">👤</div>
         <div>
-          <h1 style="font-size:1.6rem;font-weight:800;color:var(--text-h)">Candidate Profile Settings</h1>
+          <h1 style="font-family:var(--font-heading);font-size:1.65rem;font-weight:900;color:var(--text-h);letter-spacing:-0.02em;margin-bottom:0.25rem">Candidate Profile Settings</h1>
           <p style="font-size:0.9rem;color:var(--text-muted)">Manage your personal demographics, institution, language preferences, and security.</p>
         </div>
       </div>
@@ -33,7 +33,7 @@
           </div>
           <div class="form-group">
             <label>Email Address (Read-Only)</label>
-            <input type="email" id="email" disabled style="opacity:0.7;cursor:not-allowed" />
+            <input type="email" id="email" disabled style="opacity:0.5;cursor:not-allowed" />
           </div>
           <div class="form-group">
             <label for="age">Age (Years) *</label>
@@ -90,7 +90,7 @@
         <div class="flex justify-between items-center wrap gap-2 mt-4">
           <div class="flex gap-2">
             <button type="submit" class="btn btn-primary" id="save-btn">Save Profile Settings</button>
-            <a href="/dashboard.html" class="btn btn-secondary">Back to Dashboard</a>
+            <a href="/dashboard.html" class="btn btn-secondary">← Back to Dashboard</a>
           </div>
           <button type="button" class="btn btn-danger" id="delete-btn">🗑 Delete Account</button>
         </div>

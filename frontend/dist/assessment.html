@@ -7,41 +7,48 @@
   <meta name="description" content="Complete your AI-powered career assessment. 9 adaptive stages from education profiling to ML prediction." />
   <link rel="stylesheet" href="/css/style.css" />
   <style>
+    /* Step section transitions */
     .step-section { display: none; }
-    .step-section.active { display: block; animation: fadeUp 0.3s ease; }
-    .subjects-table { width:100%; border-collapse:collapse; }
-    .subjects-table th, .subjects-table td { padding:0.6rem 0.75rem; border-bottom:1px solid var(--border); font-size:0.88rem; }
-    .subjects-table th { color:var(--text-muted); font-weight:700; font-size:0.78rem; text-transform:uppercase; }
-    .subjects-table input { width:100%; background:var(--input-bg); border:1px solid var(--input-border); border-radius:var(--radius-sm); color:var(--text-h); padding:0.4rem 0.6rem; font-size:0.88rem; }
-    .cert-row, .proj-row { display:grid; grid-template-columns:1fr 1fr auto; gap:0.75rem; margin-bottom:0.75rem; align-items:end; }
-    @media(max-width:600px) { .cert-row, .proj-row { grid-template-columns:1fr; } }
+    .step-section.active { display: block; animation: fadeUpIn 0.35s ease; }
+
+    /* Compact stepper for mobile */
+    @media (max-width: 640px) {
+      .cert-row, .proj-row { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
 <div id="navbar-container"></div>
 
 <main class="page-wrapper">
+
   <!-- Assessment Header -->
   <div class="assessment-header mb-4">
-    <span style="font-size:0.8rem;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.05em">AI Career Assessment</span>
-    <h1 style="color:#fff;font-size:1.75rem;font-weight:900;margin:0.3rem 0">Complete Your Profile</h1>
-    <p style="color:rgba(255,255,255,0.85);font-size:0.9rem">Complete all steps for the most accurate AI career recommendation</p>
+    <span style="font-family:var(--font-body);font-size:0.78rem;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.06em;position:relative">AI Career Assessment</span>
+    <h1 style="font-family:var(--font-heading);color:#fff;font-size:1.9rem;font-weight:900;margin:0.4rem 0 0.3rem;letter-spacing:-0.02em;position:relative">Complete Your Profile</h1>
+    <p style="color:rgba(255,255,255,0.85);font-size:0.92rem;position:relative">Complete all steps for the most accurate AI career recommendation</p>
   </div>
 
-  <!-- Step indicator -->
+  <!-- Horizontal Step Indicator -->
   <div class="step-nav mb-4" id="step-nav"></div>
 
-  <!-- Progress bar -->
+  <!-- Progress Bar -->
   <div class="progress-bar mb-4" style="height:6px">
     <div class="progress-fill" id="main-progress" style="width:12.5%"></div>
   </div>
 
   <div id="alert-box" class="hidden mb-3"></div>
 
-  <!-- STEP 1: Education -->
+  <!-- ── STEP 1: Education Profile ── -->
   <div class="step-section active card card-2xl" id="step-1">
-    <h2 style="font-size:1.3rem;font-weight:800;color:var(--text-h);margin-bottom:0.3rem">🎓 Step 1: Education Profile</h2>
-    <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.5rem">Tell us about your current education level and institution</p>
+    <div style="display:flex;align-items:center;gap:0.85rem;margin-bottom:0.4rem">
+      <div style="width:40px;height:40px;border-radius:50%;background:var(--gradient-primary);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">🎓</div>
+      <div>
+        <h2 style="font-family:var(--font-heading);font-size:1.35rem;font-weight:800;color:var(--text-h);margin:0">Step 1: Education Profile</h2>
+        <p style="color:var(--text-muted);font-size:0.88rem;margin:0">Tell us about your current education level and institution</p>
+      </div>
+    </div>
+    <div class="divider"></div>
     <div class="form-grid">
       <div class="form-group">
         <label for="education_level">Education Level *</label>
@@ -101,10 +108,16 @@
     </div>
   </div>
 
-  <!-- STEP 2: Subject Marks -->
+  <!-- ── STEP 2: Subject Marks ── -->
   <div class="step-section card card-2xl" id="step-2">
-    <h2 style="font-size:1.3rem;font-weight:800;color:var(--text-h);margin-bottom:0.3rem">📊 Step 2: Academic Performance</h2>
-    <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.5rem">Enter your subject-wise marks or grades</p>
+    <div style="display:flex;align-items:center;gap:0.85rem;margin-bottom:0.4rem">
+      <div style="width:40px;height:40px;border-radius:50%;background:var(--gradient-primary);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">📊</div>
+      <div>
+        <h2 style="font-family:var(--font-heading);font-size:1.35rem;font-weight:800;color:var(--text-h);margin:0">Step 2: Academic Performance</h2>
+        <p style="color:var(--text-muted);font-size:0.88rem;margin:0">Enter your subject-wise marks or grades</p>
+      </div>
+    </div>
+    <div class="divider"></div>
     <div class="table-wrap">
       <table class="subjects-table" id="subjects-table">
         <thead><tr><th>Subject</th><th>Marks %</th><th>Grade</th></tr></thead>
@@ -117,22 +130,34 @@
     </div>
   </div>
 
-  <!-- STEP 3: Aptitude Questions -->
+  <!-- ── STEP 3: Aptitude ── -->
   <div class="step-section card card-2xl" id="step-3">
-    <h2 style="font-size:1.3rem;font-weight:800;color:var(--text-h);margin-bottom:0.3rem">🧩 Step 3: Adaptive Aptitude Battery</h2>
-    <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.5rem">Answer these aptitude questions. Difficulty adapts to your responses.</p>
-    <div id="aptitude-loading" class="loading-state"><div class="spinner"></div><p>Loading questions...</p></div>
+    <div style="display:flex;align-items:center;gap:0.85rem;margin-bottom:0.4rem">
+      <div style="width:40px;height:40px;border-radius:50%;background:var(--gradient-primary);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">🧩</div>
+      <div>
+        <h2 style="font-family:var(--font-heading);font-size:1.35rem;font-weight:800;color:var(--text-h);margin:0">Step 3: Adaptive Aptitude Battery</h2>
+        <p style="color:var(--text-muted);font-size:0.88rem;margin:0">Answer these aptitude questions — difficulty adapts to your responses</p>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div id="aptitude-loading" class="loading-state"><div class="spinner"></div><p>Loading adaptive questions...</p></div>
     <div id="aptitude-questions" style="display:none"></div>
     <div class="flex justify-between mt-4">
       <button class="btn btn-secondary" onclick="prevStep(3)">← Back</button>
-      <button class="btn btn-primary" id="aptitude-next-btn" onclick="nextStep(3)" style="display:none">Next: Psychometric →</button>
+      <button class="btn btn-primary" id="aptitude-next-btn" onclick="nextStep(3)" style="display:none">Next: Psychometrics →</button>
     </div>
   </div>
 
-  <!-- STEP 4: Psychometric -->
+  <!-- ── STEP 4: Psychometric ── -->
   <div class="step-section card card-2xl" id="step-4">
-    <h2 style="font-size:1.3rem;font-weight:800;color:var(--text-h);margin-bottom:0.3rem">🧠 Step 4: Situational Psychometrics</h2>
-    <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.5rem">These scenarios assess your personality and behavioral traits indirectly.</p>
+    <div style="display:flex;align-items:center;gap:0.85rem;margin-bottom:0.4rem">
+      <div style="width:40px;height:40px;border-radius:50%;background:var(--gradient-primary);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">🧠</div>
+      <div>
+        <h2 style="font-family:var(--font-heading);font-size:1.35rem;font-weight:800;color:var(--text-h);margin:0">Step 4: Situational Psychometrics</h2>
+        <p style="color:var(--text-muted);font-size:0.88rem;margin:0">Scenarios that assess your personality and behavioral traits indirectly</p>
+      </div>
+    </div>
+    <div class="divider"></div>
     <div id="psych-container"></div>
     <div class="flex justify-between mt-4">
       <button class="btn btn-secondary" onclick="prevStep(4)">← Back</button>
@@ -140,10 +165,16 @@
     </div>
   </div>
 
-  <!-- STEP 5: Interest Pairs -->
+  <!-- ── STEP 5: Interest Pairs ── -->
   <div class="step-section card card-2xl" id="step-5">
-    <h2 style="font-size:1.3rem;font-weight:800;color:var(--text-h);margin-bottom:0.3rem">🎯 Step 5: Career Interest Profiling</h2>
-    <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.5rem">Choose one option from each pair that resonates more with you.</p>
+    <div style="display:flex;align-items:center;gap:0.85rem;margin-bottom:0.4rem">
+      <div style="width:40px;height:40px;border-radius:50%;background:var(--gradient-primary);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">🎯</div>
+      <div>
+        <h2 style="font-family:var(--font-heading);font-size:1.35rem;font-weight:800;color:var(--text-h);margin:0">Step 5: Career Interest Profiling</h2>
+        <p style="color:var(--text-muted);font-size:0.88rem;margin:0">Choose the option from each pair that resonates more with you</p>
+      </div>
+    </div>
+    <div class="divider"></div>
     <div id="interest-container"></div>
     <div class="flex justify-between mt-4">
       <button class="btn btn-secondary" onclick="prevStep(5)">← Back</button>
@@ -151,10 +182,16 @@
     </div>
   </div>
 
-  <!-- STEP 6: Skills -->
+  <!-- ── STEP 6: Skills ── -->
   <div class="step-section card card-2xl" id="step-6">
-    <h2 style="font-size:1.3rem;font-weight:800;color:var(--text-h);margin-bottom:0.3rem">🔬 Step 6: Skill Verification</h2>
-    <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.5rem">Select the skills you have. Only your selected skills will be tested.</p>
+    <div style="display:flex;align-items:center;gap:0.85rem;margin-bottom:0.4rem">
+      <div style="width:40px;height:40px;border-radius:50%;background:var(--gradient-primary);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">🔬</div>
+      <div>
+        <h2 style="font-family:var(--font-heading);font-size:1.35rem;font-weight:800;color:var(--text-h);margin:0">Step 6: Skill Verification</h2>
+        <p style="color:var(--text-muted);font-size:0.88rem;margin:0">Select the skills you have — only selected skills will be tested</p>
+      </div>
+    </div>
+    <div class="divider"></div>
     <div class="skill-grid" id="skill-grid"></div>
     <div class="flex justify-between mt-4">
       <button class="btn btn-secondary" onclick="prevStep(6)">← Back</button>
@@ -162,15 +199,21 @@
     </div>
   </div>
 
-  <!-- STEP 7: Certifications -->
+  <!-- ── STEP 7: Certifications ── -->
   <div class="step-section card card-2xl" id="step-7">
-    <h2 style="font-size:1.3rem;font-weight:800;color:var(--text-h);margin-bottom:0.3rem">🏆 Step 7: Certifications</h2>
-    <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.5rem">Add your earned certifications (optional but improves prediction accuracy).</p>
+    <div style="display:flex;align-items:center;gap:0.85rem;margin-bottom:0.4rem">
+      <div style="width:40px;height:40px;border-radius:50%;background:var(--gradient-primary);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">🏆</div>
+      <div>
+        <h2 style="font-family:var(--font-heading);font-size:1.35rem;font-weight:800;color:var(--text-h);margin:0">Step 7: Certifications</h2>
+        <p style="color:var(--text-muted);font-size:0.88rem;margin:0">Add your earned certifications (optional but improves prediction accuracy)</p>
+      </div>
+    </div>
+    <div class="divider"></div>
     <div id="certs-container">
       <div class="cert-row" id="cert-0">
         <div class="form-group"><label>Certification Name</label><input type="text" placeholder="e.g. AWS Cloud Practitioner" id="cert-name-0" /></div>
         <div class="form-group"><label>Provider</label><input type="text" placeholder="e.g. Amazon, Google, Microsoft" id="cert-provider-0" /></div>
-        <button class="btn btn-danger btn-sm" onclick="removeCert(0)" style="height:40px;align-self:flex-end">✕</button>
+        <button class="btn btn-danger btn-sm" onclick="removeCert(0)" style="height:42px;align-self:flex-end">✕</button>
       </div>
     </div>
     <button class="btn btn-secondary btn-sm mt-2" onclick="addCert()">+ Add Certification</button>
@@ -180,25 +223,31 @@
     </div>
   </div>
 
-  <!-- STEP 8: Projects -->
+  <!-- ── STEP 8: Projects ── -->
   <div class="step-section card card-2xl" id="step-8">
-    <h2 style="font-size:1.3rem;font-weight:800;color:var(--text-h);margin-bottom:0.3rem">📁 Step 8: Projects & Portfolio</h2>
-    <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:1.5rem">Add projects that demonstrate your practical skills (optional).</p>
+    <div style="display:flex;align-items:center;gap:0.85rem;margin-bottom:0.4rem">
+      <div style="width:40px;height:40px;border-radius:50%;background:var(--gradient-primary);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">📁</div>
+      <div>
+        <h2 style="font-family:var(--font-heading);font-size:1.35rem;font-weight:800;color:var(--text-h);margin:0">Step 8: Projects &amp; Portfolio</h2>
+        <p style="color:var(--text-muted);font-size:0.88rem;margin:0">Add projects that demonstrate your practical skills (optional)</p>
+      </div>
+    </div>
+    <div class="divider"></div>
     <div id="projs-container">
       <div class="proj-row" id="proj-0">
         <div class="form-group"><label>Project Title</label><input type="text" placeholder="e.g. E-Commerce Platform" id="proj-title-0" /></div>
         <div class="form-group"><label>Technologies Used</label><input type="text" placeholder="e.g. React, Node.js, MongoDB" id="proj-tech-0" /></div>
-        <button class="btn btn-danger btn-sm" onclick="removeProj(0)" style="height:40px;align-self:flex-end">✕</button>
+        <button class="btn btn-danger btn-sm" onclick="removeProj(0)" style="height:42px;align-self:flex-end">✕</button>
       </div>
     </div>
     <button class="btn btn-secondary btn-sm mt-2" onclick="addProj()">+ Add Project</button>
     <div class="flex justify-between mt-4">
       <button class="btn btn-secondary" onclick="prevStep(8)">← Back</button>
-      <button class="btn btn-primary" onclick="submitAssessment()" id="submit-assessment-btn">🤖 Get AI Career Prediction →</button>
+      <button class="btn btn-primary" onclick="submitAssessment()" id="submit-assessment-btn" style="background:var(--gradient-electric)">🤖 Get AI Career Prediction →</button>
     </div>
   </div>
 
-  <!-- STEP 9: Results -->
+  <!-- ── STEP 9: Results ── -->
   <div class="step-section card card-2xl" id="step-9">
     <div id="results-content" class="loading-state">
       <div class="spinner"></div>

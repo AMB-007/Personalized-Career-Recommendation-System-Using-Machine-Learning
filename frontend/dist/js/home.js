@@ -203,6 +203,29 @@ function renderFAQ() {
   });
 }
 
+/* ── ANIMATED COUNTER ────────────────────────────────────────── */
+function animateCounter(el, target, suffix, duration = 1800) {
+  const start = performance.now();
+  const isK = suffix === 'K';
+  const displayTarget = isK ? target / 1000 : target;
+
+  const step = (now) => {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    // Ease out cubic
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = Math.round(displayTarget * eased);
+
+    if (isK) {
+      el.textContent = current >= 1 ? current + 'K' : Math.round(target * eased);
+    } else {
+      el.textContent = current + suffix;
+    }
+    if (progress < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
 /* ── INIT ────────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   renderNavbar('home');
@@ -210,16 +233,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const user = Auth.getUser();
 
   // Start button
-  const startBtn = document.getElementById('start-btn');
+  const startBtn    = document.getElementById('start-btn');
   const ctaStartBtn = document.getElementById('cta-start-btn');
   const ctaLoginLink = document.getElementById('cta-login-link');
-  const ctaDesc = document.getElementById('cta-desc');
+  const ctaDesc     = document.getElementById('cta-desc');
 
   if (user) {
-    if (startBtn) startBtn.textContent = 'Continue Assessment →';
-    if (ctaStartBtn) ctaStartBtn.textContent = 'Continue Assessment →';
+    if (startBtn)     startBtn.textContent    = 'Continue Assessment →';
+    if (ctaStartBtn)  ctaStartBtn.textContent = 'Continue Assessment →';
     if (ctaLoginLink) ctaLoginLink.style.display = 'none';
-    if (ctaDesc) ctaDesc.textContent = `Welcome back, ${user.full_name?.split(' ')[0]}! Continue your AI career assessment.`;
+    if (ctaDesc)      ctaDesc.textContent = `Welcome back, ${user.full_name?.split(' ')[0]}! Continue your AI career assessment.`;
   }
 
   const handleStart = () => { window.location.href = user ? '/assessment.html' : '/register.html'; };
@@ -239,15 +262,28 @@ document.addEventListener('DOMContentLoaded', () => {
   renderTestimonials();
   renderFAQ();
 
-  // Stats intersection observer animation
-  const statsNums = document.querySelectorAll('.stat-number');
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        statsNums.forEach(n => n.style.opacity = '1');
-      }
-    });
-  }, { threshold: 0.3 });
+  // Add staggered animation delays to pipeline cards
+  document.querySelectorAll('.pipeline-card').forEach((card, i) => {
+    card.classList.add('reveal');
+    card.style.transitionDelay = `${i * 0.07}s`;
+  });
+
+  // Animated stat counters when stats section enters viewport
   const statsSection = document.getElementById('stats-section');
-  if (statsSection) observer.observe(statsSection);
+  if (statsSection) {
+    let animated = false;
+    const counterObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !animated) {
+          animated = true;
+          document.querySelectorAll('.stat-number[data-target]').forEach(el => {
+            const target = parseInt(el.dataset.target, 10);
+            const suffix = el.dataset.suffix || '';
+            animateCounter(el, target, suffix);
+          });
+        }
+      });
+    }, { threshold: 0.3 });
+    counterObserver.observe(statsSection);
+  }
 });

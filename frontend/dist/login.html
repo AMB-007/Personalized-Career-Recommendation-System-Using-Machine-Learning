@@ -11,32 +11,67 @@
 <div id="navbar-container"></div>
 
 <main class="auth-page">
-  <div class="auth-card fade-up">
-    <div class="text-center mb-3">
-      <div class="auth-icon">🎯</div>
-      <h1>Welcome Back</h1>
-      <p class="subtitle mt-1">Sign in to continue your career assessment</p>
+  <!-- LEFT: Illustration Panel -->
+  <div class="auth-illustration">
+    <div class="auth-illustration-orb1" aria-hidden="true"></div>
+    <div class="auth-illustration-orb2" aria-hidden="true"></div>
+    <div class="auth-illustration-content">
+      <span class="auth-illustration-icon">🎯</span>
+      <h2>Find Your Perfect Career Path</h2>
+      <p>Our AI-powered assessment analyzes your aptitude, interests, and skills to match you with the ideal career from 272 professions.</p>
+      <div class="auth-feature-list">
+        <div class="auth-feature">
+          <span class="auth-feature-dot">✓</span>
+          Adaptive 9-step psychometric pipeline
+        </div>
+        <div class="auth-feature">
+          <span class="auth-feature-dot">✓</span>
+          272 career labels with confidence scores
+        </div>
+        <div class="auth-feature">
+          <span class="auth-feature-dot">✓</span>
+          SHAP explainability for every prediction
+        </div>
+        <div class="auth-feature">
+          <span class="auth-feature-dot">✓</span>
+          Personalized learning roadmap
+        </div>
+      </div>
     </div>
+  </div>
 
-    <div id="alert-box" class="hidden"></div>
-
-    <form id="login-form" style="display:flex;flex-direction:column;gap:1.25rem">
-      <div class="form-group">
-        <label for="email">Email Address</label>
-        <input type="email" id="email" name="email" placeholder="you@example.com" required autocomplete="email" />
+  <!-- RIGHT: Form Panel -->
+  <div class="auth-form-panel">
+    <div class="auth-form-inner fade-up">
+      <!-- Logo -->
+      <div class="auth-logo-mark">
+        <span style="font-size:1.5rem">✨</span>
+        <span class="auth-logo-text">Career<span class="logo-ai">AI</span></span>
       </div>
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password" />
-      </div>
-      <button type="submit" class="btn btn-primary btn-lg w-full" id="submit-btn" data-original-text="🔐 Sign In">
-        🔐 Sign In
-      </button>
-    </form>
 
-    <div class="auth-links">
-      <p>Don't have an account? <a href="/register.html">Create Account</a></p>
-      <p style="margin-top:0.5rem;font-size:0.85rem">Admin? <a href="/admin-login.html">Admin Login</a></p>
+      <h1>Welcome Back</h1>
+      <p class="subtitle">Sign in to continue your career assessment journey</p>
+
+      <div id="alert-box" class="hidden" style="margin:1.25rem 0"></div>
+
+      <form id="login-form" style="display:flex;flex-direction:column;gap:1.35rem;margin-top:1.75rem">
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" name="email" placeholder="you@example.com" required autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password" />
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg w-full" id="submit-btn" data-original-text="🔐 Sign In">
+          🔐 Sign In
+        </button>
+      </form>
+
+      <div class="auth-links">
+        <p>Don't have an account? <a href="/register.html">Create Account</a></p>
+        <p style="margin-top:0.5rem;font-size:0.85rem">Admin? <a href="/admin-login.html">Admin Login →</a></p>
+      </div>
     </div>
   </div>
 </main>

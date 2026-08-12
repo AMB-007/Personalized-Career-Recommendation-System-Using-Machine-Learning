@@ -51,8 +51,8 @@ if __name__ == '__main__':
     except Exception as db_err:
         print(f"[WARN] DB init skipped: {db_err}")
 
-    print("\n  ✅  Frontend + Backend running at: http://127.0.0.1:5000")
-    print("  ✅  API health check:              http://127.0.0.1:5000/api/health")
+    print("\n  [OK] Frontend + Backend running at: http://127.0.0.1:5000")
+    print("  [OK] API health check:              http://127.0.0.1:5000/api/health")
     print("  Press CTRL+C to stop.\n")
 
     app.run(debug=True, host='0.0.0.0', port=5000)

@@ -10,10 +10,17 @@
 <body>
 <div id="navbar-container"></div>
 
-<!-- ── HERO ──────────────────────────────────────────────────── -->
+<!-- Animated background orbs -->
+<div class="orb-bg" aria-hidden="true">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<!-- ── HERO ────────────────────────────────────────────────── -->
 <section class="hero" id="home-hero">
-  <div class="hero-blob1"></div>
-  <div class="hero-blob2"></div>
+  <div class="hero-blob1" aria-hidden="true"></div>
+  <div class="hero-blob2" aria-hidden="true"></div>
   <div class="hero-grid container">
     <!-- LEFT -->
     <div>
@@ -24,13 +31,13 @@
       <h1>
         Discover Your
         <span class="grad-text">Ideal Career</span>
-        with Adaptive AI Assessment
+        with Adaptive AI
       </h1>
       <p>
         A production-grade 9-step psychometric pipeline — adaptive aptitude, situational scenarios, skill verification &amp; LightGBM predictions across <strong>272 career labels</strong> for students from Class 7 to Professional Degrees.
       </p>
       <div class="hero-cta">
-        <button class="btn btn-primary btn-lg" id="start-btn">Start Free Assessment →</button>
+        <button class="btn btn-primary btn-lg btn-pulse" id="start-btn">Start Free Assessment →</button>
         <a href="#pipeline" class="btn btn-secondary btn-lg">Explore Pipeline ↓</a>
       </div>
       <div class="hero-trust">
@@ -46,7 +53,7 @@
         <div class="preview-header">
           <div class="flex items-center gap-1">
             <span class="live-dot"></span>
-            <span style="font-weight:800;font-size:0.82rem;color:var(--text-h);text-transform:uppercase;letter-spacing:0.04em">Live ML Preview</span>
+            <span style="font-family:var(--font-heading);font-weight:800;font-size:0.82rem;color:var(--text-h);text-transform:uppercase;letter-spacing:0.05em">Live ML Preview</span>
           </div>
           <span style="font-size:0.75rem;color:var(--text-muted);font-weight:600">Select candidate profile</span>
         </div>
@@ -58,26 +65,38 @@
           <button class="tab-btn" data-key="creative">Design &amp; Creative</button>
         </div>
         <!-- Preview content -->
-        <div style="padding:1.25rem" id="preview-content"></div>
+        <div style="padding:1.35rem" id="preview-content"></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ── STATS STRIP ────────────────────────────────────────────── -->
+<!-- ── STATS STRIP ─────────────────────────────────────────── -->
 <section class="stats-strip" id="stats-section">
   <div class="stats-grid">
-    <div class="stat-item"><div class="stat-number">35K</div><div class="stat-label">Training Dataset Records</div></div>
-    <div class="stat-item"><div class="stat-number">272</div><div class="stat-label">Career Labels Predicted</div></div>
-    <div class="stat-item"><div class="stat-number">9</div><div class="stat-label">Adaptive Assessment Steps</div></div>
-    <div class="stat-item"><div class="stat-number">100%</div><div class="stat-label">Explainable AI (XAI)</div></div>
+    <div class="stat-item reveal">
+      <div class="stat-number" data-target="35000" data-suffix="K">35K</div>
+      <div class="stat-label">Training Dataset Records</div>
+    </div>
+    <div class="stat-item reveal">
+      <div class="stat-number" data-target="272" data-suffix="">272</div>
+      <div class="stat-label">Career Labels Predicted</div>
+    </div>
+    <div class="stat-item reveal">
+      <div class="stat-number" data-target="9" data-suffix="">9</div>
+      <div class="stat-label">Adaptive Assessment Steps</div>
+    </div>
+    <div class="stat-item reveal">
+      <div class="stat-number" data-target="100" data-suffix="%">100%</div>
+      <div class="stat-label">Explainable AI (XAI)</div>
+    </div>
   </div>
 </section>
 
-<!-- ── PIPELINE ───────────────────────────────────────────────── -->
-<section style="padding:6rem 1.5rem;background:var(--bg-page)" id="pipeline">
-  <div style="max-width:1100px;margin:0 auto">
-    <div class="section-header">
+<!-- ── PIPELINE ──────────────────────────────────────────────── -->
+<section style="padding:6.5rem 1.5rem;background:var(--bg-page)" id="pipeline">
+  <div class="section-inner">
+    <div class="section-header reveal">
       <div class="eyebrow">Assessment Pipeline</div>
       <h2 class="section-title">9-Stage AI Assessment <span class="grad-text">Pipeline</span></h2>
       <p class="section-desc">Every student receives a different assessment — questions adapt to your education level, stream, and real-time performance.</p>
@@ -87,9 +106,9 @@
 </section>
 
 <!-- ── DOMAIN EXPLORER ────────────────────────────────────────── -->
-<section style="padding:6rem 1.5rem;background:var(--bg-card);border-top:1px solid var(--border)" id="domains">
-  <div style="max-width:1100px;margin:0 auto">
-    <div class="section-header">
+<section style="padding:6.5rem 1.5rem;background:var(--bg-card);border-top:1px solid var(--border)" id="domains">
+  <div class="section-inner">
+    <div class="section-header reveal">
       <div class="eyebrow">Career Domains</div>
       <h2 class="section-title">Explore 272 Career Paths</h2>
       <p class="section-desc">The ML model covers every major career domain from STEM to Law.</p>
@@ -100,9 +119,9 @@
 </section>
 
 <!-- ── TESTIMONIALS ───────────────────────────────────────────── -->
-<section style="padding:6rem 1.5rem;background:var(--bg-page)">
-  <div style="max-width:1100px;margin:0 auto">
-    <div class="section-header">
+<section style="padding:6.5rem 1.5rem;background:var(--bg-page)">
+  <div class="section-inner">
+    <div class="section-header reveal">
       <div class="eyebrow">Testimonials</div>
       <h2 class="section-title">What Students Say</h2>
     </div>
@@ -110,23 +129,23 @@
   </div>
 </section>
 
-<!-- ── FAQ ───────────────────────────────────────────────────── -->
-<section style="padding:6rem 1.5rem;background:var(--bg-card);border-top:1px solid var(--border)">
+<!-- ── FAQ ────────────────────────────────────────────────────── -->
+<section style="padding:6.5rem 1.5rem;background:var(--bg-card);border-top:1px solid var(--border)">
   <div style="max-width:820px;margin:0 auto">
-    <div class="section-header">
+    <div class="section-header reveal">
       <div class="eyebrow">FAQ</div>
       <h2 class="section-title">Frequently Asked Questions</h2>
     </div>
-    <div style="display:flex;flex-direction:column;gap:0.75rem" id="faq-list"></div>
+    <div style="display:flex;flex-direction:column;gap:0.85rem" id="faq-list"></div>
   </div>
 </section>
 
-<!-- ── CTA BANNER ────────────────────────────────────────────── -->
-<section style="padding:5rem 1.5rem;background:var(--bg-page)">
-  <div style="max-width:820px;margin:0 auto">
-    <div class="cta-banner">
-      <div class="cta-orb1"></div>
-      <div class="cta-orb2"></div>
+<!-- ── CTA BANNER ──────────────────────────────────────────────── -->
+<section style="padding:6rem 1.5rem;background:var(--bg-page)">
+  <div style="max-width:860px;margin:0 auto">
+    <div class="cta-banner reveal">
+      <div class="cta-orb1" aria-hidden="true"></div>
+      <div class="cta-orb2" aria-hidden="true"></div>
       <div class="cta-content">
         <div class="cta-badge">Start Today — It's Free</div>
         <h2>Ready to Discover Your Ideal Career?</h2>

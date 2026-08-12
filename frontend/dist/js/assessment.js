@@ -95,11 +95,16 @@ function renderStepNav() {
   const nav = document.getElementById('step-nav');
   if (!nav) return;
   const labels = ['Education','Marks','Aptitude','Psychometric','Interests','Skills','Certs','Projects','Results'];
-  nav.innerHTML = labels.map((label, i) => `
-    <div class="step-dot ${i + 1 < currentStep ? 'completed' : i + 1 === currentStep ? 'active' : ''}" title="Step ${i+1}: ${label}">
-      ${i + 1 < currentStep ? '✓' : i + 1}
+  nav.innerHTML = `
+    <div class="stepper-wrapper">
+      ${labels.map((label, i) => `
+        <div class="step-item ${i + 1 < currentStep ? 'completed' : i + 1 === currentStep ? 'active' : ''}">
+          <div class="step-dot">${i + 1 < currentStep ? '✓' : i + 1}</div>
+          <div class="step-label">${label}</div>
+        </div>
+      `).join('<div class="step-connector"></div>')}
     </div>
-  `).join('');
+  `;
 }
 
 function nextStep(from) {
