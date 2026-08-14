@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let error = '';
 
   try {
-    const res = await API.get(`/api/assessment/history/${user.id}`, true);
+    const res = await API.get('/api/history', true);
     if (res.status === 'success') {
       history = res.history || [];
     } else {
@@ -26,8 +26,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function render(history, error, user, container) {
-  const maxScore  = history.length ? Math.max(...history.map(h => h.verified_score || 0)) : 0;
-  const latestCar = history.length ? (history[0].recommended_career || history[0].top1_career || 'None') : 'None';
+  const maxScore  = history.length ? Math.max(...history.map(h => h.readiness_score || Math.round(h.top1_confidence || 0))) : 0;
+  const latestCar = history.length ? (history[0].top1_career || history[0].recommended_career || 'None') : 'None';
   const name      = user?.full_name || 'Student';
 
   container.innerHTML = `
@@ -72,14 +72,14 @@ function render(history, error, user, container) {
 }
 
 function renderCard(item) {
-  const dateStr = item.assessment_date || item.created_at || item.predicted_at;
+  const dateStr = item.predicted_at || item.assessment_date || item.created_at;
   const dateObj = dateStr ? new Date(dateStr) : null;
   const formatted = dateObj && !isNaN(dateObj)
     ? dateObj.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) + ' at ' + dateObj.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })
     : 'Recent';
 
-  const career   = item.recommended_career || item.top1_career || 'Career Analysis';
-  const score    = item.verified_score || Math.round(item.top1_confidence || 0);
+  const career   = item.top1_career || item.recommended_career || 'Career Analysis';
+  const score    = item.readiness_score || Math.round(item.top1_confidence || 0);
   const isPassed = score >= 70;
   const scoreColor = isPassed ? 'var(--emerald)' : 'var(--amber)';
   const trait    = item.riasec_trait || '';

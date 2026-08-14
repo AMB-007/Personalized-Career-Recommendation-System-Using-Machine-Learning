@@ -7,15 +7,17 @@ const API_BASE = 'http://127.0.0.1:5000';
 
 /* ── THEME ──────────────────────────────────────────────────── */
 const ThemeManager = {
-  get() { return localStorage.getItem('theme') || 'dark'; },
+  get() { return localStorage.getItem('theme') || 'light'; },
   set(theme) {
     localStorage.setItem('theme', theme);
     document.documentElement.setAttribute('data-theme', theme);
-    document.getElementById('theme-icon') && (document.getElementById('theme-icon').textContent = theme === 'dark' ? '☀️' : '🌙');
+    const icon = document.getElementById('theme-icon-desktop');
+    if (icon) icon.textContent = theme === 'dark' ? '☀️' : '🌙';
   },
   toggle() { this.set(this.get() === 'dark' ? 'light' : 'dark'); },
   init() { this.set(this.get()); }
 };
+
 
 /* ── AUTH ────────────────────────────────────────────────────── */
 const Auth = {
@@ -85,14 +87,20 @@ function renderNavbar(activePage = '') {
   const isAdmin = Auth.isAdmin();
   const theme = ThemeManager.get();
 
+  const isHome = activePage === 'home';
   const navLinks = isAdmin ? `
     <a href="/admin.html" class="${activePage === 'admin' ? 'active' : ''}">👑 Admin Center</a>
     <a href="/index.html" class="${activePage === 'home' ? 'active' : ''}">🌐 Home</a>
   ` : (user ? `
-    <a href="/index.html" class="${activePage === 'home' ? 'active' : ''}">Home</a>
-    <a href="/dashboard.html" class="${activePage === 'dashboard' ? 'active' : ''}">Dashboard</a>
+    <a href="/index.html"    class="${activePage === 'home'       ? 'active' : ''}">Home</a>
+    <a href="/dashboard.html" class="${activePage === 'dashboard'  ? 'active' : ''}">Dashboard</a>
     <a href="/assessment.html" class="${activePage === 'assessment' ? 'active' : ''}">Take Assessment</a>
-    <a href="/history.html" class="${activePage === 'history' ? 'active' : ''}">History</a>
+    <a href="/history.html"   class="${activePage === 'history'    ? 'active' : ''}">History</a>
+  ` : isHome ? `
+    <a href="/index.html"    class="active">Home</a>
+    <a href="#how-it-works">How It Works</a>
+    <a href="#domains">Careers</a>
+    <a href="#faq">FAQ</a>
   ` : `
     <a href="/index.html" class="${activePage === 'home' ? 'active' : ''}">Home</a>
   `);
@@ -141,19 +149,13 @@ function renderNavbar(activePage = '') {
 
       <div class="nav-links" id="nav-links">
         ${navLinks}
-        <div class="nav-right-mobile flex items-center gap-1">
-          <button class="theme-btn" id="theme-btn" title="Toggle theme">
-            <span id="theme-icon">${theme === 'dark' ? '☀️' : '🌙'}</span>
-          </button>
-          ${userSection}
-        </div>
       </div>
 
       <div class="nav-right">
         <button class="theme-btn" id="theme-btn-desktop" title="Toggle theme">
           <span id="theme-icon-desktop">${theme === 'dark' ? '☀️' : '🌙'}</span>
         </button>
-        ${userSection.replace(/id="notif-wrap"/,'id="notif-wrap-d"').replace(/id="notif-btn"/,'id="notif-btn-d"').replace(/id="notif-dropdown"/,'id="notif-dropdown-d"').replace(/id="user-wrap"/,'id="user-wrap-d"').replace(/id="user-avatar-btn"/,'id="user-avatar-btn-d"').replace(/id="user-dropdown"/,'id="user-dropdown-d"').replace(/id="logout-btn"/,'id="logout-btn-d"')}
+        ${userSection}
       </div>
     </nav>
   `;
@@ -169,51 +171,38 @@ function renderNavbar(activePage = '') {
     document.getElementById('hamburger').setAttribute('aria-expanded', expanded);
   });
 
-  // Theme toggles
-  ['theme-btn','theme-btn-desktop'].forEach(id => {
-    document.getElementById(id)?.addEventListener('click', () => {
-      ThemeManager.toggle();
-      ['theme-icon','theme-icon-desktop'].forEach(ico => {
-        const el = document.getElementById(ico);
-        if (el) el.textContent = ThemeManager.get() === 'dark' ? '☀️' : '🌙';
-      });
-    });
+  // Theme toggle
+  document.getElementById('theme-btn-desktop')?.addEventListener('click', () => {
+    ThemeManager.toggle();
+    const ico = document.getElementById('theme-icon-desktop');
+    if (ico) ico.textContent = ThemeManager.get() === 'dark' ? '☀️' : '🌙';
   });
 
-  // Notification dropdowns
-  ['notif-btn','notif-btn-d'].forEach(id => {
-    document.getElementById(id)?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const ddId = id.endsWith('-d') ? 'notif-dropdown-d' : 'notif-dropdown';
-      const dd = document.getElementById(ddId);
-      if (dd) dd.classList.toggle('hidden');
-      // Close user menu
-      ['user-dropdown','user-dropdown-d'].forEach(u => document.getElementById(u)?.classList.add('hidden'));
-    });
+  // Notification dropdown
+  document.getElementById('notif-btn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const dd = document.getElementById('notif-dropdown');
+    if (dd) dd.classList.toggle('hidden');
+    document.getElementById('user-dropdown')?.classList.add('hidden');
   });
 
-  // User menu dropdowns
-  ['user-avatar-btn','user-avatar-btn-d'].forEach(id => {
-    document.getElementById(id)?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const ddId = id.endsWith('-d') ? 'user-dropdown-d' : 'user-dropdown';
-      const dd = document.getElementById(ddId);
-      if (dd) dd.classList.toggle('hidden');
-      ['notif-dropdown','notif-dropdown-d'].forEach(n => document.getElementById(n)?.classList.add('hidden'));
-    });
+  // User menu dropdown
+  document.getElementById('user-avatar-btn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const dd = document.getElementById('user-dropdown');
+    if (dd) dd.classList.toggle('hidden');
+    document.getElementById('notif-dropdown')?.classList.add('hidden');
   });
 
   // Logout
-  ['logout-btn','logout-btn-d'].forEach(id => {
-    document.getElementById(id)?.addEventListener('click', (e) => {
-      e.preventDefault();
-      Auth.logout();
-    });
+  document.getElementById('logout-btn')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    Auth.logout();
   });
 
   // Close dropdowns on outside click
   document.addEventListener('click', () => {
-    ['notif-dropdown','notif-dropdown-d','user-dropdown','user-dropdown-d'].forEach(id => {
+    ['notif-dropdown','user-dropdown'].forEach(id => {
       document.getElementById(id)?.classList.add('hidden');
     });
   });

@@ -6,36 +6,57 @@
   <title>Sign In — CareerAI</title>
   <meta name="description" content="Sign in to your CareerAI account to continue your career assessment." />
   <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    body { overflow: hidden; }
+    @media (max-width: 768px) { body { overflow: auto; } }
+    .auth-topbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+      height: 56px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 1.5rem;
+      background: rgba(255,255,255,0.95);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+    }
+    .auth-topbar-logo {
+      font-family: var(--font-heading); font-weight: 900; font-size: 1.15rem;
+      color: var(--text-h); letter-spacing: -0.02em;
+      display: flex; align-items: center; gap: 0.4rem;
+      text-decoration: none;
+    }
+    .auth-topbar-logo .logo-ai { color: var(--primary); }
+    .auth-topbar-back {
+      font-size: 0.83rem; font-weight: 600; color: var(--text-muted);
+      transition: color var(--transition);
+    }
+    .auth-topbar-back:hover { color: var(--primary); }
+    .auth-page { padding-top: 56px; min-height: 100vh; }
+    @media (max-width: 960px) { .auth-topbar { display: none; } .auth-page { padding-top: 0; } }
+  </style>
 </head>
 <body>
-<div id="navbar-container"></div>
+
+<!-- Minimal Top Bar -->
+<header class="auth-topbar">
+  <a href="/index.html" class="auth-topbar-logo">✨ Career<span class="logo-ai">AI</span></a>
+  <a href="/index.html" class="auth-topbar-back">← Back to Home</a>
+</header>
 
 <main class="auth-page">
   <!-- LEFT: Illustration Panel -->
+
   <div class="auth-illustration">
     <div class="auth-illustration-orb1" aria-hidden="true"></div>
     <div class="auth-illustration-orb2" aria-hidden="true"></div>
     <div class="auth-illustration-content">
       <span class="auth-illustration-icon">🎯</span>
       <h2>Find Your Perfect Career Path</h2>
-      <p>Our AI-powered assessment analyzes your aptitude, interests, and skills to match you with the ideal career from 272 professions.</p>
+      <p>AI analyzes your academics, aptitude, interests and skills to match you with the right career from 272 professions.</p>
       <div class="auth-feature-list">
-        <div class="auth-feature">
-          <span class="auth-feature-dot">✓</span>
-          Adaptive 9-step psychometric pipeline
-        </div>
-        <div class="auth-feature">
-          <span class="auth-feature-dot">✓</span>
-          272 career labels with confidence scores
-        </div>
-        <div class="auth-feature">
-          <span class="auth-feature-dot">✓</span>
-          SHAP explainability for every prediction
-        </div>
-        <div class="auth-feature">
-          <span class="auth-feature-dot">✓</span>
-          Personalized learning roadmap
-        </div>
+        <div class="auth-feature"><span class="auth-feature-dot">✓</span> Free AI-powered career assessment</div>
+        <div class="auth-feature"><span class="auth-feature-dot">✓</span> Top 5 career matches with confidence scores</div>
+        <div class="auth-feature"><span class="auth-feature-dot">✓</span> Salary, top companies & growth data</div>
+        <div class="auth-feature"><span class="auth-feature-dot">✓</span> Step-by-step personalized roadmap</div>
       </div>
     </div>
   </div>
@@ -79,7 +100,7 @@
 <script src="/js/app.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  renderNavbar('login');
+  ThemeManager.init();
 
   // Redirect if already logged in
   if (Auth.isLoggedIn()) {
