@@ -1,3 +1,18 @@
-backend/.env
-backend/venv/
-backend/__pycache__/
+# Environment variables
+.env
+.env.*
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Generated backend output
+backend/output/
+
+# Frontend dependencies
+node_modules/
