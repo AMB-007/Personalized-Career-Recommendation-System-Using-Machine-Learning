@@ -27,36 +27,60 @@ import mysql.connector
 from mysql.connector import pooling
 import joblib  # Use joblib for sklearn artifacts (Python 3.14 pickle compatibility fix)
 
-# Try loading XGBoost and ML Artifacts
+# ── Load 4-Model Soft-Voting Ensemble + Live SHAP TreeExplainer ─────────────
+# Architecture : XGBoost + CatBoost + LightGBM + RandomForest (soft-vote)
+# SHAP         : TreeExplainer on XGBoost — computed live per request
 try:
-    import xgboost as xgb
+    import xgboost  as xgb
+    import lightgbm as lgb
+    from catboost import CatBoostClassifier
+    import shap
     import warnings
+
     ml_base = os.path.join(os.path.dirname(__file__), 'models')
-    # Use joblib for sklearn objects — pickle fails on Python 3.14 with STACK_GLOBAL error
+
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         ml_le         = joblib.load(os.path.join(ml_base, 'label_encoder.pkl'))
         ml_oe         = joblib.load(os.path.join(ml_base, 'ordinal_encoder.pkl'))
         ml_scaler     = joblib.load(os.path.join(ml_base, 'scaler.pkl'))
-    ml_feature_cols = pickle.load(open(os.path.join(ml_base, 'feature_columns.pkl'), 'rb'))
-    ml_cat_cols     = pickle.load(open(os.path.join(ml_base, 'cat_feature_names.pkl'), 'rb'))
-    ml_num_cols     = pickle.load(open(os.path.join(ml_base, 'numeric_feature_names.pkl'), 'rb'))
-    # Try loading the XGBoost model — may fail if saved with a different XGBoost version
+        ml_xgb        = joblib.load(os.path.join(ml_base, 'career_model.pkl'))       # XGBoost
+        ml_cb         = joblib.load(os.path.join(ml_base, 'catboost_model.pkl'))     # CatBoost
+        ml_lgb        = joblib.load(os.path.join(ml_base, 'lgbm_model.pkl'))         # LightGBM
+        ml_rf         = joblib.load(os.path.join(ml_base, 'rf_model.pkl'))           # RandomForest
+
+    ml_feature_cols  = pickle.load(open(os.path.join(ml_base, 'feature_columns.pkl'),       'rb'))
+    ml_cat_cols      = pickle.load(open(os.path.join(ml_base, 'cat_feature_names.pkl'),     'rb'))
+    ml_num_cols      = pickle.load(open(os.path.join(ml_base, 'numeric_feature_names.pkl'), 'rb'))
+    ml_ens_weights   = pickle.load(open(os.path.join(ml_base, 'ensemble_weights.pkl'),      'rb'))
+    ml_cat_indices   = pickle.load(open(os.path.join(ml_base, 'cat_feature_indices.pkl'),   'rb'))
+
+    # Alias for backward compat (health endpoint)
+    ml_model = ml_xgb
+
+    # Build SHAP TreeExplainer on XGBoost
     try:
-        ml_model = joblib.load(os.path.join(ml_base, 'career_model.pkl'))
-        print("[OK] ML Artifacts loaded successfully (joblib).")
-    except Exception as model_err:
-        print(f"[WARN] career_model.pkl failed to load: {str(model_err)[:80]}")
-        print("    Encoders & scalers loaded — running in Mock Prediction mode.")
-        ml_model = None
-    try:
-        ml_shap = joblib.load(os.path.join(ml_base, 'shap_explainer.pkl'))
-    except Exception:
-        ml_shap = None
+        _xgb_shap    = joblib.load(os.path.join(ml_base, 'xgb_base_model.pkl'))
+        ml_shap_explainer = shap.TreeExplainer(_xgb_shap)
+        print("[OK] SHAP TreeExplainer ready.")
+    except Exception as _se:
+        print(f"[WARN] SHAP explainer skipped: {str(_se)[:80]}")
+        ml_shap_explainer = None
+
+    print(f"[OK] Ensemble loaded: XGBoost + CatBoost + LightGBM + RandomForest")
+    print(f"[OK] Weights: XGB={ml_ens_weights[0]:.4f} CB={ml_ens_weights[1]:.4f} "
+          f"LGB={ml_ens_weights[2]:.4f} RF={ml_ens_weights[3]:.4f}")
+    print(f"[OK] Features: {len(ml_feature_cols)} total "
+          f"({len(ml_num_cols)} numeric, {len(ml_cat_cols)} categorical)")
+    print(f"[OK] Careers : {len(ml_le.classes_)} classes")
+
 except Exception as e:
-    print(f"[WARN] ML load failed: {str(e)[:80]}. Running in Mock Prediction mode.")
-    ml_model, ml_le, ml_oe, ml_scaler, ml_feature_cols = None, None, None, None, None
-    ml_cat_cols, ml_num_cols, ml_shap = None, None, None
+    print(f"[WARN] ML load failed: {str(e)[:120]}. Running in Mock Prediction mode.")
+    ml_model = ml_xgb = ml_cb = ml_lgb = ml_rf = None
+    ml_le = ml_oe = ml_scaler = ml_feature_cols = None
+    ml_cat_cols = ml_num_cols = ml_shap_explainer = None
+    ml_ens_weights = [0.25, 0.25, 0.25, 0.25]
+    ml_cat_indices = []
 
 # ─────────────────────────────────────────────────────────────────────────────
 # APP SETUP — load .env first
@@ -921,114 +945,244 @@ def submit_assessment():
         if not any([logical_apt, num_apt, verb_apt, spat_apt]): 
              logical_apt = num_apt = verb_apt = spat_apt = 70.0 # Default fallback if missing structure
 
+        # ── Base feature values ────────────────────────────────────────────
+        _cgpa        = float(data.get("cgpa", 7.0))
+        _sem_marks   = float(data.get("semester_marks", 75.0))
+        _internal    = float(data.get("internal_marks", 75.0))
+        _practical   = float(data.get("practical_marks", 75.0))
+        _project_sc  = float(data.get("project_score", min(len(projs) * 20.0, 100.0)))
+        _lab_sc      = float(data.get("lab_score", 75.0))
+        _assignment  = float(data.get("assignment_score", 75.0))
+        _attendance  = float(data.get("attendance", 80.0))
+        _age         = float(user_info.get("age") or data.get("age") or 20)
+        _year_study  = float(data.get("year_of_study", 3))
+
+        _tech_int   = float(ints.get('Technology', 50))
+        _health_int = float(ints.get('Healthcare', 50))
+        _biz_int    = float(ints.get('Business', 50))
+        _arts_int   = float(ints.get('Creative Arts', 50))
+        _res_int    = float(ints.get('Research', 50))
+        _edu_int    = float(ints.get('Education', 50))
+        _eng_int    = float(ints.get('Engineering', 50))
+        _law_int    = float(ints.get('Law', 50))
+        _env_int    = float(ints.get('Environment', 50))
+        _soc_int    = float(ints.get('Social Service', 50))
+
+        _logical = float(logical_apt)
+        _num_apt = float(num_apt)
+        _verb    = float(verb_apt)
+        _spat    = float(spat_apt)
+
+        _leadership  = float(psy.get('Leadership', 50))
+        _teamwork    = float(psy.get('Teamwork', 50))
+        _comm        = float(psy.get('Communication', 50))
+        _creativity  = float(psy.get('Creativity', 50))
+        _prob_solv   = float(psy.get('Problem_Solving', 50))
+        _crit_think  = float(psy.get('Critical_Thinking', psy.get('Analytical_Thinking', 50)))
+        _adaptab     = float(psy.get('Adaptability', 50))
+        _decision    = float(psy.get('Decision_Making', 50))
+        _time_mgmt   = float(psy.get('Time_Management', 50))
+        _curiosity   = float(psy.get('Curiosity', 50))
+        _analytical  = float(psy.get('Analytical_Thinking', 50))
+        _stress      = float(psy.get('Stress_Management', 50))
+        _self_learn  = float(psy.get('Self_Learning', 50))
+        _persist     = float(psy.get('Persistence', 50))
+        _confidence  = float(psy.get('Confidence', 50))
+
+        _n_skills  = float(len(skills))
+        _n_certs   = float(len(certs))
+        _n_projs   = float(len(projs))
+        _interns   = float(data.get("internships_count", 0))
+        _hackathons= float(data.get("hackathons_count", 0))
+        _research_exp = float(data.get("research_experience", 0))
+        _comp_part = float(data.get("competition_count", 0))
+        _volunteer = float(data.get("volunteer_activities", 0))
+
+        _subj_know = float(sum(skills.values()) / max(1, len(skills))) if skills else 50.0
+        _acad_score  = (_cgpa * 10 * 0.4 + _sem_marks * 0.35 + _internal * 0.25)
+        _soft_skill  = float(sum(psy.values()) / max(1, len(psy))) if psy else 50.0
+        _activity_sc = float(_n_projs * 10 + _n_certs * 10 + _interns * 10)
+
+        # ── Engineered interaction features (must match training exactly) ──
+        _total_apt     = _logical + _num_apt + _verb + _spat
+        _all_interests = [_tech_int, _health_int, _biz_int, _arts_int, _res_int,
+                          _edu_int, _eng_int, _law_int, _env_int, _soc_int]
+        _dom_interest  = max(_all_interests)
+        _int_spread    = max(_all_interests) - min(_all_interests)
+        _weighted_acad = _cgpa * 0.4 + _sem_marks * 0.35 + _internal * 0.25
+        _stem_signal   = ((_logical + _analytical) * (_tech_int + _eng_int)) / 400.0
+        _health_signal = (_health_int * (_num_apt + _res_int)) / 200.0
+        _biz_signal    = (_biz_int * (_leadership + _comm + _decision)) / 300.0
+        _creative_sig  = (_arts_int * (_creativity + _spat)) / 200.0
+        _research_sig  = (_res_int * (_analytical + _curiosity + _research_exp * 10)) / 300.0
+        _activity_rich = (_n_projs * 2 + _n_certs * 1.5 + _hackathons + _interns * 2 + _comp_part)
+        _soft_composite= (_leadership + _teamwork + _comm + _adaptab + _decision + _time_mgmt) / 6.0
+
+        # ── Build full features dict (72 features matching training order) ─
         features_dict = {
-            'Age': float(user_info.get("age", 20)),
-            'CGPA': float(data.get("cgpa", 7.0)),
-            'Attendance_Percentage': float(data.get("attendance", 80.0)),
-            'Semester_Marks_Percent': float(data.get("semester_marks", 75.0)),
-            'Internal_Marks': 75.0,
-            'Practical_Marks': 75.0,
-            'Project_Score': float(data.get("project_score", len(projs) * 20.0)),
-            'Lab_Score': 75.0,
-            'Assignment_Score': 75.0,
-            'Logical_Aptitude_Score': float(logical_apt),
-            'Numerical_Aptitude_Score': float(num_apt),
-            'Verbal_Aptitude_Score': float(verb_apt),
-            'Spatial_Aptitude_Score': float(spat_apt),
-            'Subject_Knowledge_Score': sum(skills.values()) / max(1, len(skills)),
-            'Leadership': float(psy.get('Leadership', 50)),
-            'Teamwork': float(psy.get('Teamwork', 50)),
-            'Communication': float(psy.get('Communication', 50)),
-            'Creativity': float(psy.get('Creativity', 50)),
-            'Problem_Solving': float(psy.get('Problem_Solving', 50)),
-            'Critical_Thinking': float(psy.get('Analytical_Thinking', 50)),
-            'Adaptability': float(psy.get('Adaptability', 50)),
-            'Decision_Making': float(psy.get('Decision_Making', 50)),
-            'Time_Management': float(psy.get('Time_Management', 50)),
-            'Curiosity': float(psy.get('Curiosity', 50)),
-            'Analytical_Thinking': float(psy.get('Analytical_Thinking', 50)),
-            'Stress_Management': float(psy.get('Stress_Management', 50)),
-            'Self_Learning': float(psy.get('Self_Learning', 50)),
-            'Persistence': float(psy.get('Persistence', 50)),
-            'Confidence': float(psy.get('Confidence', 50)),
-            'Technology_Interest': float(ints.get('Technology', 50)),
-            'Healthcare_Interest': float(ints.get('Healthcare', 50)),
-            'Business_Interest': float(ints.get('Business', 50)),
-            'Arts_Creative_Interest': float(ints.get('Creative Arts', 50)),
-            'Research_Interest': float(ints.get('Research', 50)),
-            'Education_Interest': float(ints.get('Education', 50)),
-            'Engineering_Interest': float(ints.get('Engineering', 50)),
-            'Law_Interest': float(ints.get('Law', 50)),
-            'Environment_Interest': float(ints.get('Environment', 50)),
-            'Social_Service_Interest': float(ints.get('Social Service', 50)),
-            'Num_Technical_Skills': float(len(skills)),
-            'Num_Certifications': float(len(certs)),
-            'Num_Projects': float(len(projs)),
-            'Internships_Count': float(data.get("internships_count", 0)),
-            'Hackathons_Count': 0.0,
-            'Research_Experience': 0.0,
-            'Competition_Participation_Count': 0.0,
-            'Volunteer_Activities': 0.0,
-            'Academic_Score': float(data.get("cgpa", 7.0)) * 10,
-            'Soft_Skill_Score': float(sum(psy.values()) / max(1, len(psy)) if psy else 50.0),
-            'Activity_Score': float(len(projs) * 10 + len(certs) * 10),
-            'Year_Of_Study': 3.0,
-            'Gender': user_info.get("gender") or data.get("gender") or "Unknown",
-            'Country': user_info.get("country", "Unknown"),
-            'State': user_info.get("state", "Unknown"),
-            'Language': user_info.get("language", "English"),
-            'Education_Level': education_level,
-            'Board': board,
-            'Stream': stream,
-            'Degree': degree,
-            'Specialization': specialization,
-            'Institution_Tier': 'Tier 2'
+            'Age':                            _age,
+            'CGPA':                           _cgpa,
+            'Attendance_Percentage':          _attendance,
+            'Semester_Marks_Percent':         _sem_marks,
+            'Internal_Marks':                 _internal,
+            'Practical_Marks':                _practical,
+            'Project_Score':                  _project_sc,
+            'Lab_Score':                      _lab_sc,
+            'Assignment_Score':               _assignment,
+            'Logical_Aptitude_Score':         _logical,
+            'Numerical_Aptitude_Score':       _num_apt,
+            'Verbal_Aptitude_Score':          _verb,
+            'Spatial_Aptitude_Score':         _spat,
+            'Subject_Knowledge_Score':        _subj_know,
+            'Leadership':                     _leadership,
+            'Teamwork':                       _teamwork,
+            'Communication':                  _comm,
+            'Creativity':                     _creativity,
+            'Problem_Solving':                _prob_solv,
+            'Critical_Thinking':              _crit_think,
+            'Adaptability':                   _adaptab,
+            'Decision_Making':                _decision,
+            'Time_Management':                _time_mgmt,
+            'Curiosity':                      _curiosity,
+            'Analytical_Thinking':            _analytical,
+            'Stress_Management':              _stress,
+            'Self_Learning':                  _self_learn,
+            'Persistence':                    _persist,
+            'Confidence':                     _confidence,
+            'Technology_Interest':            _tech_int,
+            'Healthcare_Interest':            _health_int,
+            'Business_Interest':              _biz_int,
+            'Arts_Creative_Interest':         _arts_int,
+            'Research_Interest':              _res_int,
+            'Education_Interest':             _edu_int,
+            'Engineering_Interest':           _eng_int,
+            'Law_Interest':                   _law_int,
+            'Environment_Interest':           _env_int,
+            'Social_Service_Interest':        _soc_int,
+            'Num_Technical_Skills':           _n_skills,
+            'Num_Certifications':             _n_certs,
+            'Num_Projects':                   _n_projs,
+            'Internships_Count':              _interns,
+            'Hackathons_Count':               _hackathons,
+            'Research_Experience':            _research_exp,
+            'Competition_Participation_Count':_comp_part,
+            'Volunteer_Activities':           _volunteer,
+            'Academic_Score':                 _acad_score,
+            'Soft_Skill_Score':               _soft_skill,
+            'Activity_Score':                 _activity_sc,
+            'Year_Of_Study':                  _year_study,
+            # Engineered features
+            'Total_Aptitude':                 _total_apt,
+            'Dominant_Interest':              _dom_interest,
+            'Interest_Spread':                _int_spread,
+            'Weighted_Academic':              _weighted_acad,
+            'STEM_Signal':                    _stem_signal,
+            'Health_Signal':                  _health_signal,
+            'Business_Signal':                _biz_signal,
+            'Creative_Signal':                _creative_sig,
+            'Research_Signal':                _research_sig,
+            'Activity_Richness':              _activity_rich,
+            'Soft_Skill_Composite':           _soft_composite,
+            # Categorical features (raw strings)
+            'Gender':           str(user_info.get("gender") or data.get("gender") or "Unknown").strip().title(),
+            'Country':          str(user_info.get("country") or data.get("country") or "Unknown").strip().title(),
+            'State':            str(user_info.get("state")   or data.get("state")   or "Unknown").strip().title(),
+            'Language':         str(user_info.get("language")or data.get("language")or "English").strip().title(),
+            'Education_Level':  str(education_level).strip().title(),
+            'Board':            str(board).strip().title(),
+            'Stream':           str(stream).strip().title(),
+            'Degree':           str(degree).strip().title(),
+            'Specialization':   str(specialization).strip().title(),
+            'Institution_Tier': str(data.get("institution_tier", "Tier 2")).strip().title(),
         }
 
         top5 = []
         readiness_score = 0
         xai_attributions = []
+        shap_json = {}
 
-        if ml_model and ml_feature_cols:
-            # Create DataFrame exactly in the order expected
-            df = pd.DataFrame([features_dict])
-            df = df[ml_feature_cols]
+        if ml_xgb and ml_feature_cols:
+            # ── Build two DataFrames: one for XGB/LGB/RF (ordinal-encoded),
+            #    one for CatBoost (raw strings)
+            df_raw = pd.DataFrame([features_dict])[ml_feature_cols]
 
-            # Replace missing cat/num columns with defaults if necessary
+            # Validate & fill any missing columns
             for col in ml_cat_cols:
-                df[col] = df[col].astype(str).fillna("Unknown")
+                df_raw[col] = df_raw[col].astype(str).fillna("Unknown")
             for col in ml_num_cols:
-                df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0.0)
+                df_raw[col] = pd.to_numeric(df_raw[col], errors='coerce').fillna(0.0)
 
-            # Preprocess
+            # CatBoost DataFrame — keep raw strings, scale numerics
+            df_cb = df_raw.copy()
+            df_cb[ml_num_cols] = ml_scaler.transform(df_cb[ml_num_cols])
+
+            # Ordinal-encoded DataFrame — for XGB, LGB, RF
+            df_enc = df_raw.copy()
             try:
-                df[ml_cat_cols] = ml_oe.transform(df[ml_cat_cols])
-            except Exception as e:
-                pass # Proceed with caution if unseen labels exist (ordinal encoder usually configured with handle_unknown)
+                df_enc[ml_cat_cols] = ml_oe.transform(df_enc[ml_cat_cols])
+            except Exception:
+                df_enc[ml_cat_cols] = 0.0  # fallback for unseen categories
+            df_enc[ml_num_cols] = ml_scaler.transform(df_enc[ml_num_cols])
 
-            df[ml_num_cols] = ml_scaler.transform(df[ml_num_cols])
+            # ── Soft-Voting Ensemble Prediction ───────────────────────────
+            try:
+                p_xgb = ml_xgb.predict_proba(df_enc)[0]
+                p_cb  = ml_cb.predict_proba(df_cb)[0]   if ml_cb  else p_xgb
+                p_lgb = ml_lgb.predict_proba(df_enc)[0] if ml_lgb else p_xgb
+                p_rf  = ml_rf.predict_proba(df_enc)[0]  if ml_rf  else p_xgb
 
-            # Predict
-            probs = ml_model.predict_proba(df)[0]
-            top5_idx = np.argsort(probs)[::-1][:5]
+                w = ml_ens_weights
+                probs = (w[0]*p_xgb + w[1]*p_cb + w[2]*p_lgb + w[3]*p_rf)
+                print(f"[ML] Ensemble proba computed. Top class: {np.argmax(probs)}")
+            except Exception as ens_err:
+                print(f"[WARN] Ensemble failed, falling back to XGBoost only: {ens_err}")
+                probs = ml_xgb.predict_proba(df_enc)[0]
+
+            top5_idx    = np.argsort(probs)[::-1][:5]
             top5_labels = ml_le.inverse_transform(top5_idx)
-            
+
             for i, idx in enumerate(top5_idx):
                 top5.append({
-                    "career": top5_labels[i],
+                    "career":     top5_labels[i],
                     "confidence": round(float(probs[idx] * 100), 1),
-                    "rank": i + 1,
-                    "why": ["Based on your academic profile", "Aligned with your interests"]
+                    "rank":       i + 1,
+                    "why":        ["Based on your academic profile",
+                                   "Aligned with your skills and interests"]
                 })
-            readiness_score = int(sum(probs[top5_idx]) * 100) # Simple aggregation
-            
-            # Simple XAI mock (if real shap fails on single row)
-            xai_attributions = [
-                {"feature": "Technology_Interest", "importance": 0.25},
-                {"feature": "Subject_Knowledge_Score", "importance": 0.15},
-                {"feature": "Logical_Aptitude_Score", "importance": 0.12},
-                {"feature": "Problem_Solving", "importance": 0.08}
-            ]
+            readiness_score = min(int(probs[top5_idx[0]] * 100 * 1.2), 100)
+
+            # ── Live SHAP attribution (XGBoost) ───────────────────────────
+            if ml_shap_explainer is not None:
+                try:
+                    sv = ml_shap_explainer.shap_values(df_enc)
+                    top_cls = int(top5_idx[0])
+
+                    if isinstance(sv, list):
+                        sv_row = sv[top_cls][0]
+                    elif hasattr(sv, 'ndim') and sv.ndim == 3:
+                        sv_row = sv[0, :, top_cls]
+                    else:
+                        sv_row = sv[0]
+
+                    shap_pairs = sorted(
+                        zip(ml_feature_cols, sv_row),
+                        key=lambda x: abs(x[1]),
+                        reverse=True
+                    )
+                    xai_attributions = [
+                        {
+                            "feature":    feat,
+                            "importance": round(float(val), 6),
+                            "direction":  "positive" if val >= 0 else "negative",
+                            "abs_impact": round(abs(float(val)), 6)
+                        }
+                        for feat, val in shap_pairs[:15]
+                    ]
+                    shap_json = {f: round(float(v), 6)
+                                 for f, v in zip(ml_feature_cols, sv_row)}
+                    print(f"[ML] SHAP computed. Top feature: {shap_pairs[0][0]}")
+                except Exception as shap_err:
+                    print(f"[WARN] SHAP failed: {shap_err}")
         else:
             # Fallback mock prediction
             top_interests = sorted(ints.items(), key=lambda x: x[1], reverse=True)[:3]
@@ -1055,6 +1209,10 @@ def submit_assessment():
             ]
 
         if user_id:
+            # Ensure shap_json is defined even in mock/fallback path
+            if 'shap_json' not in dir():
+                shap_json = {}
+
             # Store Session
             session_token = secrets.token_hex(16)
             cur.execute(
@@ -1063,13 +1221,13 @@ def submit_assessment():
             )
             session_id = cur.lastrowid
 
-            # Store Prediction
+            # Store Prediction (including full SHAP values)
             cur.execute("""
                 INSERT INTO career_predictions
                 (user_id, session_id, top1_career, top1_confidence,
-                 top5_careers_json, readiness_score,
+                 top5_careers_json, readiness_score, shap_json,
                  feature_scores_json, xai_attributions_json)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
                 user_id,
                 session_id,
@@ -1077,8 +1235,9 @@ def submit_assessment():
                 top5[0]["confidence"] if top5 else 0.0,
                 json.dumps(top5),
                 readiness_score,
+                json.dumps(shap_json),          # full per-feature SHAP values
                 json.dumps(features_dict),
-                json.dumps(xai_attributions)
+                json.dumps(xai_attributions)    # top-15 sorted attributions
             ))
             
             # Store Raw Answers
@@ -1107,6 +1266,77 @@ def submit_assessment():
     except Exception as e:
         import traceback
         traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+# ── SHAP EXPLAINABILITY ENDPOINT ─────────────────────────────────────────────
+@app.route('/api/prediction/shap/<int:pred_id>', methods=['GET'])
+@require_auth
+def get_shap_explanation(pred_id):
+    """
+    Returns SHAP explainability data for a specific career prediction.
+    Response includes:
+      - xai_attributions : top-15 features sorted by |SHAP value|
+      - shap_values      : full per-feature SHAP dict
+      - top5_careers     : the career predictions
+    """
+    user_id = request.user["user_id"]
+    try:
+        conn = get_conn()
+        cur  = conn.cursor(dictionary=True)
+        cur.execute(
+            "SELECT * FROM career_predictions WHERE id = %s AND user_id = %s",
+            (pred_id, user_id)
+        )
+        pred = cur.fetchone()
+        cur.close(); conn.close()
+
+        if not pred:
+            return jsonify({"error": "Prediction not found or access denied"}), 404
+
+        shap_data = json.loads(pred.get("shap_json") or "{}")
+        xai_data  = json.loads(pred.get("xai_attributions_json") or "[]")
+        top5      = json.loads(pred.get("top5_careers_json") or "[]")
+
+        return jsonify({
+            "status":           "success",
+            "prediction_id":    pred_id,
+            "top_career":       pred["top1_career"],
+            "confidence":       pred["top1_confidence"],
+            "top5_careers":     top5,
+            "xai_attributions": xai_data,   # top-15 sorted by impact
+            "shap_values":      shap_data,  # full SHAP dict for all features
+            "predicted_at":     str(pred["predicted_at"])
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/prediction/latest-shap', methods=['GET'])
+@require_auth
+def get_latest_shap():
+    """Returns SHAP data for the most recent prediction of the authenticated user."""
+    user_id = request.user["user_id"]
+    try:
+        conn = get_conn()
+        cur  = conn.cursor(dictionary=True)
+        cur.execute(
+            "SELECT id FROM career_predictions WHERE user_id = %s ORDER BY predicted_at DESC LIMIT 1",
+            (user_id,)
+        )
+        row = cur.fetchone()
+        cur.close(); conn.close()
+
+        if not row:
+            return jsonify({"error": "No predictions found"}), 404
+
+        # Delegate to existing endpoint logic
+        from flask import g
+        request.user = {"user_id": user_id}
+        return get_shap_explanation(row["id"])
+
+    except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 

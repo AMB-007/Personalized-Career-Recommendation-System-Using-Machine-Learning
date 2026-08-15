@@ -1,58 +1,72 @@
-"""
+﻿"""
 ==============================================================================
-AI Career Recommendation System — Root Launcher
+AI Career Recommendation System - Root Launcher
 ==============================================================================
-Run this file from the project root to start the entire application:
+Recommended ways to run:
 
-    python app.py
+  Option A (easiest - double-click):
+      start.bat
 
-This script bootstraps the backend Flask server (backend/app.py) which also
-serves the frontend (frontend/dist/) as static files — no separate frontend
-server is needed.
+  Option B (terminal - activate backend venv first, then run):
+      backend/venv/Scripts/activate
+      python app.py
 
-Access the application at:  http://127.0.0.1:5000
-API health check at:        http://127.0.0.1:5000/api/health
+  Option C (direct, no activation needed):
+      backend/venv/Scripts/python.exe app.py
+
+Access the app at : http://127.0.0.1:5000
+Health check      : http://127.0.0.1:5000/api/health
 ==============================================================================
 """
 
 import os
 import sys
 
-# ── Resolve project root (directory of this file) ────────────────────────────
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 BACKEND_DIR  = os.path.join(PROJECT_ROOT, 'backend')
 
-# Put the backend directory at the front of the path so that all relative
-# imports inside backend/app.py (e.g. core/, models/) resolve correctly.
+# Re-launch with backend venv Python if not already using it
+BACKEND_PYTHON_WIN = os.path.join(BACKEND_DIR, 'venv', 'Scripts', 'python.exe')
+BACKEND_PYTHON_NIX = os.path.join(BACKEND_DIR, 'venv', 'bin', 'python')
+BACKEND_PYTHON = (
+    BACKEND_PYTHON_WIN if os.path.exists(BACKEND_PYTHON_WIN)
+    else BACKEND_PYTHON_NIX if os.path.exists(BACKEND_PYTHON_NIX)
+    else None
+)
+
+def _is_backend_venv():
+    """True when already running inside backend/venv."""
+    exe = sys.executable.replace('\\', '/')
+    return 'backend' in exe and 'venv' in exe
+
+if BACKEND_PYTHON and not _is_backend_venv():
+    import subprocess
+    try:
+        result = subprocess.run([BACKEND_PYTHON, __file__] + sys.argv[1:])
+        sys.exit(result.returncode)
+    except KeyboardInterrupt:
+        sys.exit(0)
+
+# Running inside backend/venv - start the server
 if BACKEND_DIR not in sys.path:
     sys.path.insert(0, BACKEND_DIR)
-
-# Change the working directory to backend so that relative file references
-# (e.g. .env, models/, venv/) inside app.py resolve correctly.
 os.chdir(BACKEND_DIR)
 
-# ── Import and run the Flask application ─────────────────────────────────────
-# We import `app` from backend/app.py (now on sys.path as "app").
-# __name__ guard is intentionally skipped here — we call app.run() directly
-# so that this root launcher acts as the entry point regardless of how it
-# is invoked.
 from app import app, init_db  # noqa: E402
 
 if __name__ == '__main__':
     print("=" * 60)
     print("  AI Career Recommendation System")
-    print("  Starting server...")
     print("=" * 60)
 
-    # Auto-create all database tables on first run
     try:
         init_db()
         print("[OK] Database initialised.")
     except Exception as db_err:
         print(f"[WARN] DB init skipped: {db_err}")
 
-    print("\n  [OK] Frontend + Backend running at: http://127.0.0.1:5000")
-    print("  [OK] API health check:              http://127.0.0.1:5000/api/health")
+    print("\n  [OK] Running at: http://127.0.0.1:5000")
+    print("  [OK] Health:     http://127.0.0.1:5000/api/health")
     print("  Press CTRL+C to stop.\n")
 
     app.run(debug=True, host='0.0.0.0', port=5000)

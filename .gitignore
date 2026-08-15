@@ -1,18 +1,51 @@
-# Environment variables
+﻿# ── Environment & Secrets ──────────────────────────────────────
 .env
 .env.*
+*.env
 
-# Python cache
+# ── Python ────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
+*.pyo
+*.pyd
+.Python
 
-# Virtual environments
+# ── Virtual Environments ──────────────────────────────────────
 venv/
 .venv/
 env/
+ENV/
 
-# Generated backend output
+# ── ML Model Files ────────────────────────────────────────────
+# Model files are tracked using Git LFS
+
+# ── Logs & Output ─────────────────────────────────────────────
 backend/output/
+*.log
+*.txt.bak
 
-# Frontend dependencies
+# ── Jupyter Notebooks (temp) ──────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb
+
+# ── OS & IDE ──────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ── Frontend Build ────────────────────────────────────────────
 node_modules/
+frontend/node_modules/
+
+# ── Temp & Test Files ─────────────────────────────────────────
+test_pipeline.py
+verify_prediction.py
+write_readme.py
+*.tmp
+*.bak
+
+# ── Database Dumps (optional — comment out if you want to keep) 
+# backend/career_system_db.sql
