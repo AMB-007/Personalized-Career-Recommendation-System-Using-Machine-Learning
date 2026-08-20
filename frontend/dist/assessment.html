@@ -16,6 +16,50 @@
       .cert-row, .proj-row { grid-template-columns: 1fr; }
     }
   </style>
+
+<style>
+.optional-tag { font-weight:400; color:#94a3b8; font-size:0.72rem; font-style:italic; margin-left:4px; }
+.skill-chip-wrapper { display:inline-flex; flex-direction:column; gap:3px; margin:3px; }
+.skill-level-picker { display:flex; align-items:center; gap:4px; flex-wrap:wrap; padding:3px 8px; background:rgba(99,102,241,0.06); border-radius:8px; }
+.proficiency-btn { font-size:0.63rem; padding:2px 7px; border-radius:20px; border:1px solid #e2e8f0; background:transparent; cursor:pointer; color:#64748b; transition:all 0.18s; }
+.proficiency-btn:hover { border-color:#6366f1; color:#6366f1; }
+.skill-name { font-weight:600; }
+.skill-level-badge { display:inline-block; padding:1px 5px; border-radius:10px; font-size:0.63rem; font-weight:700; margin-left:3px; }
+</style>
+
+<style>
+/* Skill quiz modal show state */
+#skill-quiz-modal.show { opacity:1 !important; }
+#skill-quiz-modal.show > div { transform:translateY(0) !important; }
+
+/* Quiz question styles */
+.sqm-question { margin-bottom:0.25rem; }
+.sqm-q-label { font-size:0.7rem;color:#94a3b8;font-weight:600;text-transform:uppercase;margin-bottom:0.35rem; }
+.sqm-q-text { font-size:0.9rem;font-weight:700;color:var(--text-h,#1e293b);margin-bottom:0.6rem;line-height:1.4; }
+.sqm-options { display:flex;flex-direction:column;gap:0.4rem; }
+.sqm-opt-btn {
+  display:flex;align-items:center;gap:0.6rem;padding:0.55rem 0.9rem;
+  border:1.5px solid #e2e8f0;border-radius:10px;background:transparent;
+  cursor:pointer;text-align:left;font-size:0.82rem;font-weight:500;
+  color:var(--text-body,#475569);transition:all 0.18s;width:100%;
+}
+.sqm-opt-btn:hover:not(:disabled) { border-color:#6366f1;background:rgba(99,102,241,0.06);color:#6366f1; }
+.sqm-opt-letter { width:22px;height:22px;border-radius:50%;background:#f1f5f9;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:0.7rem;font-weight:700;color:#64748b;flex-shrink:0; }
+.sqm-opt-btn.sqm-correct { border-color:#10b981!important;background:rgba(16,185,129,0.1)!important;color:#065f46!important; }
+.sqm-opt-btn.sqm-correct .sqm-opt-letter { background:#10b981;color:#fff; }
+.sqm-opt-btn.sqm-wrong { border-color:#ef4444!important;background:rgba(239,68,68,0.08)!important;color:#991b1b!important; }
+.sqm-opt-btn.sqm-wrong .sqm-opt-letter { background:#ef4444;color:#fff; }
+.sqm-opt-btn:disabled { cursor:default; }
+
+/* Skill chip enhancements */
+.skill-chip-wrapper { display:inline-flex;flex-direction:column;align-items:center;gap:2px;margin:3px; }
+.skill-level-badge { display:inline-block;padding:2px 7px;border-radius:10px;
+  font-size:0.62rem;font-weight:700; }
+.skill-score-tag { font-size:0.6rem;color:#94a3b8;text-align:center; }
+</style>
+
 </head>
 <body>
 <div id="navbar-container"></div>
@@ -90,15 +134,15 @@
         <input type="text" id="specialization" placeholder="e.g. Computer Science, Finance, Biology" />
       </div>
       <div class="form-group">
-        <label for="institution">School / College Name</label>
+        <label for="institution">School / College Name <span class="optional-tag">(Optional)</span></label>
         <input type="text" id="institution" placeholder="Name of your institution" />
       </div>
       <div class="form-group">
-        <label for="cgpa">CGPA / Percentage</label>
+        <label for="cgpa">CGPA / Percentage <span class="optional-tag">(Optional)</span></label>
         <input type="number" id="cgpa" min="0" max="100" step="0.1" placeholder="e.g. 8.5 or 85" />
       </div>
       <div class="form-group">
-        <label for="attendance">Attendance %</label>
+        <label for="attendance">Attendance % <span class="optional-tag">(Optional)</span></label>
         <input type="number" id="attendance" min="0" max="100" step="1" placeholder="e.g. 85" />
       </div>
     </div>

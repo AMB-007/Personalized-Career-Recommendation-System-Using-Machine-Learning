@@ -308,8 +308,7 @@ def init_db():
                 level           VARCHAR(30) DEFAULT 'Beginner',
                 is_verified     TINYINT(1)  DEFAULT 0,
                 verified_at     TIMESTAMP   NULL,
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-                UNIQUE KEY uq_user_skill (user_id, skill_name)
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         """)
 
@@ -934,44 +933,17 @@ def submit_assessment():
         psy = data.get("psychometric_traits", {})
         ints = data.get("interest_scores", {})
         apt = data.get("aptitude_answers", {})
-        # Read skills with proficiency from quiz-verified frontend
-        skills_raw      = data.get("skills_with_level", [])
-        skills_flat     = data.get("skills", [])
-        # Build skill dict: { skill_name: proficiency_level }
-        skill_prof_map  = {}
-        if skills_raw and isinstance(skills_raw, list):
-            for item in skills_raw:
-                if isinstance(item, dict):
-                    skill_prof_map[item.get("skill","Unknown")] = item.get("proficiency","Beginner")
-                elif isinstance(item, str):
-                    skill_prof_map[item] = "Beginner"
-        elif skills_flat and isinstance(skills_flat, list):
-            for s in skills_flat:
-                if isinstance(s, str): skill_prof_map[s] = "Beginner"
-        skills = skill_prof_map  # maintain backward compat (len gives skill count)
-
-        # Compute skill_verified_score (weighted by proficiency)
-        PROF_WEIGHTS = {"Beginner": 33.0, "Intermediate": 66.0, "Advanced": 100.0}
-        if skill_prof_map:
-            skill_verified_score = min(100.0, sum(
-                PROF_WEIGHTS.get(lvl, 33.0) for lvl in skill_prof_map.values()
-            ) / len(skill_prof_map))
-        else:
-            skill_verified_score = 0.0
+        skills = data.get("skill_scores", {})
         certs = data.get("certifications", [])
         projs = data.get("projects", [])
 
-        # Read aptitude scores - frontend sends direct 0-100 scores
-        # (10 questions, each correct adds 10 points = 0-100)
-        logical_apt = float(data.get("logical_aptitude",  apt.get("logical",  70)))
-        num_apt     = float(data.get("numerical_ability", apt.get("numerical", 70)))
-        verb_apt    = float(data.get("verbal_ability",    apt.get("verbal",    70)))
-        spat_apt    = float(data.get("spatial_ability",   apt.get("spatial",   70)))
-        # Clamp to 0-100 range
-        logical_apt = max(0.0, min(100.0, logical_apt))
-        num_apt     = max(0.0, min(100.0, num_apt))
-        verb_apt    = max(0.0, min(100.0, verb_apt))
-        spat_apt    = max(0.0, min(100.0, spat_apt))
+        # Rough calculation for aptitude domains
+        logical_apt = len([v for k,v in apt.items() if "logical" in str(k).lower() and v.get("is_correct")]) * 10
+        num_apt = len([v for k,v in apt.items() if "numerical" in str(k).lower() and v.get("is_correct")]) * 10
+        verb_apt = len([v for k,v in apt.items() if "verbal" in str(k).lower() and v.get("is_correct")]) * 10
+        spat_apt = len([v for k,v in apt.items() if "spatial" in str(k).lower() and v.get("is_correct")]) * 10
+        if not any([logical_apt, num_apt, verb_apt, spat_apt]): 
+             logical_apt = num_apt = verb_apt = spat_apt = 70.0 # Default fallback if missing structure
 
         # ── Base feature values ────────────────────────────────────────────
         _cgpa        = float(data.get("cgpa", 7.0))
@@ -985,53 +957,39 @@ def submit_assessment():
         _age         = float(user_info.get("age") or data.get("age") or 20)
         _year_study  = float(data.get("year_of_study", 3))
 
-        # Interest scores: frontend sends count of choices per domain (0-N)
-        # Normalize: multiply by (100 / total_interest_pairs) to get 0-100 score
-        TOTAL_PAIRS  = max(sum(ints.values()), 1) if ints else 1
-        def _norm_int(val): return min(100.0, float(val) * (100.0 / TOTAL_PAIRS))
-        _tech_int   = _norm_int(ints.get('Technology', 0))
-        _health_int = _norm_int(ints.get('Healthcare', 0))
-        _biz_int    = _norm_int(ints.get('Business', 0))
-        _arts_int   = _norm_int(ints.get('Creative Arts', ints.get('Arts', 0)))
-        _res_int    = _norm_int(ints.get('Research', 0))
-        _edu_int    = _norm_int(ints.get('Education', 0))
-        _eng_int    = _norm_int(ints.get('Engineering', 0))
-        _law_int    = _norm_int(ints.get('Law', 0))
-        _env_int    = _norm_int(ints.get('Environment', 0))
-        _soc_int    = _norm_int(ints.get('Social Service', ints.get('Social', 0)))
-        # If all zeros (not provided), set neutral 50
-        if not any([_tech_int,_health_int,_biz_int,_arts_int,_res_int,
-                    _edu_int,_eng_int,_law_int,_env_int,_soc_int]):
-            _tech_int=_health_int=_biz_int=_arts_int=_res_int=             _edu_int=_eng_int=_law_int=_env_int=_soc_int = 50.0
+        _tech_int   = float(ints.get('Technology', 50))
+        _health_int = float(ints.get('Healthcare', 50))
+        _biz_int    = float(ints.get('Business', 50))
+        _arts_int   = float(ints.get('Creative Arts', 50))
+        _res_int    = float(ints.get('Research', 50))
+        _edu_int    = float(ints.get('Education', 50))
+        _eng_int    = float(ints.get('Engineering', 50))
+        _law_int    = float(ints.get('Law', 50))
+        _env_int    = float(ints.get('Environment', 50))
+        _soc_int    = float(ints.get('Social Service', 50))
 
         _logical = float(logical_apt)
         _num_apt = float(num_apt)
         _verb    = float(verb_apt)
         _spat    = float(spat_apt)
 
-        # Normalize psychometric trait scores (raw sum from scenario selection)
-        # Each scenario adds 10-15 points; max ~60 per trait over 4 scenarios
-        def _norm_psy(val, default=50.0):
-            v = float(val)
-            return max(0.0, min(100.0, (v / 60.0) * 100.0)) if v > 0 else default
-        _leadership  = _norm_psy(psy.get('Leadership',  0))
-        _teamwork    = _norm_psy(psy.get('Teamwork',   0))
-        _comm        = _norm_psy(psy.get('Communication', 0))
-        _creativity  = _norm_psy(psy.get('Creativity',  0))
-        _prob_solv   = _norm_psy(psy.get('Problem_Solving', 0))
-        _crit_think  = _norm_psy(psy.get('Critical_Thinking', psy.get('Analytical_Thinking', 0)))
-        _adaptab     = _norm_psy(psy.get('Adaptability',   0))
-        _decision    = _norm_psy(psy.get('Decision_Making', 0))
-        _time_mgmt   = _norm_psy(psy.get('Time_Management', 0))
-        _curiosity   = _norm_psy(psy.get('Curiosity',      0))
-        _analytical  = _norm_psy(psy.get('Analytical_Thinking', 0))
-        _stress      = _norm_psy(psy.get('Stress_Management',   0))
-        _self_learn  = _norm_psy(psy.get('Self_Learning',       0))
-        _persist     = _norm_psy(psy.get('Persistence',         0))
-        _confidence  = _norm_psy(psy.get('Confidence',          0))
+        _leadership  = float(psy.get('Leadership', 50))
+        _teamwork    = float(psy.get('Teamwork', 50))
+        _comm        = float(psy.get('Communication', 50))
+        _creativity  = float(psy.get('Creativity', 50))
+        _prob_solv   = float(psy.get('Problem_Solving', 50))
+        _crit_think  = float(psy.get('Critical_Thinking', psy.get('Analytical_Thinking', 50)))
+        _adaptab     = float(psy.get('Adaptability', 50))
+        _decision    = float(psy.get('Decision_Making', 50))
+        _time_mgmt   = float(psy.get('Time_Management', 50))
+        _curiosity   = float(psy.get('Curiosity', 50))
+        _analytical  = float(psy.get('Analytical_Thinking', 50))
+        _stress      = float(psy.get('Stress_Management', 50))
+        _self_learn  = float(psy.get('Self_Learning', 50))
+        _persist     = float(psy.get('Persistence', 50))
+        _confidence  = float(psy.get('Confidence', 50))
 
-        _n_skills  = float(len(skill_prof_map)) if skill_prof_map else float(len(skills_flat))
-        _skill_ver = skill_verified_score  # 0-100 weighted by proficiency
+        _n_skills  = float(len(skills))
         _n_certs   = float(len(certs))
         _n_projs   = float(len(projs))
         _interns   = float(data.get("internships_count", 0))
@@ -1211,57 +1169,15 @@ def submit_assessment():
                         key=lambda x: abs(x[1]),
                         reverse=True
                     )
-                    # Human-readable SHAP feature names
-                    FEAT_LABELS = {
-                        'Technology_Interest':     'Strong Technology Interest',
-                        'Healthcare_Interest':     'High Healthcare Interest',
-                        'Business_Interest':       'Strong Business Interest',
-                        'Research_Interest':       'Research Orientation',
-                        'Engineering_Interest':    'Engineering Aptitude',
-                        'Education_Interest':      'Teaching & Learning Interest',
-                        'Arts_Creative_Interest':  'Creative & Artistic Interest',
-                        'Law_Interest':            'Legal & Analytical Thinking',
-                        'Environment_Interest':    'Environmental Awareness',
-                        'Social_Service_Interest': 'Social Impact Focus',
-                        'CGPA':                    'Strong Academic Record (CGPA)',
-                        'Logical_Aptitude_Score':  'High Logical Reasoning',
-                        'Numerical_Aptitude_Score':'Strong Numerical Ability',
-                        'Verbal_Aptitude_Score':   'Excellent Communication Skills',
-                        'Spatial_Aptitude_Score':  'Strong Spatial Reasoning',
-                        'Leadership':              'Leadership Trait',
-                        'Creativity':              'Creative Thinking',
-                        'Problem_Solving':         'Problem-Solving Mindset',
-                        'Analytical_Thinking':     'Analytical Thinking',
-                        'Self_Learning':           'Self-Learning Drive',
-                        'Curiosity':               'High Curiosity & Exploration',
-                        'Persistence':             'Persistence & Resilience',
-                        'Num_Projects':            'Strong Project Portfolio',
-                        'Num_Certifications':      'Well-Certified',
-                        'Internships_Count':       'Internship Experience',
-                        'STEM_Signal':             'STEM Signal Strength',
-                        'Research_Signal':         'Research Aptitude',
-                        'Business_Signal':         'Business Acumen',
-                        'Soft_Skill_Composite':    'Strong Soft Skills',
-                        'Activity_Richness':       'Active & Engaged Profile',
-                        'Weighted_Academic':       'Strong Academic Performance',
-                    }
-                    xai_attributions = []
-                    for feat, val in shap_pairs[:15]:
-                        xai_attributions.append({
+                    xai_attributions = [
+                        {
                             "feature":    feat,
-                            "label":      FEAT_LABELS.get(feat, feat.replace('_',' ')),
                             "importance": round(float(val), 6),
                             "direction":  "positive" if val >= 0 else "negative",
                             "abs_impact": round(abs(float(val)), 6)
-                        })
-                    # Build why[] reasons from top positive SHAP features
-                    top_why = [
-                        FEAT_LABELS.get(f, f.replace('_',' '))
-                        for f, v in shap_pairs[:5] if v > 0
-                    ][:3]
-                    # Inject into top5 careers
-                    if top5 and top_why:
-                        top5[0]["why"] = top_why
+                        }
+                        for feat, val in shap_pairs[:15]
+                    ]
                     shap_json = {f: round(float(v), 6)
                                  for f, v in zip(ml_feature_cols, sv_row)}
                     print(f"[ML] SHAP computed. Top feature: {shap_pairs[0][0]}")
@@ -1304,19 +1220,6 @@ def submit_assessment():
                 (user_id, session_token)
             )
             session_id = cur.lastrowid
-
-            # Save skill verifications (quiz-verified proficiency levels)
-            for sk_name, sk_level in skill_prof_map.items():
-                PROF_PCT = {"Beginner": 33.0, "Intermediate": 66.0, "Advanced": 100.0}
-                sk_score = PROF_PCT.get(sk_level, 33.0)
-                try:
-                    cur.execute("""
-                        INSERT INTO skill_verification (user_id, skill_name, score, level, is_verified, verified_at)
-                        VALUES (%s, %s, %s, %s, 1, NOW())
-                        ON DUPLICATE KEY UPDATE score=VALUES(score), level=VALUES(level),
-                        is_verified=1, verified_at=NOW()
-                    """, (user_id, sk_name, sk_score, sk_level))
-                except Exception: pass
 
             # Store Prediction (including full SHAP values)
             cur.execute("""
@@ -1367,77 +1270,6 @@ def submit_assessment():
 
 
 # ── SHAP EXPLAINABILITY ENDPOINT ─────────────────────────────────────────────
-
-
-# ── SKILL VERIFICATION SAVE ───────────────────────────────────────────────────
-@app.route('/api/skills/verify', methods=['POST'])
-@require_auth
-def save_skill_verification():
-    """
-    Called after each skill quiz closes in the frontend.
-    Saves the quiz result to skill_verification table.
-    Payload: { skill_name, score, total, level }
-    """
-    user_id = request.user["user_id"]
-    d       = request.get_json() or {}
-    skill   = d.get("skill_name", "")
-    score   = float(d.get("score", 0))
-    total   = float(d.get("total", 3))
-    level   = d.get("level", "Beginner")    # Beginner / Intermediate / Advanced
-    pct     = round((score / max(total, 1)) * 100, 1)
-    verified= 1  # Quiz was taken = verified
-
-    if not skill:
-        return jsonify({"error": "skill_name required"}), 400
-
-    try:
-        conn = get_conn()
-        cur  = conn.cursor(dictionary=True)
-
-        # Upsert skill verification record
-        cur.execute("""
-            INSERT INTO skill_verification
-            (user_id, skill_name, score, level, is_verified, verified_at)
-            VALUES (%s, %s, %s, %s, %s, NOW())
-            ON DUPLICATE KEY UPDATE
-            score = VALUES(score), level = VALUES(level),
-            is_verified = 1, verified_at = NOW()
-        """, (user_id, skill, pct, level, verified))
-        conn.commit()
-        cur.close(); conn.close()
-
-        return jsonify({
-            "status":  "success",
-            "message": f"Skill '{skill}' verified at {level} level ({score}/{int(total)})",
-            "score":   pct,
-            "level":   level
-        }), 200
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
-@app.route('/api/skills/my-verified', methods=['GET'])
-@require_auth
-def get_my_verified_skills():
-    """Returns all verified skills for the authenticated user."""
-    user_id = request.user["user_id"]
-    try:
-        conn = get_conn()
-        cur  = conn.cursor(dictionary=True)
-        cur.execute("""
-            SELECT skill_name, score, level, is_verified, verified_at
-            FROM skill_verification
-            WHERE user_id = %s
-            ORDER BY verified_at DESC
-        """, (user_id,))
-        rows = cur.fetchall()
-        cur.close(); conn.close()
-        return jsonify({"status": "success", "skills": rows, "count": len(rows)}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-# ─────────────────────────────────────────────────────────────────────────────
-
 @app.route('/api/prediction/shap/<int:pred_id>', methods=['GET'])
 @require_auth
 def get_shap_explanation(pred_id):
