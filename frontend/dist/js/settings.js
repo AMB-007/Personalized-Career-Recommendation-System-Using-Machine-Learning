@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       if (user?.id) {
-        await API.put(`/api/auth/profile/${user.id}`, {
+        await API.put('/api/user/profile', {
           full_name: document.getElementById('full_name').value.trim(),
           age: parseInt(document.getElementById('age').value) || 18,
         }, true).catch(e => console.log('Profile update note:', e));

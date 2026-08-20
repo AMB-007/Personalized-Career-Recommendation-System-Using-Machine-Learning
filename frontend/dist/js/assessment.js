@@ -357,7 +357,7 @@ async function loadAptitudeQuestions() {
   try {
     const lvl = encodeURIComponent(state.education.education_level || 'All');
     const board = encodeURIComponent(state.education.board || 'All');
-    const res = await API.get(`/api/assessment/questions?education_level=${lvl}&board=${board}&limit=10`);
+    const res = await API.get(`/api/questions?education_level=${lvl}&board=${board}&limit=10`);
     aptitudeQuestions = (res.questions || []).slice(0, 10);
     if (!aptitudeQuestions.length) throw new Error('No questions');
   } catch {
@@ -532,11 +532,6 @@ function saveInterests() {
   state.interestScores = scores;
 }
 
-// ── STEP 6: SKILLS ────────────────────────────────────────────
-// Skills with proficiency: { skillName: 'Beginner'|'Intermediate'|'Advanced' }
-const state_skillProficiency = {};
-
-
 // ── STEP 6: SKILLS WITH QUIZ VERIFICATION ──────────────────────────────────
 const state_skillProficiency = {};
 
@@ -588,9 +583,6 @@ function saveSkills() {
     skill: s,
     proficiency: state_skillProficiency[s] || 'Beginner',
   }));
-}
-
-);
 }
 
 // ── STEP 7: CERTS ─────────────────────────────────────────────

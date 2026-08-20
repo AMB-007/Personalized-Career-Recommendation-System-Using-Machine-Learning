@@ -41,9 +41,8 @@ try:
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        ml_le         = joblib.load(os.path.join(ml_base, 'label_encoder.pkl'))
-        ml_oe         = joblib.load(os.path.join(ml_base, 'ordinal_encoder.pkl'))
-        ml_scaler     = joblib.load(os.path.join(ml_base, 'scaler.pkl'))
+        ml_le           = joblib.load(os.path.join(ml_base, 'label_encoder.pkl'))
+        ml_preprocessor = joblib.load(os.path.join(ml_base, 'preprocessor.pkl'))  # ColumnTransformer
         ml_xgb        = joblib.load(os.path.join(ml_base, 'career_model.pkl'))       # XGBoost
         ml_cb         = joblib.load(os.path.join(ml_base, 'catboost_model.pkl'))     # CatBoost
         ml_lgb        = joblib.load(os.path.join(ml_base, 'lgbm_model.pkl'))         # LightGBM
@@ -76,8 +75,8 @@ try:
 
 except Exception as e:
     print(f"[WARN] ML load failed: {str(e)[:120]}. Running in Mock Prediction mode.")
-    ml_model = ml_xgb = ml_cb = ml_lgb = ml_rf = None
-    ml_le = ml_oe = ml_scaler = ml_feature_cols = None
+    ml_model = ml_xgb = ml_cb = ml_lgb = ml_rf = ml_preprocessor = None
+    ml_le = ml_preprocessor = ml_feature_cols = None
     ml_cat_cols = ml_num_cols = ml_shap_explainer = None
     ml_ens_weights = [0.25, 0.25, 0.25, 0.25]
     ml_cat_indices = []
@@ -894,6 +893,11 @@ def get_questions():
         rows = cur.fetchall()
         cur.close(); conn.close()
 
+        for row in rows:
+            for opt in ['option_a', 'option_b', 'option_c', 'option_d']:
+                if row.get(opt):
+                    row[opt] = row[opt].replace('(Correct)', '').strip()
+
         return jsonify({"status": "success", "questions": rows, "count": len(rows)}), 200
 
     except Exception as e:
@@ -1040,9 +1044,9 @@ def submit_assessment():
         _comp_part = float(data.get("competition_count", 0))
         _volunteer = float(data.get("volunteer_activities", 0))
 
-        _subj_know = float(sum(skills.values()) / max(1, len(skills))) if skills else 50.0
+        _subj_know = float(skill_verified_score)
         _acad_score  = (_cgpa * 10 * 0.4 + _sem_marks * 0.35 + _internal * 0.25)
-        _soft_skill  = float(sum(psy.values()) / max(1, len(psy))) if psy else 50.0
+        _soft_skill  = (_leadership + _teamwork + _comm + _creativity + _prob_solv) / 5.0
         _activity_sc = float(_n_projs * 10 + _n_certs * 10 + _interns * 10)
 
         # ── Engineered interaction features (must match training exactly) ──
@@ -1134,51 +1138,59 @@ def submit_assessment():
             'Board':            str(board).strip().title(),
             'Stream':           str(stream).strip().title(),
             'Degree':           str(degree).strip().title(),
-            'Specialization':   str(specialization).strip().title(),
+            'Locality_Type':    str(data.get("locality_type", user_info.get("locality_type", "Urban"))).strip().title(),
             'Institution_Tier': str(data.get("institution_tier", "Tier 2")).strip().title(),
         }
+
+        # Remove fields not in training data (engineered / leaked columns)
+        _DROP = ['Specialization', 'Total_Aptitude', 'Dominant_Interest',
+                 'Interest_Spread', 'Weighted_Academic', 'STEM_Signal',
+                 'Health_Signal', 'Business_Signal', 'Creative_Signal',
+                 'Research_Signal', 'Activity_Richness', 'Soft_Skill_Composite']
+        for _k in _DROP:
+            features_dict.pop(_k, None)
 
         top5 = []
         readiness_score = 0
         xai_attributions = []
         shap_json = {}
 
-        if ml_xgb and ml_feature_cols:
-            # ── Build two DataFrames: one for XGB/LGB/RF (ordinal-encoded),
-            #    one for CatBoost (raw strings)
-            df_raw = pd.DataFrame([features_dict])[ml_feature_cols]
+        if ml_xgb and ml_preprocessor:
+            # ── Build input row with exact training column names ───────────────
+            row = {}
+            for col in (ml_num_cols or []):
+                row[col] = float(features_dict.get(col) or 0.0)
+            for col in (ml_cat_cols or []):
+                row[col] = str(features_dict.get(col) or "Unknown")
 
-            # Validate & fill any missing columns
-            for col in ml_cat_cols:
-                df_raw[col] = df_raw[col].astype(str).fillna("Unknown")
-            for col in ml_num_cols:
-                df_raw[col] = pd.to_numeric(df_raw[col], errors='coerce').fillna(0.0)
+            df_input = pd.DataFrame([row])
 
-            # CatBoost DataFrame — keep raw strings, scale numerics
-            df_cb = df_raw.copy()
-            df_cb[ml_num_cols] = ml_scaler.transform(df_cb[ml_num_cols])
-
-            # Ordinal-encoded DataFrame — for XGB, LGB, RF
-            df_enc = df_raw.copy()
+            # ── Preprocess via ColumnTransformer ──────────────────────────────
             try:
-                df_enc[ml_cat_cols] = ml_oe.transform(df_enc[ml_cat_cols])
-            except Exception:
-                df_enc[ml_cat_cols] = 0.0  # fallback for unseen categories
-            df_enc[ml_num_cols] = ml_scaler.transform(df_enc[ml_num_cols])
+                X_proc = ml_preprocessor.transform(df_input)
+            except Exception as pre_err:
+                print(f"[WARN] Preprocessor failed: {pre_err}")
+                import traceback; traceback.print_exc()
+                n_feats = len(ml_feature_cols) if ml_feature_cols else 140
+                X_proc  = np.zeros((1, n_feats))
 
-            # ── Soft-Voting Ensemble Prediction ───────────────────────────
+            from scipy.sparse import issparse as _issparse
+            X_dense = X_proc.toarray() if _issparse(X_proc) else X_proc
+
+            # ── Soft-Voting Ensemble: weights order [xgb, lgb, cb, rf] ────────
             try:
-                p_xgb = ml_xgb.predict_proba(df_enc)[0]
-                p_cb  = ml_cb.predict_proba(df_cb)[0]   if ml_cb  else p_xgb
-                p_lgb = ml_lgb.predict_proba(df_enc)[0] if ml_lgb else p_xgb
-                p_rf  = ml_rf.predict_proba(df_enc)[0]  if ml_rf  else p_xgb
+                p_xgb = ml_xgb.predict_proba(X_proc)[0]
+                p_lgb = ml_lgb.predict_proba(X_proc)[0]  if ml_lgb else p_xgb
+                p_cb  = ml_cb.predict_proba(X_dense)[0]  if ml_cb  else p_xgb
+                p_rf  = ml_rf.predict_proba(X_proc)[0]   if ml_rf  else p_xgb
 
-                w = ml_ens_weights
-                probs = (w[0]*p_xgb + w[1]*p_cb + w[2]*p_lgb + w[3]*p_rf)
-                print(f"[ML] Ensemble proba computed. Top class: {np.argmax(probs)}")
+                w = ml_ens_weights  # [xgb, lgb, cb, rf]
+                probs = (w[0]*p_xgb + w[1]*p_lgb + w[2]*p_cb + w[3]*p_rf)
+                print(f"[ML] Ensemble proba OK. Top: {np.argmax(probs)}")
             except Exception as ens_err:
-                print(f"[WARN] Ensemble failed, falling back to XGBoost only: {ens_err}")
-                probs = ml_xgb.predict_proba(df_enc)[0]
+                print(f"[WARN] Ensemble failed, using XGBoost only: {ens_err}")
+                import traceback; traceback.print_exc()
+                probs = ml_xgb.predict_proba(X_proc)[0]
 
             top5_idx    = np.argsort(probs)[::-1][:5]
             top5_labels = ml_le.inverse_transform(top5_idx)
@@ -1196,7 +1208,7 @@ def submit_assessment():
             # ── Live SHAP attribution (XGBoost) ───────────────────────────
             if ml_shap_explainer is not None:
                 try:
-                    sv = ml_shap_explainer.shap_values(df_enc)
+                    sv = ml_shap_explainer.shap_values(X_dense)
                     top_cls = int(top5_idx[0])
 
                     if isinstance(sv, list):
