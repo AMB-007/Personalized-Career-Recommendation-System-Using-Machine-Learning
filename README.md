@@ -1,16 +1,16 @@
 ﻿<div align="center">
 
-<h1>🎓 Personalized Career Recommendation System</h1>
-
-<p><b>An intelligent, full-stack AI career guidance platform that delivers personalized career recommendations<br>through adaptive multi-step assessments, a 4-model ML ensemble, and explainable AI (SHAP).</b></p>
+<h1>🎓 CareerAI — Personalized Career Recommendation System</h1>
+<p><b>An intelligent, full-stack AI career guidance platform delivering personalized Top-5 career predictions<br>through adaptive multi-step assessments, a 4-model ML ensemble, and SHAP explainability.</b></p>
 
 <p>
   <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
   <img src="https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white" />
   <img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white" />
   <img src="https://img.shields.io/badge/scikit_learn-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white" />
-  <img src="https://img.shields.io/badge/XGBoost-189FDD?style=for-the-badge&logo=xgboost&logoColor=white" />
-  <img src="https://img.shields.io/badge/Jupyter-F37626?style=for-the-badge&logo=jupyter&logoColor=white" />
+  <img src="https://img.shields.io/badge/XGBoost-189FDD?style=for-the-badge&logoColor=white" />
+  <img src="https://img.shields.io/badge/LightGBM-66BB6A?style=for-the-badge&logoColor=white" />
+  <img src="https://img.shields.io/badge/CatBoost-FFCA28?style=for-the-badge&logoColor=black" />
 </p>
 
 <p>
@@ -20,12 +20,14 @@
   <img src="https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white" />
   <img src="https://img.shields.io/badge/Pandas-150458?style=for-the-badge&logo=pandas&logoColor=white" />
   <img src="https://img.shields.io/badge/NumPy-013243?style=for-the-badge&logo=numpy&logoColor=white" />
+  <img src="https://img.shields.io/badge/Jupyter-F37626?style=for-the-badge&logo=jupyter&logoColor=white" />
 </p>
 
 <p>
-  <img src="https://img.shields.io/github/stars/AMB-007/Personalized-Career-Recommendation-System-Using-Machine-Learning?style=social" />
-  <img src="https://img.shields.io/github/forks/AMB-007/Personalized-Career-Recommendation-System-Using-Machine-Learning?style=social" />
-  <img src="https://img.shields.io/badge/License-Academic-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/Careers-30_Classes-blueviolet?style=flat-square" />
+  <img src="https://img.shields.io/badge/ML_Features-72-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/Skill_Quizzes-53-green?style=flat-square" />
+  <img src="https://img.shields.io/badge/DB_Tables-15-orange?style=flat-square" />
   <img src="https://img.shields.io/badge/Status-Active-success?style=flat-square" />
 </p>
 
@@ -37,66 +39,37 @@
 
 | # | Section |
 |---|---|
-| 1 | [Overview](#-overview) |
-| 2 | [Key Features](#-key-features) |
-| 3 | [System Architecture](#-system-architecture) |
-| 4 | [Assessment Flow](#-9-step-assessment-flow) |
-| 5 | [ML Architecture & Feature Engineering](#-ml-architecture--feature-engineering) |
+| 1 | [Project Overview](#-project-overview) |
+| 2 | [System Architecture](#-system-architecture) |
+| 3 | [Frontend — All Pages](#-frontend--all-pages) |
+| 4 | [Assessment Flow](#-assessment-flow-diagram) |
+| 5 | [ML Architecture & Features](#-ml-architecture--72-features) |
 | 6 | [Education Level Adaptations](#-education-level-adaptations) |
 | 7 | [Database Schema](#-database-schema) |
-| 8 | [API Endpoints](#-api-endpoints) |
-| 9 | [Supported Careers](#-supported-careers-30) |
-| 10 | [Setup & Installation](#-setup--installation) |
-| 11 | [High Confidence Tips](#-tips-for-90-prediction-confidence) |
+| 8 | [Backend & API Reference](#-backend--api-reference) |
+| 9 | [Admin Panel](#-admin-panel) |
+| 10 | [Supported Careers (30)](#-supported-careers-30) |
+| 11 | [Setup & Installation](#-setup--installation) |
+| 12 | [Prediction Tips](#-tips-for-90-confidence) |
 
 ---
 
-## 🔍 Overview
+## 🔍 Project Overview
 
-The **Personalized Career Recommendation System** is an end-to-end AI-powered platform designed to help students — from **Class 7 through postgraduate** — discover the most suitable careers for them.
+**CareerAI** is a full-stack AI-powered web application that helps students from **Class 7 through Postgraduate** discover the most suitable career for them. The system works in three major phases:
 
-It works in three phases:
+```
+Phase 1: ASSESS → Student completes an 8-step adaptive assessment (academic, aptitude, psychometric, interests, skills)
+Phase 2: PREDICT → 72-feature vector is passed through XGBoost + CatBoost + LightGBM + RandomForest ensemble
+Phase 3: EXPLAIN → SHAP values computed live and displayed as feature attribution bar chart on dashboard
+```
 
-> **Phase 1 — Assess**: The student completes an adaptive 8-step assessment covering academic marks, aptitude, psychometrics, career interests, and verified skills.
-
-> **Phase 2 — Predict**: A 72-feature vector is constructed and passed through a soft-voting ensemble of **XGBoost + CatBoost + LightGBM + RandomForest**, producing top-5 career predictions with confidence percentages.
-
-> **Phase 3 — Explain**: **SHAP (SHapley Additive exPlanations)** values are computed live and displayed on the dashboard as a feature attribution bar chart, helping students understand *why* a career was recommended.
-
-The system is fully **board-aware** (CBSE, Kerala State, ICSE), **age-aware** (Class 7 → 12yrs, Class 10 → 15yrs), and **school-level adaptive** (automatically skips irrelevant steps for younger students).
-
----
-
-## ✨ Key Features
-
-### 🧠 Machine Learning & AI
-| Feature | Details |
-|---|---|
-| **4-Model Ensemble** | XGBoost + CatBoost + LightGBM + RandomForest (soft-vote) |
-| **Feature Vector** | 72 features spanning 10 categories |
-| **SHAP Explainability** | TreeExplainer on XGBoost — live per-prediction attribution |
-| **30 Career Classes** | Confidence % for each of the top 5 |
-| **Readiness Score** | Composite 0–100 score indicating career preparedness |
-| **Mock Mode** | Graceful interest-based fallback if model files are missing |
-
-### 📋 Adaptive Assessment
-| Step | Content | School Adaptation |
-|---|---|---|
-| Step 1 | Education Profile (level, board, stream, degree) | CGPA hidden; auto-derived |
-| Step 2 | Subject-wise Marks (auto-loaded by board) | Kerala=10 subjects, CBSE=5 subjects |
-| Step 3 | Aptitude Quiz (10 questions) | Difficulty adapts by class level |
-| Step 4 | Psychometric Scenarios (6 questions) | Age-appropriate scenario banks |
-| Step 5 | Career Interest Profiling (20+ pairs) | Same across all levels |
-| Step 6 | Skill Verification Quizzes (53 skills) | Same across all levels |
-| Step 7 | Certifications / Achievements | 🛑 SKIPPED for Class 7–10 |
-| Step 8 | Projects & Portfolio | 🛑 SKIPPED for Class 7–10 |
-| Step 9 | Results — Top 5 Careers + SHAP + Roadmap | Rendered for all levels |
-
-### 🎯 Skill Verification (53 Skills)
-- Each selected skill triggers a **3-question quiz** before being accepted
-- Proficiency levels: **Beginner (33pts) / Intermediate (66pts) / Advanced (100pts)**
-- Skills not in the quiz bank fall back to a **self-rating modal**
-- Score feeds directly into `Subject_Knowledge_Score` feature in the ML vector
+### What makes it unique?
+- 🏫 **Board-aware**: Subjects auto-load by board — Kerala (10), CBSE (5), ICSE (6)
+- 🎓 **School-adaptive**: Steps 7 & 8 auto-skip for Class 7–10; CGPA auto-derived from marks
+- 🧠 **Age-derived**: Class level maps to realistic age (Class 7=12yrs, Class 10=15yrs, etc.)
+- 🎯 **53 skill quizzes**: Each skill is quiz-verified, not self-rated
+- 📈 **SHAP explainability**: Students see *why* each career was recommended
 
 ---
 
@@ -104,80 +77,165 @@ The system is fully **board-aware** (CBSE, Kerala State, ICSE), **age-aware** (C
 
 ```mermaid
 graph TD
-    A(["👨‍🎓 Student / User"]):::user -->|"Opens App"| B["🌐 Frontend\nHTML + CSS + JS"]:::frontend
-    B -->|"Step 1-8 Data"| C{{"⚙️ Flask\nBackend API"}}:::backend
-    C -->|"Store raw data"| D[("🗄️ MySQL\nDatabase\n15 Tables")]:::db
-    C -->|"Build 72-feature\nvector"| E["🔢 Feature\nEngineering\nPipeline"]:::ml
+    U(["👨‍🎓 Student"]):::user --> LP["🏠 Landing Page\nindex.html"]:::page
+    LP --> REG["📝 Register\nregister.html"]:::page
+    REG --> LOGIN["🔑 Login\nlogin.html"]:::page
+    LOGIN --> ASSESS["📋 Assessment\nassessment.html\n8 Adaptive Steps"]:::page
 
-    subgraph ML ["🤖 ML Ensemble (Soft Voting)"]
-        E --> F["📊 XGBoost"]:::xgb
-        E --> G["🐱 CatBoost"]:::cat
-        E --> H["💡 LightGBM"]:::lgb
-        E --> I["🌲 RandomForest"]:::rf
-        F --> J{{"🗳️ Weighted\nSoft Vote"}}:::vote
-        G --> J
-        H --> J
-        I --> J
+    ASSESS -->|"POST /api/assessment/submit"| FLASK{{"⚙️ Flask Backend\napp.py"}}:::backend
+    FLASK -->|"SELECT / INSERT"| DB[("🗄️ MySQL\ncareer_system_db\n15 Tables")]:::db
+    FLASK --> FE["🔢 Feature Engineering\n72-Feature Vector"]:::ml
+
+    subgraph ENSEMBLE ["🤖 4-Model Soft-Voting Ensemble"]
+        FE --> XGB["📊 XGBoost"]:::xgb
+        FE --> CB["🐱 CatBoost"]:::cat
+        FE --> LGB["💡 LightGBM"]:::lgb
+        FE --> RF["🌲 RandomForest"]:::rf
+        XGB & CB & LGB & RF --> VOTE{{"🗳️ Weighted\nSoft Vote"}}:::vote
     end
 
-    J -->|"Top 5 Careers\n+ Confidence %"| C
-    F -->|"Live SHAP\nExplainer"| K["📈 SHAP\nAttributions"]:::shap
-    K --> C
-    C -->|"Predictions +\nSHAP + Roadmap"| B
-    B -->|"Career Results\nDashboard"| A
+    XGB -->|"TreeExplainer"| SHAP["📈 SHAP\nAttributions"]:::shap
+    VOTE -->|"Top 5 Careers\n+ Confidence %"| FLASK
+    SHAP --> FLASK
+    FLASK -->|"JSON Response"| DASH["📊 Dashboard\ndashboard.html"]:::page
+    DASH --> HIST["🕐 History\nhistory.html"]:::page
 
-    classDef user fill:#4CAF50,stroke:#2E7D32,color:white,stroke-width:2px
-    classDef frontend fill:#2196F3,stroke:#1565C0,color:white,stroke-width:2px
-    classDef backend fill:#FF9800,stroke:#E65100,color:white,stroke-width:2px
-    classDef db fill:#9C27B0,stroke:#6A1B9A,color:white,stroke-width:2px
-    classDef ml fill:#607D8B,stroke:#37474F,color:white,stroke-width:2px
-    classDef xgb fill:#189FDD,stroke:#0D7AB5,color:white,stroke-width:2px
-    classDef cat fill:#FFCA28,stroke:#F9A825,color:#333,stroke-width:2px
-    classDef lgb fill:#66BB6A,stroke:#388E3C,color:white,stroke-width:2px
-    classDef rf fill:#8D6E63,stroke:#5D4037,color:white,stroke-width:2px
-    classDef vote fill:#EF5350,stroke:#C62828,color:white,stroke-width:2px
-    classDef shap fill:#AB47BC,stroke:#7B1FA2,color:white,stroke-width:2px
+    ADMIN(["👑 Admin"]):::admin --> ALOGIN["🔐 Admin Login\nadmin-login.html"]:::page
+    ALOGIN --> APANEL["🛡️ Admin Panel\nadmin.html"]:::page
+    APANEL -->|"GET /api/admin/stats"| FLASK
+
+    classDef user fill:#4CAF50,stroke:#2E7D32,color:white
+    classDef admin fill:#E91E63,stroke:#880E4F,color:white
+    classDef page fill:#1E88E5,stroke:#0D47A1,color:white
+    classDef backend fill:#FF9800,stroke:#E65100,color:white
+    classDef db fill:#9C27B0,stroke:#6A1B9A,color:white
+    classDef ml fill:#607D8B,stroke:#37474F,color:white
+    classDef xgb fill:#189FDD,stroke:#0D7AB5,color:white
+    classDef cat fill:#FFCA28,stroke:#F9A825,color:#333
+    classDef lgb fill:#66BB6A,stroke:#388E3C,color:white
+    classDef rf fill:#8D6E63,stroke:#5D4037,color:white
+    classDef vote fill:#EF5350,stroke:#C62828,color:white
+    classDef shap fill:#AB47BC,stroke:#7B1FA2,color:white
 ```
 
 ---
 
-## 📝 9-Step Assessment Flow
+## 🖥 Frontend — All Pages
+
+The app is branded as **CareerAI** and uses a premium dark-mode design system with glassmorphism, gradient text, and smooth animations.
+
+### 1. 🏠 Landing Page (`index.html`)
+The public-facing marketing page. Fully dynamic via `home.js`.
+
+**Sections:**
+| Section | Content |
+|---|---|
+| **Hero** | Tagline, "Start Free Assessment" CTA, live preview of sample results (Tech/Business/Healthcare/Creative profiles) |
+| **Stats Strip** | 272 Careers · 9 Stages · 40K+ Records Trained · 10 min assessment |
+| **How It Works** | 3-step process: Tell Us → Take Assessment → Get Career Report |
+| **What You Get** | Feature cards — Top 5 careers, salary, roadmap, SHAP explanation |
+| **Career Domains** | Cards for every domain: Technology, Healthcare, Business, Engineering, Arts, Law, etc. |
+| **Assessment Pipeline** | Visual pipeline of all 9 steps with descriptions |
+| **Who Is It For** | Eligibility cards: Class 7–10, Class 11–12, UG, PG, Diploma |
+| **Student Reviews** | Testimonials from different education levels |
+| **FAQ** | Common questions accordion |
+| **CTA** | Final call-to-action to start assessment |
+
+### 2. 📝 Register Page (`register.html`)
+New student registration.
+
+**Fields**: Full Name · Email · Password · Confirm Password  
+**Auth**: JWT token stored in localStorage on success  
+**Redirect**: → Assessment page after registration
+
+### 3. 🔑 Login Page (`login.html`)
+Existing student login.
+
+**Fields**: Email · Password  
+**Auth**: JWT issued by `/api/auth/login`  
+**Redirect**: → Assessment if no results, → Dashboard if results exist
+
+### 4. 📋 Assessment Page (`assessment.html`) — *Core Feature*
+The 8-step adaptive assessment form. Powered entirely by `assessment.js` (~143 KB).
+
+**See detailed Assessment Flow diagram below.**
+
+### 5. 📊 Dashboard Page (`dashboard.html`)
+Displays the AI prediction results after assessment completion. Rendered dynamically by `dashboard.js`.
+
+**Sections:**
+| Widget | Content |
+|---|---|
+| **Welcome Banner** | Personalized greeting with student name |
+| **Metric Cards (4)** | Career Readiness Score · Top Career Match · Skills Verified · Assessments Taken |
+| **AI Career Matches** | Top 5 careers — each with: Rank · Name · Confidence % · Progress bar · Salary · Degree · Companies · Growth % |
+| **SHAP Chart** | Feature attribution bar chart (why this career?) |
+| **Learning Roadmap** | 4-step personalized action plan: Strengthen Skills → Certifications → Projects → Apply |
+
+### 6. 🕐 History Page (`history.html`)
+All past assessment sessions with trend charts. Powered by `history.js`.
+
+**Content**: Assessment session list with dates, top career per session, confidence scores, trend line chart over time.
+
+### 7. ⚙️ Settings Page (`settings.html`)
+Profile update page. Powered by `settings.js`.
+
+**Fields**: Full Name · Phone · Gender · State · District · Institution · Language  
+**Actions**: Update Profile · Change Password
+
+### 8. 🔐 Admin Login (`admin-login.html`)
+Separate login page for admin users only.
+
+### 9. 🛡️ Admin Panel (`admin.html`)
+Full administration dashboard. Powered by `admin.js`.
+
+**See Admin Panel section below for full details.**
+
+---
+
+## 📝 Assessment Flow Diagram
 
 ```mermaid
 flowchart TD
-    S([🚀 Start Assessment]) --> S1
+    START(["🚀 Student Opens\nassessment.html"]) --> S1
 
-    S1["📚 Step 1\nEducation Profile\nLevel · Board · Stream · Degree"] --> S2
+    S1["📚 STEP 1\nEducation Profile\n• Education Level\n• Board (Kerala/CBSE/ICSE)\n• Stream (for 11-12 / UG)\n• Degree & Specialization (UG/PG)"] --> S2
 
-    S2["📊 Step 2\nSubject Marks\nKerala: 10 Subjects\nCBSE: 5 Subjects\nICBSE: 6 Subjects"] --> S3
+    S2["📊 STEP 2\nSubject Marks\n• Auto-loaded by Board\nKerala State: 10 subjects\nCBSE: 5 subjects\nICBSE: 6 subjects\n• Enter marks 0-100 + Grade"] --> S3
 
-    S3["🧮 Step 3\nAptitude Quiz\n10 Questions\nDifficulty = f(Class Level)"] --> S4
+    S3["🧮 STEP 3\nAptitude Quiz\n• 10 MCQ questions\n• Class 7-10: Easy/Medium\n• Class 11-12: Medium/Hard\n• UG/PG: Hard"] --> S4
 
-    S4["🧠 Step 4\nPsychometric Scenarios\n6 Age-Appropriate Questions\nMaps to 15 Personality Traits"] --> S5
+    S4["🧠 STEP 4\nPsychometric Scenarios\n• 6 situational questions\n• School / College / Professional banks\n• Maps to 15 personality traits"] --> S5
 
-    S5["🎯 Step 5\nCareer Interest Profiling\n20+ Forced-Choice Pairs\n10 Career Domains"] --> S6
+    S5["🎯 STEP 5\nCareer Interest Profiling\n• 20+ forced-choice pairs\n• 10 career domains\n• Technology / Healthcare / Business\n• Arts / Research / Law / Engineering"] --> S6
 
-    S6["🛠️ Step 6\nSkill Verification\n53 Skills Available\n3-Question Quiz per Skill"] --> CHECK
+    S6["🛠️ STEP 6\nSkill Verification\n• 53 skills available\n• 3-question quiz per skill\n• Beginner / Intermediate / Advanced\n• Feeds Subject_Knowledge_Score"] --> BRANCH
 
-    CHECK{Education Level?}
+    BRANCH{Education\nLevel?}
 
-    CHECK -->|Class 7–10| SKIP7["⏭️ Skip Step 7\nSkip Step 8"]
-    CHECK -->|Class 11–12| S7A["🏅 Step 7\nAchievements\nOlympiads · Awards"]
-    CHECK -->|UG / PG| S7B["📜 Step 7\nCertifications\nAWS · Google · NPTEL"]
+    BRANCH -->|"Class 7–10"| SKIP["⏭️ Steps 7 & 8 SKIPPED\nDefaults auto-injected:\n• CGPA = avg_marks ÷ 10\n• Attendance = 85%\n• project_score = 0\n• cert_count = 0"]
+    BRANCH -->|"Class 11–12"| S7A["🏅 STEP 7\nAchievements\n• Olympiad medals\n• School awards\n• Online courses"]
+    BRANCH -->|"UG / PG"| S7B["📜 STEP 7\nCertifications\n• AWS / Google / Microsoft\n• NPTEL / Coursera / edX"]
 
-    SKIP7 --> S9
-    S7A --> S8A["🔬 Step 8\nSchool Projects\nScience Fair · Club Activities"]
-    S7B --> S8B["💼 Step 8\nProjects & Portfolio\nGitHub · Internships"]
+    SKIP --> SUBMIT
+    S7A --> S8A["🔬 STEP 8\nSchool Projects\n• Science fair entries\n• Club activities\n• Hobby projects"]
+    S7B --> S8B["💼 STEP 8\nProjects & Portfolio\n• GitHub projects\n• Internship work\n• Research papers"]
 
-    S8A --> S9
-    S8B --> S9
+    S8A --> SUBMIT
+    S8B --> SUBMIT
 
-    S9(["🏆 Step 9\nML Prediction\nTop-5 Careers + SHAP + Roadmap"])
+    SUBMIT["🚀 POST /api/assessment/submit\nPayload: all 8 steps data"] --> ML
 
-    style S fill:#4CAF50,color:white,stroke:#2E7D32
-    style S9 fill:#E91E63,color:white,stroke:#880E4F
-    style CHECK fill:#FF9800,color:white,stroke:#E65100
-    style SKIP7 fill:#F44336,color:white,stroke:#B71C1C
+    ML["🤖 ML Ensemble\nBuild 72-feature vector\nXGBoost + CatBoost + LightGBM + RF\nSoft Voting → Top-5 Careers\nSHAP → Feature Attributions"] --> RESULT
+
+    RESULT(["🏆 Dashboard\nTop 5 Careers + Confidence %\nSHAP Chart\nSalary / Degree / Companies\nLearning Roadmap"])
+
+    style START fill:#4CAF50,color:white,stroke:#2E7D32
+    style RESULT fill:#E91E63,color:white,stroke:#880E4F
+    style BRANCH fill:#FF9800,color:white,stroke:#E65100
+    style SKIP fill:#F44336,color:white,stroke:#B71C1C
+    style SUBMIT fill:#9C27B0,color:white,stroke:#6A1B9A
+    style ML fill:#1565C0,color:white,stroke:#0D47A1
     style S1 fill:#1E88E5,color:white,stroke:#0D47A1
     style S2 fill:#1E88E5,color:white,stroke:#0D47A1
     style S3 fill:#1E88E5,color:white,stroke:#0D47A1
@@ -192,17 +250,32 @@ flowchart TD
 
 ---
 
-## 🤖 ML Architecture & Feature Engineering
+## 🤖 ML Architecture & 72 Features
 
-### Ensemble Weighting
-The final prediction is a **weighted soft vote** across all 4 models. Weights are saved in `ensemble_weights.pkl` and loaded at startup.
+### Ensemble Prediction Formula
 
 ```
-Final Probability = (w_xgb × P_xgb) + (w_cb × P_cb) + (w_lgb × P_lgb) + (w_rf × P_rf)
-Confidence %      = max(Final Probability) × 100
+Final_Probability = (w₁ × P_XGB) + (w₂ × P_CatBoost) + (w₃ × P_LightGBM) + (w₄ × P_RF)
+Confidence_%      = max(Final_Probability) × 100
+Top_Career        = argmax(Final_Probability)
 ```
+Weights are pre-computed from validation accuracy and stored in `ensemble_weights.pkl`.
 
-### 72-Feature Vector Breakdown
+### ML Model Files (`backend/models/`)
+
+| File | Purpose | Size |
+|---|---|---|
+| `career_model.pkl` | XGBoost base model | ~9 MB |
+| `catboost_model.pkl` | CatBoost classifier | ~8.5 MB |
+| `lgbm_model.pkl` | LightGBM model | ~9.6 MB |
+| `rf_model.pkl` | Random Forest | ~165 MB |
+| `label_encoder.pkl` | Encodes 30 career class names | tiny |
+| `preprocessor.pkl` | ColumnTransformer (scale + encode) | tiny |
+| `feature_columns.pkl` | Ordered list of 72 feature names | 3 KB |
+| `ensemble_weights.pkl` | [w_xgb, w_cb, w_lgb, w_rf] | tiny |
+| `career_dataset.csv` | Training dataset | ~12 MB |
+
+### Complete 72-Feature Vector
 
 | # | Category | Features | Count |
 |---|---|---|---|
@@ -210,47 +283,48 @@ Confidence %      = max(Final Probability) × 100
 | 2 | 🧮 **Aptitude** | Logical Reasoning, Numerical Ability, Verbal Ability, Spatial Ability | 4 |
 | 3 | 🧠 **Psychometric** | Leadership, Teamwork, Communication, Creativity, Problem Solving, Critical Thinking, Adaptability, Decision Making, Time Management, Curiosity, Analytical, Stress Management, Self Learning, Persistence, Confidence | 15 |
 | 4 | 🎯 **Career Interest** | Technology, Healthcare, Business, Arts/Creative, Research, Education, Engineering, Law, Environment, Social Service | 10 |
-| 5 | 🛠️ **Skills** | Num_Technical_Skills, Subject_Knowledge_Score | 2 |
-| 6 | 🏅 **Activities** | Num_Projects, Num_Certifications, Internships, Hackathons, Research Experience, Competitions, Volunteer Work | 7 |
+| 5 | 🛠️ **Skills** | Num_Technical_Skills, Subject_Knowledge_Score (weighted quiz scores) | 2 |
+| 6 | 🏅 **Activities** | Num_Projects, Num_Certifications, Internships, Hackathons, Research Experience, Competitions, Volunteer | 7 |
 | 7 | ⚗️ **Engineered** | STEM signal, Health signal, Biz signal, Creative signal, Research signal, Activity richness, Soft composite, Weighted Academic, Interest spread, Dominant Interest, Total Aptitude | 11 |
-| 8 | 👤 **Demographics** | Age, Year of Study | 2 |
-| 9 | 📈 **Derived Scores** | Readiness Score, Activity Score, Soft Skill Score, Academic Composite | 4 |
+| 8 | 👤 **Demographics** | Age (class-derived for school students), Year of Study | 2 |
+| 9 | 📈 **Derived** | Readiness Score, Activity Score, Soft Skill Score, Academic Composite | 4 |
 | 10 | 📋 **Other** | Attendance %, Skill Verified Score, Programming Score | 3 |
-| | | **Total** | **72** |
+| | | **TOTAL** | **72** |
 
-### School-Level Smart Defaults
-When a school student (Class 7–12) submits, the backend automatically:
+### School-Level Auto-Defaults (Backend)
 
-| Field | School Default | Logic |
+When a Class 7–10 student submits, the backend auto-injects:
+
+| Feature | School Default | Logic |
 |---|---|---|
-| `cgpa` | Derived | `avg_marks ÷ 10` |
-| `attendance_pct` | 85 | Auto-set |
-| `project_score` | 0 | Steps 7–8 skipped |
-| `cert_count` | 0 | Steps 7–8 skipped |
-| `age` | Class-derived | Class 7→12, Class 10→15, Class 12→17 |
-| `year_of_study` | Class-derived | Class 7→1, Class 10→4, Class 12→6 |
+| `cgpa` | Derived | `avg_marks ÷ 10` (e.g. 85 marks → 8.5 CGPA) |
+| `attendance_pct` | `85.0` | Auto-set; not collected from school students |
+| `project_score` | `0` | Steps 7 & 8 skipped |
+| `cert_count` | `0` | Steps 7 & 8 skipped |
+| `age` | Class-derived | Class 7→12, Class 8→13, ..., Class 12→17 |
+| `year_of_study` | Class-derived | Class 7→1, Class 8→2, ..., Class 12→6 |
 
 ---
 
 ## 🏫 Education Level Adaptations
 
-| Level | Aptitude | Psychometric Bank | Steps 7–8 | CGPA | Attendance | Age Default |
-|---|---|---|---|---|---|---|
-| **Class 7** | Easy | School-level | 🛑 Skipped | Hidden (auto) | Hidden (85%) | 12 |
-| **Class 8** | Easy | School-level | 🛑 Skipped | Hidden (auto) | Hidden (85%) | 13 |
-| **Class 9** | Medium | School-level | 🛑 Skipped | Hidden (auto) | Hidden (85%) | 14 |
-| **Class 10** | Medium | School-level | 🛑 Skipped | Hidden (auto) | Hidden (85%) | 15 |
-| **Class 11–12** | Medium-Hard | Teen-level | 🔄 Adapted | Hidden (auto) | Hidden (85%) | 17 |
-| **Diploma / ITI** | Medium | College-level | ✅ Visible | ✅ Visible | ✅ Visible | 19 |
-| **Undergraduate** | Hard | Professional | ✅ Visible | ✅ Visible | ✅ Visible | 21 |
-| **Postgraduate** | Hard | Research-level | ✅ Visible | ✅ Visible | ✅ Visible | 23 |
-| **Professional** | Hard | Executive | ✅ Visible | ✅ Visible | ✅ Visible | 24 |
+| Level | Aptitude | Psychometric Bank | Subjects Shown | Steps 7–8 | CGPA | Attendance | Age Default |
+|---|---|---|---|---|---|---|---|
+| **Class 7** | Easy | School | Board-based | 🛑 Skipped | Hidden (auto) | Hidden (85%) | 12 |
+| **Class 8** | Easy | School | Board-based | 🛑 Skipped | Hidden (auto) | Hidden (85%) | 13 |
+| **Class 9** | Medium | School | Board-based | 🛑 Skipped | Hidden (auto) | Hidden (85%) | 14 |
+| **Class 10** | Medium | School | Kerala:10 / CBSE:5 | 🛑 Skipped | Hidden (auto) | Hidden (85%) | 15 |
+| **Class 11–12** | Medium-Hard | Teen | Stream-based | 🔄 Adapted | Hidden (auto) | Hidden (85%) | 17 |
+| **Diploma / ITI** | Medium | College | Trade-based | ✅ Visible | ✅ Visible | ✅ Visible | 19 |
+| **Undergraduate** | Hard | Professional | Degree-based | ✅ Visible | ✅ Visible | ✅ Visible | 21 |
+| **Postgraduate** | Hard | Research | Specialization | ✅ Visible | ✅ Visible | ✅ Visible | 23 |
+| **Professional** | Hard | Executive | Domain | ✅ Visible | ✅ Visible | ✅ Visible | 24 |
 
 ---
 
 ## 🗃 Database Schema
 
-The project uses a highly normalized relational MySQL database with **15 tables**.
+The project uses **15 normalized tables** in MySQL database `career_system_db`.
 
 ### Entity-Relationship Diagram
 
@@ -265,6 +339,7 @@ erDiagram
         int age
         varchar gender
         varchar state
+        varchar institution
     }
     STUDENT_PROFILES {
         int id PK
@@ -272,6 +347,7 @@ erDiagram
         text bio
         varchar linkedin_url
         varchar github_url
+        varchar portfolio_url
     }
     EDUCATION_PROFILES {
         int id PK
@@ -280,10 +356,12 @@ erDiagram
         varchar board
         varchar stream
         varchar degree
+        varchar specialization
         float cgpa
         float avg_marks
         int year_of_study
         float attendance_pct
+        varchar institution_tier
     }
     ASSESSMENT_SESSIONS {
         int id PK
@@ -299,6 +377,36 @@ erDiagram
         int question_id
         varchar category
         tinyint is_correct
+        int time_taken_sec
+    }
+    QUESTION_BANK {
+        int id PK
+        text question_text
+        varchar category
+        varchar difficulty
+        varchar education_level
+        varchar board
+        varchar stream
+        varchar option_a
+        varchar option_b
+        varchar option_c
+        varchar option_d
+        varchar correct_answer
+        float weight
+    }
+    SKILL_VERIFICATION {
+        int id PK
+        int user_id FK
+        varchar skill_name
+        float score
+        varchar level
+        tinyint is_verified
+    }
+    SKILLS {
+        int id PK
+        varchar skill_name
+        varchar category
+        varchar domain
     }
     CAREER_PREDICTIONS {
         int id PK
@@ -311,22 +419,6 @@ erDiagram
         longtext feature_scores_json
         float readiness_score
     }
-    SKILL_VERIFICATION {
-        int id PK
-        int user_id FK
-        varchar skill_name
-        float score
-        varchar level
-    }
-    QUESTION_BANK {
-        int id PK
-        text question_text
-        varchar category
-        varchar difficulty
-        varchar education_level
-        varchar board
-        varchar stream
-    }
     ROADMAPS {
         int id PK
         varchar career
@@ -335,263 +427,281 @@ erDiagram
         text resources
     }
 
-    USERS ||--o{ STUDENT_PROFILES : "has profile"
-    USERS ||--o{ EDUCATION_PROFILES : "has education"
+    USERS ||--o{ STUDENT_PROFILES : "has"
+    USERS ||--o{ EDUCATION_PROFILES : "has"
     USERS ||--o{ ASSESSMENT_SESSIONS : "starts"
     ASSESSMENT_SESSIONS ||--o{ ASSESSMENT_ANSWERS : "contains"
-    USERS ||--o{ CAREER_PREDICTIONS : "receives"
-    USERS ||--o{ SKILL_VERIFICATION : "verifies"
-    CAREER_PREDICTIONS ||--|| ROADMAPS : "maps to roadmap"
     QUESTION_BANK ||--o{ ASSESSMENT_ANSWERS : "sources"
+    USERS ||--o{ CAREER_PREDICTIONS : "receives"
+    USERS ||--o{ SKILL_VERIFICATION : "verifies skills"
+    SKILLS ||--o{ SKILL_VERIFICATION : "is tested in"
+    CAREER_PREDICTIONS }o--|| ROADMAPS : "linked to"
 ```
 
 ### All 15 Tables
 
-| # | Table | Purpose |
-|---|---|---|
-| 1 | `users` | All users (students + admins) — auth, demographics, role |
-| 2 | `student_profiles` | Bio, LinkedIn, GitHub, portfolio links |
-| 3 | `education_profiles` | Degree, CGPA, avg_marks, year_of_study, board, stream |
-| 4 | `subject_marks` | Individual subject marks per assessment session |
-| 5 | `question_bank` | 200+ MCQs — filtered by education level, board, stream |
-| 6 | `assessment_sessions` | Each assessment attempt — token, status, timestamps |
-| 7 | `assessment_answers` | Individual MCQ answers (correct / incorrect) |
-| 8 | `feature_scores` | Computed ML features per session (stored separately) |
-| 9 | `skills` | Master skills catalogue (53 skills seeded on startup) |
-| 10 | `skill_verification` | Quiz-verified skill proficiency per user |
-| 11 | `projects` | Student projects / school activity portfolio |
-| 12 | `certifications` | Certifications and achievements |
-| 13 | `career_predictions` | ML output — top-5 careers, SHAP JSON, full feature JSON |
-| 14 | `career_history` | Historical career prediction log (for dashboard trend chart) |
-| 15 | `roadmaps` | 30 career roadmaps — 8-step paths, resources, certifications |
+| # | Table | Rows (typical) | Purpose |
+|---|---|---|---|
+| 1 | `users` | 1 per user | Auth, demographics, role (student / admin) |
+| 2 | `student_profiles` | 1 per user | Bio, social links (LinkedIn, GitHub, portfolio) |
+| 3 | `education_profiles` | 1 per user | Board, stream, degree, CGPA, avg_marks, year_of_study |
+| 4 | `subject_marks` | 5–10 per session | Individual subject marks per assessment |
+| 5 | `question_bank` | 200+ seeded | MCQs filtered by education_level, board, stream, degree |
+| 6 | `assessment_sessions` | 1+ per user | Session tracking — status (In Progress / Completed) |
+| 7 | `assessment_answers` | 10 per session | Each MCQ answer with is_correct flag |
+| 8 | `feature_scores` | 1 per session | Computed ML features (72 values) stored flat |
+| 9 | `skills` | 53 seeded | Master catalogue of all 53 verifiable skills |
+| 10 | `skill_verification` | N per user | Quiz-verified skill proficiency (Beginner/Intermediate/Advanced) |
+| 11 | `projects` | 0–N per user | Portfolio projects (title, tech stack, GitHub link) |
+| 12 | `certifications` | 0–N per user | Certifications and achievements |
+| 13 | `career_predictions` | 1+ per user | ML output — top5 careers JSON, SHAP JSON, readiness score |
+| 14 | `career_history` | 1+ per user | Log of all predictions (for dashboard trend chart) |
+| 15 | `roadmaps` | 30 seeded | 8-step learning roadmaps per career with resources |
 
 ---
 
-## 🔌 API Endpoints
+## 🔌 Backend & API Reference
+
+The backend is a single Flask app (`backend/app.py`, ~1984 lines) serving:
+- All REST API routes
+- Static frontend files (`frontend/dist/`)
+- MySQL connection pool (pool_size=5)
+- ML ensemble (loaded at startup)
 
 ### Auth Endpoints
+
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `POST` | `/api/auth/register` | Public | Register a new student account |
-| `POST` | `/api/auth/login` | Public | Login and receive a JWT token |
-| `GET` | `/api/auth/me` | JWT | Get the currently authenticated user |
+| `POST` | `/api/auth/register` | Public | Register student — hashes password, creates user + student_profile |
+| `POST` | `/api/auth/login` | Public | Validate credentials → return JWT (24h expiry) |
+| `GET` | `/api/auth/me` | JWT | Return current user info from token |
 
 ### Assessment Endpoints
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `GET` | `/api/questions` | Public | Fetch adaptive aptitude MCQs (filtered by level/board/stream) |
-| `POST` | `/api/assessment/submit` | JWT | Submit full 8-step assessment → triggers ML prediction |
-| `GET` | `/api/history` | JWT | Retrieve all past assessment sessions |
 
-### Profile & Skills
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `GET` | `/api/profile` | JWT | Get full user profile |
-| `PUT` | `/api/profile/update` | JWT | Update profile information |
-| `POST` | `/api/skills/verify` | JWT | Save a skill quiz result |
+| `GET` | `/api/questions` | Public | Adaptive MCQs — filter by `education_level`, `board`, `stream`, `degree`, `category`, `difficulty` |
+| `POST` | `/api/assessment/submit` | JWT | Full assessment submission → builds 72-feature vector → ensemble predict → store results → return top5 + SHAP |
+| `GET` | `/api/dashboard` | JWT | Fetch latest prediction + SHAP + feature scores + sessions |
+| `GET` | `/api/history` | JWT | All past assessment sessions with top career per session |
 
-### Dashboard & Results
+### Skills & Profile
+
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `GET` | `/api/dashboard` | JWT | Get latest career predictions + SHAP + feature scores |
+| `POST` | `/api/skills/verify` | JWT | Save a skill quiz result (skill_name, score, level) |
+| `GET` | `/api/profile` | JWT | Get full user profile + education + skills |
+| `PUT` | `/api/profile/update` | JWT | Update profile / education info |
 
 ### Admin Endpoints
+
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `GET` | `/api/admin/stats` | Admin JWT | Total students, assessments, top career distribution |
-| `POST` | `/api/admin/retrain` | Admin JWT | Trigger ML model retraining in background |
+| `GET` | `/api/admin/stats` | Admin JWT | System stats: total_students, total_assessments, total_questions, top_careers, daily_trend |
+| `GET` | `/api/admin/analytics` | Admin JWT | Extended analytics |
+| `GET` | `/api/admin/users` | Admin JWT | Paginated user list |
+| `GET` | `/api/admin/questions` | Admin JWT | Paginated question bank |
+| `POST` | `/api/admin/questions` | Admin JWT | Add new MCQ to question bank |
+| `PUT` | `/api/admin/questions/:id` | Admin JWT | Edit existing question |
+| `DELETE` | `/api/admin/questions/:id` | Admin JWT | Delete question |
+| `POST` | `/api/admin/retrain` | Admin JWT | Trigger model retraining in background subprocess |
 
 ### System
+
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `GET` | `/api/health` | Public | System health — DB connection + ML model status |
+| `GET` | `/api/health` | Public | DB connection status + ML model load status |
+
+### `/api/assessment/submit` — Payload Structure
+
+```json
+{
+  "education_level": "Undergraduate",
+  "board": "CBSE",
+  "stream": "Science",
+  "degree": "BTech",
+  "specialization": "Computer Science",
+  "subject_marks": [{"subject": "Mathematics", "marks": 88, "grade": "A"}],
+  "aptitude_answers": {"0": {"is_correct": true}, "1": {"is_correct": false}},
+  "psychometric": {"leadership": 80, "teamwork": 75, "creativity": 90},
+  "interests": {"technology": 95, "healthcare": 20, "business": 40},
+  "skills": ["Python", "Machine Learning", "SQL & Databases"],
+  "skill_scores": {"Python": {"score": 66, "level": "Intermediate"}},
+  "certifications": [{"name": "AWS Cloud Practitioner", "provider": "Amazon"}],
+  "projects": [{"title": "ML Price Predictor", "technology": "Python, sklearn"}],
+  "cgpa": 8.5,
+  "attendance_pct": 88,
+  "avg_marks": 85,
+  "year_of_study": 3,
+  "age": 21
+}
+```
+
+---
+
+## 🛡️ Admin Panel
+
+Access at `/admin.html` — requires admin JWT. Powered by `admin.js`.
+
+### Admin Panel Tabs
+
+```mermaid
+graph LR
+    ADMIN["👑 Admin Panel"] --> T1["📊 Overview\nTab"]
+    ADMIN --> T2["👥 Users\nTab"]
+    ADMIN --> T3["❓ Questions\nTab"]
+    ADMIN --> T4["🤖 ML Model\nTab"]
+
+    T1 --> O1["Total Students\nTotal Assessments\nTotal Questions"]
+    T1 --> O2["Top 10 Career\nDistribution Chart"]
+    T1 --> O3["Daily Assessment\nTrend (30 days)"]
+
+    T2 --> U1["Paginated User List\nName · Email · Role\nJoined Date"]
+
+    T3 --> Q1["View All Questions\nFilter by Category\nFilter by Level"]
+    T3 --> Q2["Add New Question\nEdit / Delete"]
+
+    T4 --> M1["Model Status\nLoad Info · Accuracy"]
+    T4 --> M2["Retrain Button\nRuns train_model.py\nin background"]
+
+    style ADMIN fill:#E91E63,color:white,stroke:#880E4F
+    style T1 fill:#1E88E5,color:white,stroke:#0D47A1
+    style T2 fill:#1E88E5,color:white,stroke:#0D47A1
+    style T3 fill:#1E88E5,color:white,stroke:#0D47A1
+    style T4 fill:#1E88E5,color:white,stroke:#0D47A1
+```
+
+**Default Admin Credentials:**
+```
+Email:    admin@gmail.com
+Password: Admin@123
+```
 
 ---
 
 ## 🏆 Supported Careers (30)
 
-<table>
-<tr>
-<th>💻 Technology</th>
-<th>💼 Business</th>
-<th>🏥 Healthcare</th>
-<th>⚙️ Engineering</th>
-<th>🎓 Other</th>
-</tr>
-<tr>
-<td>Software Developer</td>
-<td>Business Analyst</td>
-<td>Doctor</td>
-<td>Mechanical Engineer</td>
-<td>School Teacher</td>
-</tr>
-<tr>
-<td>Data Scientist</td>
-<td>Entrepreneur</td>
-<td>Nurse</td>
-<td>Civil Engineer</td>
-<td>Professor / Researcher</td>
-</tr>
-<tr>
-<td>ML Engineer</td>
-<td>Chartered Accountant</td>
-<td>Pharmacist</td>
-<td>Electrical Engineer</td>
-<td>Lawyer</td>
-</tr>
-<tr>
-<td>AI Engineer</td>
-<td>Bank Manager</td>
-<td>Biomedical Engineer</td>
-<td>Agricultural Scientist</td>
-<td>Architect</td>
-</tr>
-<tr>
-<td>Full Stack Developer</td>
-<td>Product Manager</td>
-<td></td>
-<td>Environmental Scientist</td>
-<td>Animator</td>
-</tr>
-<tr>
-<td>Data Analyst</td>
-<td></td>
-<td></td>
-<td></td>
-<td>Graphic Designer</td>
-</tr>
-<tr>
-<td>Cyber Security Analyst</td>
-<td></td>
-<td></td>
-<td></td>
-<td>UI/UX Designer</td>
-</tr>
-<tr>
-<td>Cloud Architect</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-</table>
+Each career comes with: 💰 Salary · 🎓 Required Degree · 🏢 Top Companies · 📈 Growth % · 📜 Certifications · 🗺️ 8-step Roadmap
 
-Each career comes with:
-- 📈 **Salary range** (Indian market, e.g. ₹5L–₹18L/yr)
-- 🎓 **Required degree** (e.g. BTech CS / BCA)
-- 🏢 **Top companies** (e.g. Infosys, Google, TCS)
-- 📉 **Industry growth %** (e.g. +22% annually)
-- 📜 **Recommended certifications** (e.g. AWS, Full Stack Cert)
-- 🗺️ **8-step career roadmap**
+<table>
+<thead>
+<tr><th>💻 Technology</th><th>💼 Business</th><th>🏥 Healthcare</th><th>⚙️ Engineering</th><th>🎓 Other</th></tr>
+</thead>
+<tbody>
+<tr><td>Software Developer</td><td>Business Analyst</td><td>Doctor</td><td>Mechanical Engineer</td><td>School Teacher</td></tr>
+<tr><td>Data Scientist</td><td>Entrepreneur</td><td>Nurse</td><td>Civil Engineer</td><td>Professor / Researcher</td></tr>
+<tr><td>ML Engineer</td><td>Chartered Accountant</td><td>Pharmacist</td><td>Electrical Engineer</td><td>Lawyer</td></tr>
+<tr><td>AI Engineer</td><td>Bank Manager</td><td>Biomedical Engineer</td><td>Agricultural Scientist</td><td>Architect</td></tr>
+<tr><td>Full Stack Developer</td><td>Product Manager</td><td></td><td>Environmental Scientist</td><td>Animator</td></tr>
+<tr><td>Data Analyst</td><td></td><td></td><td></td><td>Graphic Designer</td></tr>
+<tr><td>Cyber Security Analyst</td><td></td><td></td><td></td><td>UI/UX Designer</td></tr>
+<tr><td>Cloud Architect</td><td></td><td></td><td></td><td></td></tr>
+</tbody>
+</table>
 
 ---
 
 ## ⚙️ Setup & Installation
 
 ### Prerequisites
-- Python **3.10+**
-- MySQL **8.x** (running on localhost)
-- Git
+- Python **3.10+** · MySQL **8.x** · Git
 
-### 1. Clone the Repository
+### Step 1 — Clone
 
 ```bash
 git clone https://github.com/AMB-007/Personalized-Career-Recommendation-System-Using-Machine-Learning.git
 cd "Personalized Career Recommendation System Using Machine Learning"
 ```
 
-### 2. Set Up Database
+### Step 2 — Database Setup
 
 ```bash
 mysql -u root -p < backend/career_system_db.sql
 ```
 
-> Creates `career_system_db` with all 15 tables, seeds admin user, and inserts 30 career roadmaps.
-> **Default admin:** `admin@gmail.com` / `Admin@123`
+> Creates `career_system_db` with all 15 tables · Seeds admin user · Seeds 30 career roadmaps · Seeds 53 skills
 
-### 3. Configure Environment
-
-Edit `backend/.env`:
+### Step 3 — Configure `.env`
 
 ```env
+# backend/.env
 DB_HOST=localhost
 DB_USER=root
-DB_PASSWORD=your_mysql_password
+DB_PASSWORD=your_password
 DB_NAME=career_system_db
-JWT_SECRET=your_secret_key_here
+JWT_SECRET=your_secret_key
 ```
 
-### 4. Install Python Dependencies
+### Step 4 — Python Environment
 
 ```bash
 cd backend
 python -m venv venv
-
-# Windows
-venv\Scripts\activate
-
-# Mac / Linux
-source venv/bin/activate
-
+venv\Scripts\activate          # Windows
+# source venv/bin/activate    # Mac/Linux
 pip install -r requirements.txt
 ```
 
-### 5. Run the Application
+### Step 5 — Run
 
-**Windows (one-click):**
-```
-Double-click start.bat
-```
-
-**Manual:**
 ```bash
-cd backend
+# Option 1: One-click (Windows)
+double-click start.bat
+
+# Option 2: Manual
 python app.py
 ```
 
-App runs at → **http://localhost:5000**
+App → **http://localhost:5000**
 
-| Page | URL |
+| URL | Page |
 |---|---|
-| 🏠 Landing | `http://localhost:5000/` |
-| 📝 Register | `http://localhost:5000/register.html` |
-| 🔑 Login | `http://localhost:5000/login.html` |
-| 📋 Assessment | `http://localhost:5000/assessment.html` |
-| 📊 Dashboard | `http://localhost:5000/dashboard.html` |
-| 🕐 History | `http://localhost:5000/history.html` |
-| 🛡️ Admin | `http://localhost:5000/admin.html` |
+| `/` | Landing page |
+| `/register.html` | Student registration |
+| `/login.html` | Student login |
+| `/assessment.html` | Career assessment |
+| `/dashboard.html` | Results & SHAP dashboard |
+| `/history.html` | Assessment history |
+| `/settings.html` | Profile settings |
+| `/admin-login.html` | Admin login |
+| `/admin.html` | Admin panel |
 
 ---
 
-## 🎯 Tips for 90%+ Prediction Confidence
+## 🎯 Tips for 90%+ Confidence
 
-| Priority | Step | What to Do |
+| Priority | Step | Action |
 |---|---|---|
-| ⭐⭐⭐ | **Step 5 — Interests** | Choose 80%+ of pairs toward **one domain** — this is the single biggest factor |
-| ⭐⭐⭐ | **Step 3 — Aptitude** | Score 8/10 or higher |
-| ⭐⭐ | **Step 6 — Skills** | Select 6–10 skills, pass each quiz at Intermediate or Advanced |
+| ⭐⭐⭐ | **Step 5 — Interests** | Choose 80%+ of pairs toward **one domain** — biggest single factor |
+| ⭐⭐⭐ | **Step 3 — Aptitude** | Score 8/10 or above |
+| ⭐⭐ | **Step 6 — Skills** | Select 6–10 skills; score Intermediate/Advanced in each quiz |
 | ⭐⭐ | **Step 2 — Marks** | Enter subject marks ≥ 75 |
-| ⭐ | **Step 4 — Psychometric** | Answer all 6 scenarios consistently toward one personality type |
+| ⭐ | **Step 4 — Psychometric** | Answer all 6 scenarios consistently for one personality type |
 
 ---
 
-## 📊 Project Stats
+## 📊 Project Stats at a Glance
 
 | Metric | Value |
 |---|---|
-| ML Features | 72 |
+| ML Models | 4 (XGBoost, CatBoost, LightGBM, RandomForest) |
+| Feature Vector Size | 72 features |
 | Career Classes | 30 |
-| Skill Quizzes | 53 skills × 3 questions |
-| Aptitude Questions | 200+ (multi-level bank) |
-| Database Tables | 15 |
-| Career Roadmaps | 30 (8-step each) |
-| Assessment Steps | 9 (adaptive — 7 for school students) |
-| Backend Lines of Code | ~1,984 lines |
-| Assessment Engine (JS) | ~143 KB |
+| Skill Quizzes | 53 skills × 3 questions each |
+| Aptitude Question Bank | 200+ questions (multi-level) |
+| Database Tables | 15 normalized tables |
+| Career Roadmaps Seeded | 30 (8-step each, with resources & certs) |
+| Frontend Pages | 9 pages (index, register, login, assessment, dashboard, history, settings, admin-login, admin) |
+| Assessment Steps | 9 (7 for Class 7–10 students) |
+| Backend Lines | ~1,984 lines (Flask) |
+| Training Dataset | ~12 MB (~40K records) |
 
 ---
 
 <div align="center">
-  <p>⭐ If this project helped you, please consider giving it a star on GitHub!</p>
+  <p>⭐ Star this repo if it helped you!</p>
   <p><i>Built with ❤️ — AI-powered career guidance for every student, from Class 7 to PhD.</i></p>
+  <a href="https://github.com/AMB-007/Personalized-Career-Recommendation-System-Using-Machine-Learning">
+    <img src="https://img.shields.io/badge/View_on-GitHub-181717?style=for-the-badge&logo=github&logoColor=white" />
+  </a>
 </div>
