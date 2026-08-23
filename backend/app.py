@@ -165,11 +165,20 @@ def init_db():
                 specialization  VARCHAR(120),
                 institution     VARCHAR(150),
                 cgpa            FLOAT        DEFAULT 0,
+                avg_marks       FLOAT        DEFAULT 0,
+                year_of_study   INT          DEFAULT 0,
                 attendance_pct  FLOAT        DEFAULT 0,
                 created_at      TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         """)
+        # Migration: add avg_marks and year_of_study if missing on existing deployments
+        for _col in [
+            "ALTER TABLE education_profiles ADD COLUMN IF NOT EXISTS avg_marks FLOAT DEFAULT 0",
+            "ALTER TABLE education_profiles ADD COLUMN IF NOT EXISTS year_of_study INT DEFAULT 0",
+        ]:
+            try: cur.execute(_col)
+            except Exception: pass
 
         # 4. subject_marks
         cur.execute("""
@@ -852,7 +861,7 @@ def get_questions():
     """
     Dynamically fetches questions from question_bank filtered by:
     education_level, board, stream, degree, specialization, category, difficulty.
-    Returns 15–20 randomized questions. Never repeats in same session.
+    Returns 15-20 randomized questions. Never repeats in same session.
     """
     edu     = request.args.get('education_level', 'All')
     board   = request.args.get('board', 'All')
@@ -867,11 +876,15 @@ def get_questions():
         conn = get_conn()
         cur  = conn.cursor(dictionary=True)
 
+        # Exclude non-aptitude categories — those are handled by the frontend adaptive banks
+        EXCLUDED_CATS = ('Psychometric', 'Career Interest', 'Skill Verification')
+
         sql = """
             SELECT id, question_text, category, difficulty, option_a, option_b,
                    option_c, option_d, correct_answer, weight, expected_time, skill
             FROM question_bank
             WHERE status = 'Active'
+              AND category NOT IN ('Psychometric', 'Career Interest', 'Skill Verification')
               AND (education_level = %s OR education_level = 'All')
               AND (board = %s OR board = 'All')
               AND (stream = %s OR stream = 'All')
@@ -879,7 +892,7 @@ def get_questions():
         """
         params = [edu, board, stream, degree]
 
-        if cat and cat != 'All':
+        if cat and cat != 'All' and cat not in EXCLUDED_CATS:
             sql += " AND category = %s"
             params.append(cat)
         if diff and diff != 'All':
@@ -978,35 +991,66 @@ def submit_assessment():
         spat_apt    = max(0.0, min(100.0, spat_apt))
 
         # ── Base feature values ────────────────────────────────────────────
-        _cgpa        = float(data.get("cgpa", 7.0))
-        _sem_marks   = float(data.get("semester_marks", 75.0))
-        _internal    = float(data.get("internal_marks", 75.0))
+        # CGPA: use sent value; for school students frontend sends avg_marks/10
+        # Use explicit None check so cgpa=0.0 from school students is not replaced by 7.0
+        _cgpa_raw    = data.get("cgpa")
+        _cgpa        = float(_cgpa_raw) if _cgpa_raw is not None else 7.0
+        # avg_marks comes from Step 2 subject marks average (computed by frontend)
+        _avg_marks   = float(data.get("avg_marks", 0))
+        _sem_marks   = _avg_marks if _avg_marks > 0 else float(data.get("semester_marks", 75.0))
+        _internal    = _avg_marks if _avg_marks > 0 else float(data.get("internal_marks", 75.0))
         _practical   = float(data.get("practical_marks", 75.0))
         _project_sc  = float(data.get("project_score", min(len(projs) * 20.0, 100.0)))
         _lab_sc      = float(data.get("lab_score", 75.0))
         _assignment  = float(data.get("assignment_score", 75.0))
-        _attendance  = float(data.get("attendance", 80.0))
-        _age         = float(user_info.get("age") or data.get("age") or 20)
+        _attendance  = float(data.get("attendance_pct", data.get("attendance", 80.0)))
+        # Age: use user profile if available, else derive from education level
+        _edu_age_map = {
+            "Class 7": 12, "Class 8": 13, "Class 9": 14, "Class 10": 15,
+            "Higher Secondary (11-12)": 17, "Diploma / ITI": 19,
+            "Undergraduate": 21, "Postgraduate": 23, "Professional Degree": 24,
+        }
+        _age_default = _edu_age_map.get(education_level, 20)
+        _age         = float(user_info.get("age") or data.get("age") or _age_default)
         _year_study  = float(data.get("year_of_study", 3))
 
-        # Interest scores: frontend sends count of choices per domain (0-N)
-        # Normalize: multiply by (100 / total_interest_pairs) to get 0-100 score
-        TOTAL_PAIRS  = max(sum(ints.values()), 1) if ints else 1
-        def _norm_int(val): return min(100.0, float(val) * (100.0 / TOTAL_PAIRS))
-        _tech_int   = _norm_int(ints.get('Technology', 0))
-        _health_int = _norm_int(ints.get('Healthcare', 0))
-        _biz_int    = _norm_int(ints.get('Business', 0))
-        _arts_int   = _norm_int(ints.get('Creative Arts', ints.get('Arts', 0)))
-        _res_int    = _norm_int(ints.get('Research', 0))
-        _edu_int    = _norm_int(ints.get('Education', 0))
-        _eng_int    = _norm_int(ints.get('Engineering', 0))
-        _law_int    = _norm_int(ints.get('Law', 0))
-        _env_int    = _norm_int(ints.get('Environment', 0))
-        _soc_int    = _norm_int(ints.get('Social Service', ints.get('Social', 0)))
-        # If all zeros (not provided), set neutral 50
+        # Interest scores: frontend sends weighted domain scores (keys use underscore format)
+        # Normalize: total sum -> 0-100 per domain
+        # Handle both underscore (Arts_Creative) and space (Creative Arts) key formats
+        def _get_int(key_us, key_sp, key_alt=''):
+            """Get interest score from multiple possible key names."""
+            return float(ints.get(key_us, ints.get(key_sp, ints.get(key_alt, 0))))
+
+        raw_tech  = _get_int('Technology',     'Technology')
+        raw_hlth  = _get_int('Healthcare',     'Healthcare')
+        raw_biz   = _get_int('Business',       'Business')
+        raw_arts  = _get_int('Arts_Creative',  'Creative Arts', 'Arts')
+        raw_res   = _get_int('Research',       'Research')
+        raw_edu   = _get_int('Education',      'Education')
+        raw_eng   = _get_int('Engineering',    'Engineering')
+        raw_law   = _get_int('Law',            'Law')
+        raw_env   = _get_int('Environment',    'Environment')
+        raw_soc   = _get_int('Social_Service', 'Social Service', 'Social')
+
+        raw_total = max(raw_tech+raw_hlth+raw_biz+raw_arts+raw_res+
+                        raw_edu+raw_eng+raw_law+raw_env+raw_soc, 1)
+        def _norm_int(val): return min(100.0, float(val) * (100.0 / raw_total))
+
+        _tech_int   = _norm_int(raw_tech)
+        _health_int = _norm_int(raw_hlth)
+        _biz_int    = _norm_int(raw_biz)
+        _arts_int   = _norm_int(raw_arts)
+        _res_int    = _norm_int(raw_res)
+        _edu_int    = _norm_int(raw_edu)
+        _eng_int    = _norm_int(raw_eng)
+        _law_int    = _norm_int(raw_law)
+        _env_int    = _norm_int(raw_env)
+        _soc_int    = _norm_int(raw_soc)
+        # If all zeros (interests not provided), set neutral 50
         if not any([_tech_int,_health_int,_biz_int,_arts_int,_res_int,
                     _edu_int,_eng_int,_law_int,_env_int,_soc_int]):
-            _tech_int=_health_int=_biz_int=_arts_int=_res_int=             _edu_int=_eng_int=_law_int=_env_int=_soc_int = 50.0
+            _tech_int=_health_int=_biz_int=_arts_int=_res_int= \
+            _edu_int=_eng_int=_law_int=_env_int=_soc_int = 50.0
 
         _logical = float(logical_apt)
         _num_apt = float(num_apt)
@@ -1280,28 +1324,46 @@ def submit_assessment():
                 except Exception as shap_err:
                     print(f"[WARN] SHAP failed: {shap_err}")
         else:
-            # Fallback mock prediction
-            top_interests = sorted(ints.items(), key=lambda x: x[1], reverse=True)[:3]
-            fallback_careers = {
-                "Technology": ["Software Developer", "Data Scientist", "Cloud Architect"],
-                "Business": ["Business Analyst", "Marketing Manager", "Product Manager"],
-                "Healthcare": ["Clinical Researcher", "Medical Officer", "Health Tech Analyst"],
-                "Engineering": ["Mechanical Engineer", "Systems Engineer", "Robotics Engineer"],
-                "Creative Arts": ["UI/UX Designer", "Content Strategist", "Art Director"]
+            # Fallback mock prediction — uses 30-career model names
+            interest_domain_map = {
+                'Technology':     ['Software Developer', 'Full Stack Developer', 'Data Scientist'],
+                'Healthcare':     ['Doctor', 'Nurse', 'Pharmacist'],
+                'Business':       ['Entrepreneur', 'Business Analyst', 'Chartered Accountant'],
+                'Arts_Creative':  ['UI/UX Designer', 'Graphic Designer', 'Animator'],
+                'Research':       ['Professor / Researcher', 'Data Scientist', 'Agricultural Scientist'],
+                'Education':      ['School Teacher', 'Professor / Researcher', 'Business Analyst'],
+                'Engineering':    ['Mechanical Engineer', 'Civil Engineer', 'Electrical Engineer'],
+                'Law':            ['Lawyer', 'Business Analyst', 'Entrepreneur'],
+                'Environment':    ['Environmental Scientist', 'Agricultural Scientist', 'Civil Engineer'],
+                'Social_Service': ['School Teacher', 'Nurse', 'Doctor'],
             }
-            primary_domain = top_interests[0][0] if top_interests else "Technology"
-            cands = fallback_careers.get(primary_domain, fallback_careers["Technology"]) + ["Project Manager", "Consultant"]
+            top_ints = sorted(ints.items(), key=lambda x: x[1], reverse=True)
+            primary_domain = top_ints[0][0] if top_ints else 'Technology'
+            # Normalize key format for lookup
+            primary_key = primary_domain.replace(' ', '_').replace('Creative_Arts', 'Arts_Creative')
+            cands = interest_domain_map.get(primary_key,
+                    interest_domain_map.get(primary_domain,
+                    ['Software Developer', 'Data Analyst', 'Business Analyst', 'School Teacher', 'Mechanical Engineer']))
+            # Pad to 5 with general fallbacks
+            defaults = ['Data Analyst', 'Business Analyst', 'School Teacher', 'Mechanical Engineer', 'UI/UX Designer']
+            while len(cands) < 5:
+                for d in defaults:
+                    if d not in cands: cands.append(d)
+                    if len(cands) >= 5: break
+            apt_score = float(data.get('logical_aptitude', 70))
+            marks_score = float(data.get('avg_marks', 75))
+            readiness_score = int(min(100, (apt_score * 0.5 + marks_score * 0.5)))
             for i, c in enumerate(cands[:5]):
                 top5.append({
-                    "career": c,
-                    "confidence": 95 - (i * 8),
-                    "rank": i + 1,
-                    "why": [f"High interest in {primary_domain}"]
+                    'career':     c,
+                    'confidence': max(55, 92 - (i * 8)),
+                    'rank':       i + 1,
+                    'why':        [f'Strong {primary_domain.replace("_"," ")} interest',
+                                   'Academic profile match', 'Aptitude alignment']
                 })
-            readiness_score = 85
             xai_attributions = [
-                {"feature": "Domain Interest", "importance": 0.40},
-                {"feature": "Soft Skills", "importance": 0.20}
+                {'feature': 'Domain Interest', 'label': f'{primary_domain} Interest', 'importance': 0.40, 'direction': 'positive', 'abs_impact': 0.40},
+                {'feature': 'Soft Skills',     'label': 'Soft Skill Profile',         'importance': 0.20, 'direction': 'positive', 'abs_impact': 0.20}
             ]
 
         if user_id:
@@ -1363,13 +1425,53 @@ def submit_assessment():
         cur.close()
         conn.close()
 
+        # ── Enrich top5 with career metadata ─────────────────────────────────
+        CAREER_META = {
+            'Software Developer':        {'salary': 'Rs.5L-Rs.18L/yr',  'degree': 'BTech CS / BCA',         'companies': 'Infosys, TCS, Google',      'growth': '+22% annually', 'certifications': 'AWS, Full Stack Cert'},
+            'Data Scientist':            {'salary': 'Rs.7L-Rs.25L/yr',  'degree': 'BTech / MSc Statistics',  'companies': 'Google, Amazon, Flipkart',  'growth': '+35% annually', 'certifications': 'Google DS, IBM DS Cert'},
+            'Full Stack Developer':      {'salary': 'Rs.5L-Rs.20L/yr',  'degree': 'BTech CS / BCA',         'companies': 'Infosys, Razorpay, Zoho',   'growth': '+25% annually', 'certifications': 'MERN Stack, AWS'},
+            'Doctor':                    {'salary': 'Rs.8L-Rs.30L+/yr', 'degree': 'MBBS + MD/MS',           'companies': 'Govt Hospitals, Private',   'growth': '+15% annually', 'certifications': 'MCI Registration, DNB'},
+            'Data Analyst':              {'salary': 'Rs.4L-Rs.14L/yr',  'degree': 'BTech / BSc Statistics',  'companies': 'Wipro, Accenture, KPMG',   'growth': '+25% annually', 'certifications': 'Google Data Analytics, SQL'},
+            'Machine Learning Engineer': {'salary': 'Rs.8L-Rs.25L/yr',  'degree': 'BTech CS / MTech AI',    'companies': 'Google, Microsoft, Amazon', 'growth': '+28% annually', 'certifications': 'TensorFlow, AWS ML'},
+            'AI Engineer':               {'salary': 'Rs.10L-Rs.30L/yr', 'degree': 'BTech CS / MTech AI',    'companies': 'DeepMind, OpenAI, NVIDIA',  'growth': '+30% annually', 'certifications': 'AWS AI, Azure AI'},
+            'Entrepreneur':              {'salary': 'Variable',          'degree': 'Any + MBA',              'companies': 'Own Startup',               'growth': 'Unlimited',     'certifications': 'Management Certs'},
+            'School Teacher':            {'salary': 'Rs.3L-Rs.9L/yr',   'degree': 'BA/BSc + B.Ed',          'companies': 'Govt Schools, Ed-Tech',     'growth': '+12% annually', 'certifications': 'CTET, TET'},
+            'Business Analyst':          {'salary': 'Rs.5L-Rs.15L/yr',  'degree': 'BBA / BTech / MBA',      'companies': 'Deloitte, EY, KPMG',        'growth': '+20% annually', 'certifications': 'PMP, BA Cert'},
+            'Professor / Researcher':    {'salary': 'Rs.6L-Rs.18L/yr',  'degree': 'PhD / MTech',            'companies': 'Universities, DRDO, ISRO',  'growth': '+15% annually', 'certifications': 'UGC NET, Research Grants'},
+            'Lawyer':                    {'salary': 'Rs.4L-Rs.20L+/yr', 'degree': 'LLB / LLM',             'companies': 'Law Firms, Govt',           'growth': '+18% annually', 'certifications': 'Bar Council Enrollment'},
+            'Cyber Security Analyst':    {'salary': 'Rs.6L-Rs.22L/yr',  'degree': 'BTech CS / MCA',         'companies': 'IBM, Cisco, ISRO',          'growth': '+31% annually', 'certifications': 'CEH, CISSP, CompTIA'},
+            'Chartered Accountant':      {'salary': 'Rs.7L-Rs.25L+/yr', 'degree': 'CA (ICAI)',              'companies': 'Big4, Banks, Corporates',   'growth': '+20% annually', 'certifications': 'CFA, DISA'},
+            'Product Manager':           {'salary': 'Rs.10L-Rs.35L/yr', 'degree': 'BTech / MBA',            'companies': 'Google, Flipkart, Amazon',  'growth': '+25% annually', 'certifications': 'PMP, CSPO'},
+            'Cloud Architect':           {'salary': 'Rs.12L-Rs.35L/yr', 'degree': 'BTech CS / MTech',       'companies': 'AWS, Azure, Google Cloud',  'growth': '+28% annually', 'certifications': 'AWS SAA, GCP Pro'},
+            'Bank Manager':              {'salary': 'Rs.5L-Rs.14L/yr',  'degree': 'BBA / BCom / MBA',       'companies': 'SBI, HDFC, ICICI, RBI',     'growth': '+15% annually', 'certifications': 'JAIIB, CAIIB'},
+            'Mechanical Engineer':       {'salary': 'Rs.4L-Rs.14L/yr',  'degree': 'BTech Mechanical / BE',  'companies': 'L&T, BHEL, Bosch, Tata',   'growth': '+16% annually', 'certifications': 'AutoCAD, SolidWorks'},
+            'Civil Engineer':            {'salary': 'Rs.4L-Rs.12L/yr',  'degree': 'BTech Civil / BE',       'companies': 'L&T, NHAI, PWD, DLF',      'growth': '+14% annually', 'certifications': 'AutoCAD, STAAD.Pro'},
+            'UI/UX Designer':            {'salary': 'Rs.4L-Rs.16L/yr',  'degree': 'BDes / BTech / BA Design','companies': 'Infosys, TCS, Startups',   'growth': '+22% annually', 'certifications': 'Google UX Cert, Figma'},
+            'Graphic Designer':          {'salary': 'Rs.3L-Rs.12L/yr',  'degree': 'BDes / BFA / BA',        'companies': 'Agencies, Ad Firms',        'growth': '+15% annually', 'certifications': 'Adobe CC, Canva Pro'},
+            'Nurse':                     {'salary': 'Rs.3L-Rs.10L/yr',  'degree': 'B.Sc Nursing / GNM',    'companies': 'Govt Hospitals, Apollo',    'growth': '+18% annually', 'certifications': 'NMC Registration'},
+            'Pharmacist':                {'salary': 'Rs.3L-Rs.10L/yr',  'degree': 'B.Pharm / M.Pharm',     'companies': 'Hospitals, Pharma Cos',     'growth': '+15% annually', 'certifications': 'PCI Registration'},
+            'Architect':                 {'salary': 'Rs.4L-Rs.16L/yr',  'degree': 'B.Arch / M.Arch',       'companies': 'CPWD, DDA, Private Firms',  'growth': '+17% annually', 'certifications': 'COA Registration'},
+            'Electrical Engineer':       {'salary': 'Rs.4L-Rs.14L/yr',  'degree': 'BTech EEE / BE',        'companies': 'NTPC, KSEB, Siemens',       'growth': '+16% annually', 'certifications': 'AutoCAD, ETAP'},
+            'Agricultural Scientist':    {'salary': 'Rs.4L-Rs.12L/yr',  'degree': 'BSc/MSc Agriculture',   'companies': 'ICAR, KAU, DRDO',           'growth': '+14% annually', 'certifications': 'ICAR Certs'},
+            'Biomedical Engineer':       {'salary': 'Rs.5L-Rs.15L/yr',  'degree': 'BTech Biomedical',      'companies': 'Hospitals, Medtech Cos',    'growth': '+20% annually', 'certifications': 'CBET, ISO Certs'},
+            'Animator':                  {'salary': 'Rs.3L-Rs.12L/yr',  'degree': 'BDes / BFA / BVA',      'companies': 'Studios, Ad Agencies',      'growth': '+18% annually', 'certifications': 'Maya, After Effects Cert'},
+            'Environmental Scientist':   {'salary': 'Rs.4L-Rs.12L/yr',  'degree': 'BSc/MSc Env Science',   'companies': 'CPCB, KSPCB, NGOs',         'growth': '+16% annually', 'certifications': 'ISO 14001, EIA Cert'},
+        }
+        for career_item in top5:
+            meta = CAREER_META.get(career_item.get('career', ''), {})
+            career_item.setdefault('salary',         meta.get('salary',         'Varies by experience'))
+            career_item.setdefault('degree',         meta.get('degree',         'Relevant UG/PG Degree'))
+            career_item.setdefault('companies',      meta.get('companies',      'Various Organizations'))
+            career_item.setdefault('growth',         meta.get('growth',         '+15% annually'))
+            career_item.setdefault('certifications', meta.get('certifications', 'Domain Certifications'))
+
         return jsonify({
-            "status": "success",
-            "top5_careers": top5,
-            "readiness_score": readiness_score,
-            "feature_scores": features_dict,
-            "xai_attributions": xai_attributions,
-            "message": "AI Assessment complete."
+            'status':          'success',
+            'top5_careers':    top5,
+            'readiness_score': readiness_score,
+            'feature_scores':  features_dict,
+            'xai_attributions':xai_attributions,
+            'message':         'AI Assessment complete — career recommendations ready.'
         }), 200
 
     except Exception as e:

@@ -81,7 +81,7 @@
     <div class="progress-fill" id="main-progress" style="width:12.5%"></div>
   </div>
 
-  <div id="alert-box" class="hidden mb-3"></div>
+
 
   <!-- ── STEP 1: Education Profile ── -->
   <div class="step-section active card card-2xl" id="step-1">
@@ -115,8 +115,23 @@
         <label for="stream">Stream / Specialization</label>
         <select id="stream">
           <option value="">— Select Stream —</option>
-          <option>Science (PCM)</option><option>Science (PCB)</option><option>Science (PCMB)</option>
-          <option>Commerce</option><option>Humanities/Arts</option><option>Vocational</option>
+          <optgroup label="Higher Secondary Streams">
+            <option>Science (PCM)</option><option>Science (PCB)</option><option>Science (PCMB)</option>
+            <option>Commerce</option><option>Humanities/Arts</option><option>Vocational</option>
+          </optgroup>
+          <optgroup label="Diploma / ITI Trades">
+            <option>Mechanical Engineering</option><option>Electrical Engineering</option>
+            <option>Civil Engineering</option><option>Computer Science / IT</option>
+            <option>Electronics & Communication</option><option>Automobile Engineering</option>
+            <option>Chemical Engineering</option><option>ITI (Fitter)</option>
+            <option>ITI (Electrician)</option><option>ITI (Welder)</option>
+          </optgroup>
+          <optgroup label="Undergraduate Streams">
+            <option>Computer Science</option><option>Information Technology</option>
+            <option>Mechanical</option><option>Civil</option><option>Electrical</option>
+            <option>Electronics</option><option>Finance</option><option>Marketing</option>
+            <option>Human Resources</option><option>General</option>
+          </optgroup>
         </select>
       </div>
       <div class="form-group" id="degree-group" style="display:none">
@@ -134,14 +149,14 @@
         <input type="text" id="specialization" placeholder="e.g. Computer Science, Finance, Biology" />
       </div>
       <div class="form-group">
-        <label for="institution">School / College Name <span class="optional-tag">(Optional)</span></label>
+        <label for="institution">School / College Name <span class="optional-tag">(Optional — not used for prediction)</span></label>
         <input type="text" id="institution" placeholder="Name of your institution" />
       </div>
       <div class="form-group">
-        <label for="cgpa">CGPA / Percentage <span class="optional-tag">(Optional)</span></label>
-        <input type="number" id="cgpa" min="0" max="100" step="0.1" placeholder="e.g. 8.5 or 85" />
+        <label for="cgpa">Overall % / CGPA <span class="optional-tag">(Optional)</span></label>
+        <input type="number" id="cgpa" min="0" max="100" step="0.1" placeholder="e.g. 85 or 8.5" />
       </div>
-      <div class="form-group">
+      <div class="form-group" id="attendance-group">
         <label for="attendance">Attendance % <span class="optional-tag">(Optional)</span></label>
         <input type="number" id="attendance" min="0" max="100" step="1" placeholder="e.g. 85" />
       </div>
@@ -158,7 +173,7 @@
       <div style="width:40px;height:40px;border-radius:50%;background:var(--gradient-primary);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">📊</div>
       <div>
         <h2 style="font-family:var(--font-heading);font-size:1.35rem;font-weight:800;color:var(--text-h);margin:0">Step 2: Academic Performance</h2>
-        <p style="color:var(--text-muted);font-size:0.88rem;margin:0">Enter your subject-wise marks or grades</p>
+        <p style="color:var(--text-muted);font-size:0.88rem;margin:0" id="step2-subtitle">Enter your subject-wise marks or grades</p>
       </div>
     </div>
     <div class="divider"></div>
@@ -239,41 +254,41 @@
     <div class="skill-grid" id="skill-grid"></div>
     <div class="flex justify-between mt-4">
       <button class="btn btn-secondary" onclick="prevStep(6)">← Back</button>
-      <button class="btn btn-primary" onclick="nextStep(6)">Next: Certifications →</button>
+      <button class="btn btn-primary" id="step6-next-btn" onclick="nextStep(6)">Next: Certifications →</button>
     </div>
   </div>
 
-  <!-- ── STEP 7: Certifications ── -->
+  <!-- ── STEP 7: Certifications / Achievements ── -->
   <div class="step-section card card-2xl" id="step-7">
     <div style="display:flex;align-items:center;gap:0.85rem;margin-bottom:0.4rem">
       <div style="width:40px;height:40px;border-radius:50%;background:var(--gradient-primary);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">🏆</div>
       <div>
-        <h2 style="font-family:var(--font-heading);font-size:1.35rem;font-weight:800;color:var(--text-h);margin:0">Step 7: Certifications</h2>
-        <p style="color:var(--text-muted);font-size:0.88rem;margin:0">Add your earned certifications (optional but improves prediction accuracy)</p>
+        <h2 style="font-family:var(--font-heading);font-size:1.35rem;font-weight:800;color:var(--text-h);margin:0" id="step7-title">Step 7: Certifications &amp; Achievements</h2>
+        <p style="color:var(--text-muted);font-size:0.88rem;margin:0" id="step7-subtitle">Add certifications, awards or achievements (optional — improves accuracy)</p>
       </div>
     </div>
     <div class="divider"></div>
     <div id="certs-container">
       <div class="cert-row" id="cert-0">
-        <div class="form-group"><label>Certification Name</label><input type="text" placeholder="e.g. AWS Cloud Practitioner" id="cert-name-0" /></div>
-        <div class="form-group"><label>Provider</label><input type="text" placeholder="e.g. Amazon, Google, Microsoft" id="cert-provider-0" /></div>
+        <div class="form-group"><label id="cert-label-name">Certification / Award Name</label><input type="text" placeholder="e.g. AWS Cloud Practitioner / School Science Olympiad" id="cert-name-0" /></div>
+        <div class="form-group"><label id="cert-label-provider">Provider / Organiser</label><input type="text" placeholder="e.g. Amazon, Google / District Science Fair" id="cert-provider-0" /></div>
         <button class="btn btn-danger btn-sm" onclick="removeCert(0)" style="height:42px;align-self:flex-end">✕</button>
       </div>
     </div>
-    <button class="btn btn-secondary btn-sm mt-2" onclick="addCert()">+ Add Certification</button>
+    <button class="btn btn-secondary btn-sm mt-2" onclick="addCert()">+ Add Another</button>
     <div class="flex justify-between mt-4">
       <button class="btn btn-secondary" onclick="prevStep(7)">← Back</button>
       <button class="btn btn-primary" onclick="nextStep(7)">Next: Projects →</button>
     </div>
   </div>
 
-  <!-- ── STEP 8: Projects ── -->
+  <!-- ── STEP 8: Projects / Activities ── -->
   <div class="step-section card card-2xl" id="step-8">
     <div style="display:flex;align-items:center;gap:0.85rem;margin-bottom:0.4rem">
       <div style="width:40px;height:40px;border-radius:50%;background:var(--gradient-primary);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">📁</div>
       <div>
-        <h2 style="font-family:var(--font-heading);font-size:1.35rem;font-weight:800;color:var(--text-h);margin:0">Step 8: Projects &amp; Portfolio</h2>
-        <p style="color:var(--text-muted);font-size:0.88rem;margin:0">Add projects that demonstrate your practical skills (optional)</p>
+        <h2 style="font-family:var(--font-heading);font-size:1.35rem;font-weight:800;color:var(--text-h);margin:0" id="step8-title">Step 8: Projects &amp; Portfolio</h2>
+        <p style="color:var(--text-muted);font-size:0.88rem;margin:0" id="step8-subtitle">Add projects that demonstrate your practical skills (optional)</p>
       </div>
     </div>
     <div class="divider"></div>
@@ -293,9 +308,16 @@
 
   <!-- ── STEP 9: Results ── -->
   <div class="step-section card card-2xl" id="step-9">
-    <div id="results-content" class="loading-state">
-      <div class="spinner"></div>
-      <p>Running AI model... Computing your career matches...</p>
+    <div id="results-content" class="loading-state" style="padding: 2rem 0;">
+      <div class="skeleton skeleton-title" style="margin: 0 auto 2rem; max-width: 400px;"></div>
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
+        <div class="skeleton skeleton-card" style="flex:1; min-width: 250px;"></div>
+        <div class="skeleton skeleton-card" style="flex:1; min-width: 250px;"></div>
+        <div class="skeleton skeleton-card" style="flex:1; min-width: 250px;"></div>
+      </div>
+      <div class="skeleton skeleton-text" style="margin-top: 1rem;"></div>
+      <div class="skeleton skeleton-text"></div>
+      <div class="skeleton skeleton-text" style="width: 80%"></div>
     </div>
   </div>
 

@@ -2252,3 +2252,92 @@ tr:hover td { background: var(--bg-card-2); }
   .step-label { display: none; }
   .step-item  { min-width: 34px; }
 }
+
+/* ── UI/UX ENHANCEMENTS (SMOOTH WORKFLOW) ───────────────────── */
+
+/* Toast System */
+.toast-container {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.toast {
+  min-width: 300px;
+  padding: 1rem 1.5rem;
+  background: var(--bg-card);
+  color: var(--text-h);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-left: 4px solid var(--primary);
+  animation: slideInToast 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.toast.success { border-color: var(--emerald); }
+.toast.error { border-color: var(--red); }
+.toast.info { border-color: var(--sky); }
+.toast.hiding { animation: slideOutToast 0.3s ease forwards; }
+
+@keyframes slideInToast {
+  from { opacity: 0; transform: translateX(100%) scale(0.9); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes slideOutToast {
+  from { opacity: 1; transform: translateX(0) scale(1); }
+  to { opacity: 0; transform: translateX(100%) scale(0.9); }
+}
+
+/* Skeleton Loaders */
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-card-2) 25%, var(--border) 50%, var(--bg-card-2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-md);
+}
+.skeleton-text { height: 1rem; width: 100%; margin-bottom: 0.5rem; }
+.skeleton-title { height: 2rem; width: 60%; margin-bottom: 1rem; }
+.skeleton-card { height: 120px; width: 100%; }
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Slide Transitions for Stepper */
+.slide-in-right { animation: slideInRight 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+.slide-out-left { animation: slideOutLeft 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+.slide-in-left { animation: slideInLeft 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+.slide-out-right { animation: slideOutRight 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+
+@keyframes slideInRight { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes slideOutLeft { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(-40px); } }
+@keyframes slideInLeft { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes slideOutRight { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(40px); } }
+
+/* Form Validation Enhancements */
+.valid-input { border-color: var(--emerald) !important; box-shadow: 0 0 0 3px var(--emerald-light) !important; }
+.error-shake {
+  border-color: var(--red) !important;
+  box-shadow: 0 0 0 3px var(--red-light) !important;
+  animation: errorShake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+}
+@keyframes errorShake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+/* Tactile Button Feedback */
+button:active, .btn:active, a.btn:active { transform: scale(0.97); transition: transform 0.1s; }
+
+/* Empty States */
+.empty-state { text-align: center; padding: 4rem 1rem; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.empty-state-icon { font-size: 4rem; margin-bottom: 1rem; opacity: 0.5; }

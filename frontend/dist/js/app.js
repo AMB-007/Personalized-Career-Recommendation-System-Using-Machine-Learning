@@ -3,7 +3,41 @@
  * Handles: Theme, Auth, Navbar rendering, API helpers
  */
 
-const API_BASE = 'http://127.0.0.1:5000';
+const API_BASE = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost' 
+  ? 'http://127.0.0.1:5000' 
+  : ''; // Use relative paths or replace with production URL
+
+/* ── TOAST NOTIFICATIONS ─────────────────────────────────────── */
+const Toast = {
+  container: null,
+  init() {
+    if (!document.querySelector('.toast-container')) {
+      this.container = document.createElement('div');
+      this.container.className = 'toast-container';
+      document.body.appendChild(this.container);
+    } else {
+      this.container = document.querySelector('.toast-container');
+    }
+  },
+  show(message, type = 'info') {
+    if (!this.container) this.init();
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    // Add icon based on type
+    let icon = 'ℹ️';
+    if (type === 'success') icon = '✅';
+    if (type === 'error') icon = '⚠️';
+    
+    toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+    this.container.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.classList.add('hiding');
+      setTimeout(() => { if (toast.parentNode) toast.remove(); }, 300);
+    }, 3500);
+  }
+};
 
 /* ── THEME ──────────────────────────────────────────────────── */
 const ThemeManager = {
@@ -48,36 +82,67 @@ const Auth = {
 /* ── API HELPERS ─────────────────────────────────────────────── */
 const API = {
   async get(path, auth = false) {
-    const headers = { 'Content-Type': 'application/json' };
-    if (auth) headers['Authorization'] = `Bearer ${Auth.getToken()}`;
-    const res = await fetch(`${API_BASE}${path}`, { headers });
-    return res.json();
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (auth) headers['Authorization'] = `Bearer ${Auth.getToken()}`;
+      const res = await fetch(`${API_BASE}${path}`, { headers });
+      if (res.status === 401) { Auth.logout(); throw new Error("Session expired. Please log in again."); }
+      if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
+      return await res.json();
+    } catch (err) {
+      Toast.show(err.message || 'Failed to fetch data.', 'error');
+      throw err;
+    }
   },
   async post(path, body, auth = false) {
-    const headers = { 'Content-Type': 'application/json' };
-    if (auth) headers['Authorization'] = `Bearer ${Auth.getToken()}`;
-    const res = await fetch(`${API_BASE}${path}`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body)
-    });
-    return res.json();
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (auth) headers['Authorization'] = `Bearer ${Auth.getToken()}`;
+      const res = await fetch(`${API_BASE}${path}`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body)
+      });
+      if (res.status === 401) { Auth.logout(); throw new Error("Session expired. Please log in again."); }
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || errorData.message || `HTTP Error ${res.status}`);
+      }
+      return await res.json();
+    } catch (err) {
+      Toast.show(err.message || 'Failed to submit data.', 'error');
+      throw err;
+    }
   },
   async put(path, body, auth = false) {
-    const headers = { 'Content-Type': 'application/json' };
-    if (auth) headers['Authorization'] = `Bearer ${Auth.getToken()}`;
-    const res = await fetch(`${API_BASE}${path}`, {
-      method: 'PUT',
-      headers,
-      body: JSON.stringify(body)
-    });
-    return res.json();
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (auth) headers['Authorization'] = `Bearer ${Auth.getToken()}`;
+      const res = await fetch(`${API_BASE}${path}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(body)
+      });
+      if (res.status === 401) { Auth.logout(); throw new Error("Session expired. Please log in again."); }
+      if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
+      return await res.json();
+    } catch (err) {
+      Toast.show(err.message || 'Failed to update data.', 'error');
+      throw err;
+    }
   },
   async del(path, auth = false) {
-    const headers = { 'Content-Type': 'application/json' };
-    if (auth) headers['Authorization'] = `Bearer ${Auth.getToken()}`;
-    const res = await fetch(`${API_BASE}${path}`, { method: 'DELETE', headers });
-    return res.json();
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (auth) headers['Authorization'] = `Bearer ${Auth.getToken()}`;
+      const res = await fetch(`${API_BASE}${path}`, { method: 'DELETE', headers });
+      if (res.status === 401) { Auth.logout(); throw new Error("Session expired. Please log in again."); }
+      if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
+      return await res.json();
+    } catch (err) {
+      Toast.show(err.message || 'Failed to delete data.', 'error');
+      throw err;
+    }
   }
 };
 
