@@ -65,16 +65,28 @@
 
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/assessment.js') }}"></script>
+<script id="assessment-questions-data" type="application/json">
+[
+    {% for q in questions %}
+        {{ q.to_dict(include_correct=false) | tojson }}{% if not loop.last %},{% endif %}
+    {% endfor %}
+]
+</script>
+<script id="assessment-answers-data" type="application/json">
+    {{ existing_answers | tojson }}
+</script>
+<script id="assessment-session-data" type="application/json">
+    {{ session.id }}
+</script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const questionsData = [
-            {% for q in questions %}
-                {{ q.to_dict(include_correct=false) | tojson }},
-            {% endfor %}
-        ];
+        const questionsEl = document.getElementById('assessment-questions-data');
+        const answersEl = document.getElementById('assessment-answers-data');
+        const sessionEl = document.getElementById('assessment-session-data');
 
-        const existingAnswers = {{ existing_answers | tojson }};
-        const sessionId = {{ session.id }};
+        const questionsData = questionsEl ? JSON.parse(questionsEl.textContent || '[]') : [];
+        const existingAnswers = answersEl ? JSON.parse(answersEl.textContent || '{}') : {};
+        const sessionId = sessionEl ? JSON.parse(sessionEl.textContent || '0') : 0;
 
         // Initialize Assessment Controller
         window.currentAssessment = new AssessmentEngine(sessionId, questionsData, existingAnswers);
