@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - Student Onboarding{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+            <div class="card-custom p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <span class="badge-custom badge-primary-custom mb-2">Free Student Account</span>
+                    <h2 class="fw-bold mb-1" style="color: var(--text-main);">Student Registration</h2>
+                    <p class="small mb-0" style="color: var(--text-secondary);">Create your profile to start your personalized career assessment</p>
+                </div>
+
+                <form method="POST" action="{{ url_for('auth.register_page') }}">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="first_name" class="form-label-custom">First Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control-custom" id="first_name" name="first_name" value="{{ form_data.first_name if form_data else '' }}" required placeholder="e.g. Rahul">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="last_name" class="form-label-custom">Last Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control-custom" id="last_name" name="last_name" value="{{ form_data.last_name if form_data else '' }}" required placeholder="e.g. Sharma">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="email" class="form-label-custom">Email Address <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control-custom" id="email" name="email" value="{{ form_data.email if form_data else '' }}" required placeholder="e.g. rahul@school.edu">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="username" class="form-label-custom">Username (Optional)</label>
+                            <input type="text" class="form-control-custom" id="username" name="username" value="{{ form_data.username if form_data else '' }}" placeholder="Auto-generated if blank">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="class_level" class="form-label-custom">Current Class / Grade <span class="text-danger">*</span></label>
+                            <select class="form-select-custom" id="class_level" name="class_level" required>
+                                <option value="" disabled {% if not form_data or not form_data.class_level %}selected{% endif %}>Select Your Class</option>
+                                <option value="7" {% if form_data and form_data.class_level == '7' %}selected{% endif %}>Class 7</option>
+                                <option value="8" {% if form_data and form_data.class_level == '8' %}selected{% endif %}>Class 8</option>
+                                <option value="9" {% if form_data and form_data.class_level == '9' %}selected{% endif %}>Class 9</option>
+                                <option value="10" {% if form_data and form_data.class_level == '10' %}selected{% endif %}>Class 10</option>
+                                <option value="11" {% if form_data and form_data.class_level == '11' %}selected{% endif %}>Class 11</option>
+                                <option value="12" {% if form_data and form_data.class_level == '12' %}selected{% endif %}>Class 12</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="board" class="form-label-custom">Educational Board</label>
+                            <select class="form-select-custom" id="board" name="board">
+                                <option value="CBSE" selected>CBSE</option>
+                                <option value="ICSE">ICSE / ISC</option>
+                                <option value="State Board">State Board</option>
+                                <option value="IB">IB (International Baccalaureate)</option>
+                                <option value="Cambridge">Cambridge / IGCSE</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Stream Selector for Class 11-12 -->
+                    <div class="mb-3" id="stream_container" style="display: none;">
+                        <label for="stream" class="form-label-custom text-primary"><i class="bi bi-diagram-3 me-1"></i> Higher Secondary Stream (For Class 11–12)</label>
+                        <select class="form-select-custom" id="stream" name="stream">
+                            <option value="Science-PCM" selected>Science (Physics, Chemistry, Mathematics)</option>
+                            <option value="Science-PCB">Science (Physics, Chemistry, Biology)</option>
+                            <option value="Science-PCMB">Science (Physics, Chemistry, Math, Biology)</option>
+                            <option value="Commerce">Commerce (Accountancy, Economics, Business Studies)</option>
+                            <option value="Humanities">Humanities / Arts (History, Pol Science, Psychology, Econ)</option>
+                        </select>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="age" class="form-label-custom">Age (Years)</label>
+                            <input type="number" class="form-control-custom" id="age" name="age" min="10" max="22" value="{{ form_data.age if form_data else '' }}" placeholder="e.g. 14">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="gender" class="form-label-custom">Gender</label>
+                            <select class="form-select-custom" id="gender" name="gender">
+                                <option value="Prefer not to say">Prefer not to say</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="password" class="form-label-custom">Password <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control-custom" id="password" name="password" required placeholder="At least 8 characters">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="confirm_password" class="form-label-custom">Confirm Password <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control-custom" id="confirm_password" name="confirm_password" required placeholder="Repeat password">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary-custom w-100 py-2 mb-3">
+                        <i class="bi bi-check2-circle me-1"></i> Complete Registration
+                    </button>
+                </form>
+
+                <div class="text-center small" style="color: var(--text-secondary);">
+                    Already registered? <a href="{{ url_for('auth.login_page') }}" class="fw-semibold text-primary">Sign in here</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Education Roadmap - {{ career.career_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('career.explorer_page') }}">Careers</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('career.career_detail_page', career_id=career.id) }}">{{ career.career_name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page" style="color: var(--text-secondary);">Education Roadmap</li>
+        </ol>
+    </nav>
+
+    <!-- Header Card (Flat Solid Surface) -->
+    <div class="card-custom p-4 p-md-5 mb-5 shadow-sm">
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="badge-custom badge-primary-custom">
+                <i class="bi {{ career.domain_icon if career.domain_icon else 'bi-briefcase' }} me-1"></i> {{ career.domain_name }}
+            </span>
+            <span class="badge-custom badge-neutral-custom">{{ career.career_code }}</span>
+        </div>
+        <h2 class="display-6 fw-bold mb-2" style="color: var(--text-main);">Education & Skill Progression Roadmap</h2>
+        <h4 class="text-primary fw-semibold mb-3">{{ career.career_name }}</h4>
+        <p class="small mb-0" style="color: var(--text-secondary); max-width: 800px;">
+            A sequential, realistic milestone journey outlining how to navigate from secondary school through higher secondary, undergraduate qualifications, and into professional industry roles.
+        </p>
+    </div>
+
+    <!-- Timeline Container -->
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="d-flex flex-column gap-3 mb-4">
+                {% for step in career.education_pathways %}
+                <div class="card-custom p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                        <span class="badge-custom badge-primary-custom">
+                            Step {{ step.sequence_order }}: {{ step.education_level }}
+                        </span>
+                    </div>
+                    <h4 class="fw-bold mb-2" style="color: var(--text-main);">{{ step.degree_name }}</h4>
+                    <p class="small mb-0" style="color: var(--text-secondary); line-height: 1.6;">
+                        {{ step.description }}
+                    </p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Alternative Routes Note -->
+            <div class="card-subtle p-4 mb-4">
+                <div class="d-flex gap-3">
+                    <i class="bi bi-info-circle-fill text-primary fs-3"></i>
+                    <div>
+                        <h6 class="fw-bold mb-1" style="color: var(--text-main);">Pathway Guidance Notice</h6>
+                        <p class="small mb-0" style="color: var(--text-secondary);">
+                            The sequence presented represents the primary and most direct qualification route. Alternative entries (diplomas, interdisciplinary pathways, or vocational training) may also be available.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center">
+                <a href="{{ url_for('career.career_detail_page', career_id=career.id) }}" class="btn btn-outline-custom">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Overview
+                </a>
+                <a href="{{ url_for('career.explorer_page') }}" class="btn btn-primary-custom">
+                    Explore Other Careers <i class="bi bi-compass ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Welcome Header -->
+    <div class="row align-items-center mb-4 g-3">
+        <div class="col-md-8">
+            <h1 class="h3 fw-bold mb-1" style="color: var(--text-main);">
+                Welcome back, {{ student.first_name if student else current_user.username }}!
+            </h1>
+            <p class="mb-0" style="color: var(--text-secondary);">
+                Class {{ student.class_level if student else '7–12' }} &bull; 
+                Stream: {{ student.stream if student and student.stream else 'General' }} &bull; 
+                Board: {{ student.board if student and student.board else 'CBSE' }}
+            </p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a href="{{ url_for('student.profile_page') }}" class="btn btn-outline-custom">
+                <i class="bi bi-person-gear me-1"></i> Edit Profile
+            </a>
+        </div>
+    </div>
+
+    <!-- Status & Primary Action Banner -->
+    <div class="card-custom p-4 mb-4">
+        <div class="row align-items-center g-3">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="small fw-semibold" style="color: var(--text-secondary);">Assessment Status:</span>
+                    {% if latest_session and latest_session.status == 'completed' %}
+                        <span class="badge-custom badge-success-custom"><i class="bi bi-check-circle-fill me-1"></i> Completed</span>
+                    {% elif latest_session and latest_session.status == 'in_progress' %}
+                        <span class="badge-custom badge-warning-custom"><i class="bi bi-hourglass-split me-1"></i> In Progress</span>
+                    {% else %}
+                        <span class="badge-custom badge-neutral-custom"><i class="bi bi-circle me-1"></i> Not Started</span>
+                    {% endif %}
+                </div>
+                <h4 class="fw-bold mb-1" style="color: var(--text-main);">
+                    {% if latest_session and latest_session.status == 'completed' %}
+                        Your Career Recommendations Are Ready
+                    {% elif latest_session and latest_session.status == 'in_progress' %}
+                        Resume Your Career Assessment
+                    {% else %}
+                        Take Your First Career Assessment
+                    {% endif %}
+                </h4>
+                <p class="small mb-0" style="color: var(--text-secondary);">
+                    {% if latest_session and latest_session.status == 'completed' %}
+                        Evaluated across 1,206 career knowledge requirements using the XGBoost compatibility model.
+                    {% elif latest_session and latest_session.status == 'in_progress' %}
+                        You have an active assessment session in progress. Complete it to view your Top 10 career matches.
+                    {% else %}
+                        Answer quick questions on your favorite subjects, interests, and problem-solving skills to discover matched careers.
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                {% if latest_session and latest_session.status == 'completed' %}
+                    <a href="{{ url_for('assessment.results_page', assessment_id=latest_session.id) }}" class="btn btn-primary-custom btn-lg-custom">
+                        <i class="bi bi-award-fill me-1"></i> View My Recommendations
+                    </a>
+                {% elif latest_session and latest_session.status == 'in_progress' %}
+                    <a href="{{ url_for('assessment.assessment_page', session_id=latest_session.id) }}" class="btn btn-primary-custom btn-lg-custom">
+                        <i class="bi bi-play-circle-fill me-1"></i> Resume Assessment
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('assessment.instructions_page') }}" class="btn btn-primary-custom btn-lg-custom">
+                        <i class="bi bi-play-circle-fill me-1"></i> Start Assessment
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommendations Overview if Completed -->
+    {% if recent_recs and recent_recs|length > 0 %}
+    <div class="mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h4 class="fw-bold mb-0" style="color: var(--text-main);">Top Career Matches</h4>
+            <a href="{{ url_for('assessment.results_page', assessment_id=latest_session.id) }}" class="btn btn-outline-custom btn-sm-custom">
+                Full Results & Breakdown <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <div class="row g-3">
+            {% for rec in recent_recs[:3] %}
+            <div class="col-md-4">
+                <div class="card-custom p-4 h-100 {% if loop.index == 1 %}card-top-pick{% endif %}">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="badge-custom {% if loop.index == 1 %}badge-primary-custom{% else %}badge-neutral-custom{% endif %}">
+                            Rank #{{ rec.rank_position }}
+                        </span>
+                        <span class="fw-bold {% if loop.index == 1 %}text-primary{% else %}text-secondary{% endif %}">
+                            {{ rec.score }}% Match
+                        </span>
+                    </div>
+                    <h5 class="fw-bold mb-1" style="color: var(--text-main);">{{ rec.career.career_name if rec.career else 'Career Profile' }}</h5>
+                    <p class="small mb-3" style="color: var(--text-secondary);">
+                        {{ rec.career.domain.domain_name if rec.career and rec.career.domain else 'General' }}
+                    </p>
+                    <a href="{{ url_for('career.career_detail_page', career_id=rec.career_id) }}" class="btn btn-outline-custom btn-sm-custom mt-auto w-100">
+                        View Career Profile
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Secondary Quick Actions -->
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card-custom p-4 h-100">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <i class="bi bi-search fs-3 text-primary"></i>
+                    <div>
+                        <h5 class="fw-bold mb-0" style="color: var(--text-main);">Career Explorer</h5>
+                        <div class="small" style="color: var(--text-secondary);">Search and filter all 1,206 career paths</div>
+                    </div>
+                </div>
+                <p class="small mb-3" style="color: var(--text-secondary);">
+                    Explore minimum educational requirements, necessary skills, typical streams, and progression roadmaps.
+                </p>
+                <a href="{{ url_for('career.explorer_page') }}" class="btn btn-outline-custom mt-auto">
+                    Browse Careers <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card-custom p-4 h-100">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <i class="bi bi-journal-text fs-3 text-success"></i>
+                    <div>
+                        <h5 class="fw-bold mb-0" style="color: var(--text-main);">Assessment History</h5>
+                        <div class="small" style="color: var(--text-secondary);">Review past sessions and score progression</div>
+                    </div>
+                </div>
+                {% if all_sessions and all_sessions|length > 0 %}
+                    <p class="small mb-3" style="color: var(--text-secondary);">
+                        You have {{ all_sessions|length }} recorded career assessment session(s).
+                    </p>
+                    <a href="{{ url_for('assessment.instructions_page') }}" class="btn btn-outline-custom mt-auto">
+                        Retake Assessment <i class="bi bi-arrow-clockwise ms-1"></i>
+                    </a>
+                {% else %}
+                    <p class="small mb-3" style="color: var(--text-secondary);">
+                        No past assessment records. Complete your first questionnaire to generate recommendations.
+                    </p>
+                    <a href="{{ url_for('assessment.instructions_page') }}" class="btn btn-outline-custom mt-auto">
+                        Start First Assessment <i class="bi bi-play-fill ms-1"></i>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

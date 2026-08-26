@@ -1,0 +1,41 @@
+{
+  "model_version": "V7.2",
+  "algorithm": "XGBoost",
+  "files": {
+    "model.joblib": {
+      "sha256": "6f380e9d0ae79609298daa1ab052a034c16435f51ea05db4d893486bff13c863",
+      "size_bytes": 864979,
+      "status": "verified"
+    },
+    "preprocessor.joblib": {
+      "sha256": "5ba1b5d579b825376321c84576a95ff935f9b9e4a4c8b423c7f22b31c420725b",
+      "size_bytes": 44183,
+      "status": "verified"
+    },
+    "feature_columns.json": {
+      "sha256": "0275ac295bf851e2b733215cb2b8fd04dda9766efa13943f90735376183eb51f",
+      "size_bytes": 243,
+      "status": "verified"
+    },
+    "classes.json": {
+      "sha256": "8ccaa106ef6636dd52e1d93fd072b8e55e8e061202cb23c4a67138690481252a",
+      "size_bytes": 93,
+      "status": "verified"
+    },
+    "model_config.json": {
+      "sha256": "5468043d1ddb3a12a30df01cc9384e50e2072c26ca94149df773b4601a55964c",
+      "size_bytes": 416,
+      "status": "verified"
+    },
+    "version.json": {
+      "sha256": "278be79c828371612f8915380c7d49717d270c6b8d932a5fd409b3f4ba06d268",
+      "size_bytes": 70,
+      "status": "verified"
+    },
+    "career_knowledge_requirements.csv": {
+      "sha256": "9ca9ce64ff2479a77f2da93780b3df260076fd3f02697b10afc7e18a8df04bd9",
+      "size_bytes": 230233,
+      "status": "verified"
+    }
+  }
+}

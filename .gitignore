@@ -1,51 +1,42 @@
-﻿# ── Environment & Secrets ──────────────────────────────────────
-.env
-.env.*
-*.env
-
-# ── Python ────────────────────────────────────────────────────
+# Python
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
+*$py.class
+*.so
 .Python
-
-# ── Virtual Environments ──────────────────────────────────────
-venv/
-.venv/
 env/
+venv/
 ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# ── ML Model Files ────────────────────────────────────────────
-# Model files are tracked using Git LFS
+# Environment variables
+.env
+instance/
+.pytest_cache/
 
-# ── Logs & Output ─────────────────────────────────────────────
-backend/output/
+# Databases
+*.sqlite3
+*.db
+
+# Logs
 *.log
-*.txt.bak
+logs/
 
-# ── Jupyter Notebooks (temp) ──────────────────────────────────
-# .ipynb_checkpoints/
-# *.ipynb
-
-# ── OS & IDE ──────────────────────────────────────────────────
-.DS_Store
-Thumbs.db
-.idea/
+# IDE
 .vscode/
+.idea/
 *.swp
-*.swo
-
-# ── Frontend Build ────────────────────────────────────────────
-node_modules/
-frontend/node_modules/
-
-# ── Temp & Test Files ─────────────────────────────────────────
-test_pipeline.py
-verify_prediction.py
-write_readme.py
-*.tmp
-*.bak
-
-# ── Database Dumps (optional — comment out if you want to keep) 
-# backend/career_system_db.sql

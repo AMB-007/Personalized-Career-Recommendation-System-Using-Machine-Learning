@@ -1,0 +1,19 @@
+{
+  "model": "XGBoost",
+  "best_params": {
+    "subsample": 0.75,
+    "reg_lambda": 2,
+    "reg_alpha": 0.1,
+    "n_estimators": 500,
+    "min_child_weight": 8,
+    "max_depth": 4,
+    "learning_rate": 0.02,
+    "gamma": 0.05,
+    "colsample_bytree": 0.7
+  },
+  "threshold": 0.495,
+  "target": "compatibility_label",
+  "student_id": "student_id",
+  "career_id": "career_id",
+  "feature_count": 11
+}

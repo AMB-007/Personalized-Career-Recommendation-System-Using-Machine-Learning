@@ -1,0 +1,13 @@
+[
+  "age",
+  "class",
+  "ability_match_component",
+  "interest_match_component",
+  "academic_match_component",
+  "learning_match_component",
+  "career_name",
+  "career_domain",
+  "career_subdomain",
+  "career_cluster",
+  "stream"
+]

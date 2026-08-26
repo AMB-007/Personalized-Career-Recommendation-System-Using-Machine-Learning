@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+
+{% block title %}Discover Careers That Match Your Strengths{% endblock %}
+
+{% block content %}
+<!-- Hero Section (Solid Flat Design, Zero Gradients) -->
+<section class="py-5" style="background-color: var(--surface-card); border-bottom: 1px solid var(--border-color);">
+    <div class="container py-4">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-7">
+                <div class="d-inline-flex align-items-center gap-2 px-3 py-1 mb-3 card-subtle rounded-3">
+                    <i class="bi bi-mortarboard-fill text-primary"></i>
+                    <span class="small fw-semibold" style="color: var(--text-main);">Personalized Career Guidance for Classes 7–12</span>
+                </div>
+                <h1 class="display-5 fw-bold mb-3" style="color: var(--text-main); letter-spacing: -0.02em;">
+                    Discover Careers That Match Your Strengths
+                </h1>
+                <p class="lead mb-4" style="color: var(--text-secondary); max-width: 620px;">
+                    Complete a personalized assessment and explore career paths matched to your abilities, interests, academic profile, and learning preferences.
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('assessment.instructions_page') }}" class="btn btn-primary-custom btn-lg-custom">
+                            <i class="bi bi-play-circle-fill me-1"></i> Start Assessment
+                        </a>
+                        <a href="{{ url_for('student.dashboard') }}" class="btn btn-outline-custom btn-lg-custom">
+                            <i class="bi bi-speedometer2 me-1"></i> Go to Dashboard
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('auth.register_page') }}" class="btn btn-primary-custom btn-lg-custom">
+                            <i class="bi bi-rocket-takeoff-fill me-1"></i> Start Assessment
+                        </a>
+                        <a href="{{ url_for('career.explorer_page') }}" class="btn btn-outline-custom btn-lg-custom">
+                            <i class="bi bi-search me-1"></i> Explore Careers
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="card-custom p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-3 pb-3 border-bottom" style="border-color: var(--border-color) !important;">
+                        <div>
+                            <span class="badge-custom badge-primary-custom mb-1">Live Evaluation</span>
+                            <h6 class="fw-bold mb-0">Full Career Catalogue</h6>
+                        </div>
+                        <span class="fs-4 fw-bold text-primary">1,206</span>
+                    </div>
+                    <div class="d-flex flex-column gap-3">
+                        <div class="d-flex align-items-center gap-3 p-2 rounded-2" style="background-color: var(--surface-subtle);">
+                            <i class="bi bi-cpu-fill fs-4 text-primary"></i>
+                            <div>
+                                <div class="fw-semibold small">Machine Learning Matching</div>
+                                <div class="small" style="color: var(--text-secondary);">Powered by XGBoost Compatibility Engine</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-3 p-2 rounded-2" style="background-color: var(--surface-subtle);">
+                            <i class="bi bi-diagram-3-fill fs-4 text-success"></i>
+                            <div>
+                                <div class="fw-semibold small">19 Assessment Dimensions</div>
+                                <div class="small" style="color: var(--text-secondary);">Aptitudes, Disciplinary Interests & Academics</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-3 p-2 rounded-2" style="background-color: var(--surface-subtle);">
+                            <i class="bi bi-signpost-split-fill fs-4 text-warning"></i>
+                            <div>
+                                <div class="fw-semibold small">5-Stage Educational Roadmaps</div>
+                                <div class="small" style="color: var(--text-secondary);">Milestones from Class 10 to Career Entry</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works (Section 8) -->
+<section class="py-5" style="background-color: var(--bg-page);">
+    <div class="container py-4">
+        <div class="text-center max-w-700 mx-auto mb-5">
+            <span class="badge-custom badge-primary-custom mb-2">Simple 4-Step Process</span>
+            <h2 class="fw-bold" style="color: var(--text-main);">How PathFinder Works</h2>
+            <p style="color: var(--text-secondary);">A straightforward journey designed specifically for school students.</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="card-custom p-4 h-100">
+                    <div class="fs-4 fw-bold text-primary mb-2">01</div>
+                    <h5 class="fw-bold mb-2">Complete Assessment</h5>
+                    <p class="small mb-0" style="color: var(--text-secondary);">
+                        Answer simple, grade-tailored questions covering your favorite subjects, hobbies, problem-solving, and interests.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <div class="card-custom p-4 h-100">
+                    <div class="fs-4 fw-bold text-primary mb-2">02</div>
+                    <h5 class="fw-bold mb-2">Analyze Your Profile</h5>
+                    <p class="small mb-0" style="color: var(--text-secondary);">
+                        The backend computes your normalized profile across cognitive aptitudes and disciplinary domains.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <div class="card-custom p-4 h-100">
+                    <div class="fs-4 fw-bold text-primary mb-2">03</div>
+                    <h5 class="fw-bold mb-2">Match With Careers</h5>
+                    <p class="small mb-0" style="color: var(--text-secondary);">
+                        Our XGBoost model evaluates all 1,206 career knowledge profiles to compute exact compatibility alignment.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <div class="card-custom p-4 h-100">
+                    <div class="fs-4 fw-bold text-primary mb-2">04</div>
+                    <h5 class="fw-bold mb-2">Explore Recommendations</h5>
+                    <p class="small mb-0" style="color: var(--text-secondary);">
+                        Discover your Top 1 primary match, Top 10 recommendations, match component breakdowns, and educational roadmaps.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- What the Assessment Measures -->
+<section class="py-5" style="background-color: var(--surface-card); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <span class="badge-custom badge-info-custom mb-2">Holistic Evaluation</span>
+            <h2 class="fw-bold" style="color: var(--text-main);">What the Assessment Measures</h2>
+            <p style="color: var(--text-secondary);">We evaluate multiple dimensions to understand your complete strengths.</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="card-subtle p-4 h-100">
+                    <i class="bi bi-lightbulb-fill fs-3 text-primary mb-3"></i>
+                    <h5 class="fw-bold mb-2">Cognitive Aptitudes</h5>
+                    <p class="small mb-0" style="color: var(--text-secondary);">
+                        Logical thinking, problem solving, numerical ability, scientific reasoning, communication, and creativity.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card-subtle p-4 h-100">
+                    <i class="bi bi-compass-fill fs-3 text-success mb-3"></i>
+                    <h5 class="fw-bold mb-2">Disciplinary Interests</h5>
+                    <p class="small mb-0" style="color: var(--text-secondary);">
+                        Affinity towards Technology, Healthcare, Engineering, Business, Arts, Design, Research, and Finance.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card-subtle p-4 h-100">
+                    <i class="bi bi-book-half fs-3 text-warning mb-3"></i>
+                    <h5 class="fw-bold mb-2">Academic Alignment</h5>
+                    <p class="small mb-0" style="color: var(--text-secondary);">
+                        Current school performance, subject strengths, and stream options (Science-PCM, PCB, Commerce, Humanities).
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card-subtle p-4 h-100">
+                    <i class="bi bi-person-workspace fs-3 text-info mb-3"></i>
+                    <h5 class="fw-bold mb-2">Learning Style</h5>
+                    <p class="small mb-0" style="color: var(--text-secondary);">
+                        Adaptability, pace of acquiring new concepts, and preferred problem-solving environments.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Career Explorer Preview -->
+<section class="py-5" style="background-color: var(--bg-page);">
+    <div class="container py-4">
+        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+            <div>
+                <span class="badge-custom badge-primary-custom mb-1">Catalogue Preview</span>
+                <h2 class="fw-bold mb-1" style="color: var(--text-main);">Explore Career Pathways</h2>
+                <p class="small mb-0" style="color: var(--text-secondary);">Browse from 1,206 verified career knowledge profiles.</p>
+            </div>
+            <a href="{{ url_for('career.explorer_page') }}" class="btn btn-outline-custom mt-3 mt-md-0">
+                View All Careers <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card-custom p-4 h-100">
+                    <span class="badge-custom badge-primary-custom mb-2">Technology & Computing</span>
+                    <h5 class="fw-bold mb-2">Software & AI Architect</h5>
+                    <p class="small mb-3" style="color: var(--text-secondary);">
+                        Designs distributed cloud architectures and intelligent software systems for complex real-world challenges.
+                    </p>
+                    <div class="mt-auto">
+                        <span class="small fw-semibold text-primary"><i class="bi bi-mortarboard me-1"></i> B.Tech / B.S. in Computer Science</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card-custom p-4 h-100">
+                    <span class="badge-custom badge-success-custom mb-2">Healthcare & Life Sciences</span>
+                    <h5 class="fw-bold mb-2">Biomedical Data Scientist</h5>
+                    <p class="small mb-3" style="color: var(--text-secondary);">
+                        Analyzes genomic and clinical datasets to discover medical treatments and improve patient healthcare.
+                    </p>
+                    <div class="mt-auto">
+                        <span class="small fw-semibold text-success"><i class="bi bi-mortarboard me-1"></i> B.S. in Bioinformatics / Biology</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card-custom p-4 h-100">
+                    <span class="badge-custom badge-warning-custom mb-2">Business & Analytics</span>
+                    <h5 class="fw-bold mb-2">Quantitative Financial Analyst</h5>
+                    <p class="small mb-3" style="color: var(--text-secondary);">
+                        Applies mathematical modeling and financial engineering to analyze markets and investments.
+                    </p>
+                    <div class="mt-auto">
+                        <span class="small fw-semibold text-warning"><i class="bi bi-mortarboard me-1"></i> B.Com / B.S. in Economics / Math</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Model Transparency & Trust (Section 24) -->
+<section class="py-5" style="background-color: var(--surface-card); border-top: 1px solid var(--border-color);">
+    <div class="container py-4">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-6">
+                <span class="badge-custom badge-neutral-custom mb-2">Transparency & Ethics</span>
+                <h3 class="fw-bold mb-3" style="color: var(--text-main);">How Recommendations Are Generated</h3>
+                <p style="color: var(--text-secondary);">
+                    The system compares your assessment profile with career requirements and uses a validated XGBoost machine-learning model to estimate compatibility.
+                </p>
+                <p class="small mb-0" style="color: var(--text-muted);">
+                    Recommendations are designed as exploratory guidance to help students discover options matching their natural strengths. Results do not constitute a fixed constraint on what you can pursue.
+                </p>
+            </div>
+            <div class="col-lg-6">
+                <div class="card-subtle p-4">
+                    <h6 class="fw-bold mb-3"><i class="bi bi-shield-check text-success me-2"></i>Responsible AI Principles</h6>
+                    <ul class="list-unstyled mb-0 d-flex flex-column gap-2 small" style="color: var(--text-secondary);">
+                        <li><i class="bi bi-check2 text-primary me-2"></i> Zero usage of sensitive demographic attributes (no caste, religion, or gender bias).</li>
+                        <li><i class="bi bi-check2 text-primary me-2"></i> Evaluates all 1,206 career candidates equally without hardcoded shortcuts.</li>
+                        <li><i class="bi bi-check2 text-primary me-2"></i> Verified 96.18% Hit@1 recommendation ranking benchmark.</li>
+                        <li><i class="bi bi-check2 text-primary me-2"></i> Complete data privacy with secure credential hashing.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call To Action -->
+<section class="py-5 text-center" style="background-color: var(--bg-page); border-top: 1px solid var(--border-color);">
+    <div class="container py-4">
+        <h2 class="fw-bold mb-3" style="color: var(--text-main);">Ready to Discover Your Future Path?</h2>
+        <p class="lead mb-4 mx-auto" style="color: var(--text-secondary); max-width: 600px;">
+            Join thousands of students in Classes 7–12 taking the first step towards informed career planning.
+        </p>
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('assessment.instructions_page') }}" class="btn btn-primary-custom btn-lg-custom">
+                <i class="bi bi-play-circle-fill me-1"></i> Start Assessment Now
+            </a>
+        {% else %}
+            <a href="{{ url_for('auth.register_page') }}" class="btn btn-primary-custom btn-lg-custom">
+                <i class="bi bi-person-plus-fill me-1"></i> Create Free Student Account
+            </a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

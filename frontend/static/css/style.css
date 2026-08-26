@@ -1,0 +1,590 @@
+/* ============================================================
+   Personalized Career Recommendation System - Design System
+   Flat, Professional, Student-Friendly, Zero-Gradients Design
+   ============================================================ */
+
+:root {
+  /* Brand Colors - Solid Flat */
+  --primary: #1B2CC1;
+  --primary-hover: #15229E;
+  --primary-subtle: #EEF2FF;
+  --secondary: #7692FF;
+  --secondary-hover: #5A7BFA;
+  --secondary-subtle: #F0F4FF;
+
+  /* Theme Surfaces - Light Mode Default */
+  --bg-page: #F8FAFC;
+  --surface-card: #FFFFFF;
+  --surface-subtle: #F1F5F9;
+  --surface-elevated: #FFFFFF;
+
+  /* Typography Colors */
+  --text-main: #111827;
+  --text-secondary: #4B5563;
+  --text-muted: #6B7280;
+  --text-inverse: #FFFFFF;
+
+  /* Borders & Dividers */
+  --border-color: #E5E7EB;
+  --border-subtle: #F3F4F6;
+  --border-focus: #1B2CC1;
+
+  /* Semantic Feedback Colors */
+  --success: #15803D;
+  --success-bg: #DCFCE7;
+  --success-text: #166534;
+
+  --warning: #B45309;
+  --warning-bg: #FEF3C7;
+  --warning-text: #92400E;
+
+  --danger: #B91C1C;
+  --danger-bg: #FEE2E2;
+  --danger-text: #991B1B;
+
+  --info: #2563EB;
+  --info-bg: #DBEAFE;
+  --info-text: #1E40AF;
+
+  /* Metric Card Colors */
+  --accent-math: #2563EB;
+  --accent-science: #15803D;
+  --accent-creative: #9333EA;
+  --accent-business: #D97706;
+
+  /* Dimensions & Shadows */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -4px rgba(0, 0, 0, 0.02);
+
+  /* Typography */
+  --font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.2s ease;
+}
+
+/* ============================================================
+   Dark Mode Override
+   ============================================================ */
+[data-theme="dark"] {
+  --primary: #7692FF;
+  --primary-hover: #98ACFF;
+  --primary-subtle: #1E293B;
+  --secondary: #98ACFF;
+  --secondary-hover: #B4C4FF;
+  --secondary-subtle: #1E293B;
+
+  --bg-page: #0F172A;
+  --surface-card: #1E293B;
+  --surface-subtle: #334155;
+  --surface-elevated: #243247;
+
+  --text-main: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  --text-inverse: #0F172A;
+
+  --border-color: #334155;
+  --border-subtle: #1E293B;
+  --border-focus: #7692FF;
+
+  --success: #22C55E;
+  --success-bg: #064E3B;
+  --success-text: #86EFAC;
+
+  --warning: #F59E0B;
+  --warning-bg: #78350F;
+  --warning-text: #FDE68A;
+
+  --danger: #EF4444;
+  --danger-bg: #7F1D1D;
+  --danger-text: #FCA5A5;
+
+  --info: #3B82F6;
+  --info-bg: #1E3A8A;
+  --info-text: #93C5FD;
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+}
+
+/* ============================================================
+   Base Resets & Typography
+   ============================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-main);
+  font-weight: 700;
+  margin-top: 0;
+  line-height: 1.25;
+}
+
+p, span, li, a {
+  color: inherit;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--primary-hover);
+}
+
+/* ============================================================
+   Navbar & Navigation
+   ============================================================ */
+.navbar-custom {
+  background-color: var(--surface-card);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0.85rem 0;
+  transition: background-color var(--transition-normal), border-color var(--transition-normal);
+}
+
+.navbar-brand-text {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-link-custom {
+  color: var(--text-secondary) !important;
+  font-weight: 500;
+  padding: 0.5rem 0.85rem !important;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.nav-link-custom:hover, .nav-link-custom.active {
+  color: var(--primary) !important;
+  background-color: var(--surface-subtle);
+}
+
+/* ============================================================
+   Buttons - Flat Solid Design (Zero Gradients)
+   ============================================================ */
+.btn {
+  font-family: var(--font-family);
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  padding: 0.6rem 1.25rem;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+  border: 1px solid transparent;
+}
+
+.btn-primary-custom {
+  background-color: var(--primary);
+  color: #FFFFFF !important;
+  border-color: var(--primary);
+}
+
+.btn-primary-custom:hover {
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+  color: #FFFFFF !important;
+}
+
+.btn-secondary-custom {
+  background-color: var(--secondary);
+  color: #FFFFFF !important;
+  border-color: var(--secondary);
+}
+
+.btn-secondary-custom:hover {
+  background-color: var(--secondary-hover);
+  border-color: var(--secondary-hover);
+  color: #FFFFFF !important;
+}
+
+.btn-outline-custom {
+  background-color: transparent;
+  color: var(--primary) !important;
+  border-color: var(--border-color);
+}
+
+.btn-outline-custom:hover {
+  background-color: var(--surface-subtle);
+  border-color: var(--primary);
+  color: var(--primary) !important;
+}
+
+.btn-sm-custom {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.btn-lg-custom {
+  padding: 0.85rem 1.75rem;
+  font-size: 1.05rem;
+}
+
+/* Theme Toggle Button */
+.theme-toggle-btn {
+  background-color: var(--surface-subtle);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.theme-toggle-btn:hover {
+  background-color: var(--border-color);
+}
+
+/* ============================================================
+   Cards & Surfaces
+   ============================================================ */
+.card-custom {
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  color: var(--text-main);
+  transition: background-color var(--transition-normal), border-color var(--transition-normal), box-shadow var(--transition-fast);
+}
+
+.card-custom:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.card-subtle {
+  background-color: var(--surface-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.card-top-pick {
+  border-left: 4px solid var(--primary) !important;
+  background-color: var(--surface-card);
+}
+
+/* ============================================================
+   Badges & Tags
+   ============================================================ */
+.badge-custom {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.badge-primary-custom {
+  background-color: var(--primary-subtle);
+  color: var(--primary);
+  border: 1px solid var(--border-color);
+}
+
+.badge-success-custom {
+  background-color: var(--success-bg);
+  color: var(--success-text);
+}
+
+.badge-warning-custom {
+  background-color: var(--warning-bg);
+  color: var(--warning-text);
+}
+
+.badge-info-custom {
+  background-color: var(--info-bg);
+  color: var(--info-text);
+}
+
+.badge-neutral-custom {
+  background-color: var(--surface-subtle);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+/* ============================================================
+   Progress Bars
+   ============================================================ */
+.progress-container-custom {
+  background-color: var(--surface-subtle);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  height: 8px;
+}
+
+.progress-bar-solid {
+  background-color: var(--primary);
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.progress-bar-success {
+  background-color: var(--success);
+}
+
+.progress-bar-warning {
+  background-color: var(--warning);
+}
+
+.progress-bar-info {
+  background-color: var(--info);
+}
+
+/* ============================================================
+   Forms & Controls
+   ============================================================ */
+.form-control-custom, .form-select-custom {
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  border-radius: var(--radius-md);
+  padding: 0.65rem 0.95rem;
+  font-size: 0.95rem;
+  width: 100%;
+  font-family: var(--font-family);
+  transition: border-color var(--transition-fast), background-color var(--transition-normal);
+}
+
+.form-control-custom:focus, .form-select-custom:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(27, 44, 193, 0.15);
+  background-color: var(--surface-card);
+  color: var(--text-main);
+}
+
+.form-label-custom {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-main);
+  margin-bottom: 0.35rem;
+  display: block;
+}
+
+/* ============================================================
+   Questionnaire & Rating UX
+   ============================================================ */
+.option-box {
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+  margin-bottom: 0.75rem;
+  color: var(--text-main);
+}
+
+.option-box:hover {
+  border-color: var(--primary);
+  background-color: var(--surface-subtle);
+}
+
+.option-box.selected {
+  border-color: var(--primary);
+  background-color: var(--primary-subtle);
+  font-weight: 600;
+}
+
+.rating-grid-custom {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.65rem;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 576px) {
+  .rating-grid-custom {
+    grid-template-columns: 1fr;
+  }
+}
+
+.rating-btn-custom {
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 0.5rem;
+  text-align: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.rating-btn-custom:hover {
+  border-color: var(--primary);
+  background-color: var(--surface-subtle);
+}
+
+.rating-btn-custom.active {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: #FFFFFF;
+  font-weight: 700;
+}
+
+/* Step Indicator */
+.step-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.step-pill {
+  flex: 1;
+  height: 6px;
+  background-color: var(--surface-subtle);
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-fast);
+}
+
+.step-pill.active {
+  background-color: var(--primary);
+}
+
+.step-pill.completed {
+  background-color: var(--success);
+}
+
+/* ============================================================
+   Tables
+   ============================================================ */
+.table-custom {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--text-main);
+}
+
+.table-custom th {
+  background-color: var(--surface-subtle);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  text-align: left;
+}
+
+.table-custom td {
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.95rem;
+  vertical-align: middle;
+}
+
+.table-custom tr:hover td {
+  background-color: var(--surface-subtle);
+}
+
+/* ============================================================
+   Loading & Empty States
+   ============================================================ */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loading-card {
+  background-color: var(--surface-card);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem;
+  text-align: center;
+  max-width: 440px;
+  width: 90%;
+  box-shadow: var(--shadow-lg);
+}
+
+.empty-state-card {
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+/* ============================================================
+   Footer
+   ============================================================ */
+.footer-custom {
+  background-color: var(--surface-card);
+  border-top: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 2.5rem 0 1.5rem;
+  margin-top: auto;
+  font-size: 0.9rem;
+  transition: background-color var(--transition-normal), border-color var(--transition-normal);
+}
+
+.footer-custom a {
+  color: var(--text-secondary);
+}
+
+.footer-custom a:hover {
+  color: var(--primary);
+}
+
+/* ============================================================
+   Accessibility & Focus Outlines
+   ============================================================ */
+:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

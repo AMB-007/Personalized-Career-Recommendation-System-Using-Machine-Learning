@@ -1,0 +1,234 @@
+{
+  "domains": [
+    {
+      "name": "Technology & Computing",
+      "icon": "bi-cpu",
+      "description": "Software development, artificial intelligence, cybersecurity, cloud infrastructure, and human-computer interaction.",
+      "subdomains": [
+        {
+          "name": "Software & AI Systems",
+          "description": "Building intelligent algorithms, applications, and operating systems.",
+          "clusters": [
+            { "name": "Software Engineering", "description": "Application and systems software development" },
+            { "name": "Data Science & Artificial Intelligence", "description": "Machine learning, statistical modeling, and data analytics" }
+          ]
+        },
+        {
+          "name": "Cybersecurity & Networks",
+          "description": "Protecting digital assets, encryption, and distributed network engineering.",
+          "clusters": [
+            { "name": "Information Security", "description": "Defensive and offensive cybersecurity operations" },
+            { "name": "Cloud Infrastructure", "description": "Cloud architecture, DevOps, and site reliability" }
+          ]
+        },
+        {
+          "name": "Digital Design & Experience",
+          "description": "Creating intuitive interfaces and user experiences for digital products.",
+          "clusters": [
+            { "name": "UI/UX Design", "description": "User research, wireframing, and interactive design" }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Healthcare & Medicine",
+      "icon": "bi-heart-pulse",
+      "description": "Clinical medicine, surgical care, mental health, pharmaceuticals, and biomedical research.",
+      "subdomains": [
+        {
+          "name": "Clinical Practice & Surgery",
+          "description": "Diagnosing, treating, and managing patient health and acute conditions.",
+          "clusters": [
+            { "name": "General & Specialized Medicine", "description": "Physicians, surgeons, and pediatricians" },
+            { "name": "Therapeutic & Rehabilitation", "description": "Physiotherapy, occupational therapy, and speech therapy" }
+          ]
+        },
+        {
+          "name": "Psychology & Behavioral Health",
+          "description": "Understanding cognitive processes, mental health, and therapeutic interventions.",
+          "clusters": [
+            { "name": "Clinical Psychology", "description": "Mental health counseling, psychotherapy, and behavioral analysis" }
+          ]
+        },
+        {
+          "name": "Biomedical & Pharmacy",
+          "description": "Drug discovery, pharmacology, and clinical laboratory science.",
+          "clusters": [
+            { "name": "Pharmaceutical Sciences", "description": "Drug formulation, pharmacology, and clinical trials" }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Engineering & Architecture",
+      "icon": "bi-gear-wide-connected",
+      "description": "Designing and constructing physical infrastructure, autonomous robotics, aerospace systems, and energy solutions.",
+      "subdomains": [
+        {
+          "name": "Robotics & Mechatronics",
+          "description": "Autonomous machines, sensors, industrial automation, and embedded systems.",
+          "clusters": [
+            { "name": "Robotics Engineering", "description": "Industrial robots, drones, and autonomous vehicles" }
+          ]
+        },
+        {
+          "name": "Aerospace & Automotive",
+          "description": "Flight dynamics, propulsion, spacecraft, and transportation systems.",
+          "clusters": [
+            { "name": "Aerospace Engineering", "description": "Aircraft, satellites, propulsion, and aerodynamics" }
+          ]
+        },
+        {
+          "name": "Civil & Sustainable Infrastructure",
+          "description": "Smart cities, structural design, transportation networks, and green buildings.",
+          "clusters": [
+            { "name": "Structural & Environmental Engineering", "description": "Bridges, dams, sustainable urban architecture" }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Science & Pure Research",
+      "icon": "bi-radioactive",
+      "description": "Exploring foundational principles of the universe, genetics, climate ecology, and fundamental physics.",
+      "subdomains": [
+        {
+          "name": "Physical Sciences & Astronomy",
+          "description": "Quantum mechanics, cosmology, astrophysics, and material science.",
+          "clusters": [
+            { "name": "Astrophysics & Space Science", "description": "Cosmological research, stellar dynamics, and planetary exploration" }
+          ]
+        },
+        {
+          "name": "Biological Sciences & Genetics",
+          "description": "Molecular biology, genetic engineering, and biotechnology.",
+          "clusters": [
+            { "name": "Biotechnology Research", "description": "Genetic editing, microbial synthesis, and bio-agriculture" }
+          ]
+        },
+        {
+          "name": "Environmental & Earth Sciences",
+          "description": "Climate change modeling, oceanography, geology, and conservation.",
+          "clusters": [
+            { "name": "Climate & Ecology", "description": "Ecological preservation, renewable energy, and climate data analysis" }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Business, Finance & Management",
+      "icon": "bi-graph-up-arrow",
+      "description": "Corporate leadership, financial markets, strategic consulting, accounting, and product management.",
+      "subdomains": [
+        {
+          "name": "Financial Markets & Banking",
+          "description": "Capital allocation, investment analysis, wealth management, and actuarial science.",
+          "clusters": [
+            { "name": "Investment Banking & Corporate Finance", "description": "Mergers, asset valuation, and venture capital" },
+            { "name": "Auditing & Accounting", "description": "Chartered accounting, taxation, and statutory compliance" }
+          ]
+        },
+        {
+          "name": "Strategic Consulting & Product",
+          "description": "Enterprise strategy, agile product lifecycles, and operational optimization.",
+          "clusters": [
+            { "name": "Management Consulting", "description": "Advisory on corporate growth and operational turnaround" },
+            { "name": "Product Management", "description": "Defining product vision, user value, and cross-functional execution" }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Law, Governance & Public Policy",
+      "icon": "bi-shield-check",
+      "description": "Constitutional jurisprudence, corporate legal advisory, international relations, and civil services.",
+      "subdomains": [
+        {
+          "name": "Legal Systems & Jurisprudence",
+          "description": "Litigation, corporate law, intellectual property, and human rights advocacy.",
+          "clusters": [
+            { "name": "Corporate Law", "description": "Commercial contracts, intellectual property, and regulatory compliance" }
+          ]
+        },
+        {
+          "name": "Public Administration & Policy",
+          "description": "Civil administration, diplomatic services, and public policy think tanks.",
+          "clusters": [
+            { "name": "Civil Services & Diplomacy", "description": "Government policy administration and foreign affairs" }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Arts, Design & Media",
+      "icon": "bi-palette",
+      "description": "Visual arts, industrial product design, animation, journalism, and creative storytelling.",
+      "subdomains": [
+        {
+          "name": "Industrial & Visual Design",
+          "description": "Consumer product ergonomics, 3D modeling, and graphic brand identities.",
+          "clusters": [
+            { "name": "Industrial Product Design", "description": "Hardware aesthetics, user-centered ergonomics, and materials" },
+            { "name": "Animation & Game Design", "description": "3D visual effects, character modeling, and interactive storytelling" }
+          ]
+        },
+        {
+          "name": "Media, Journalism & Communications",
+          "description": "Investigative reporting, multimedia broadcasting, and public communications.",
+          "clusters": [
+            { "name": "Investigative Journalism", "description": "News analysis, multimedia investigative reporting, and documentary" }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Aviation & Aerospace Operations",
+      "icon": "bi-airplane",
+      "description": "Commercial flight operations, air traffic management, and avionics navigation.",
+      "subdomains": [
+        {
+          "name": "Flight Operations",
+          "description": "Piloting commercial aircraft, flight planning, and meteorology navigation.",
+          "clusters": [
+            { "name": "Commercial Aviation", "description": "Airline transport piloting, instrument navigation, and crew coordination" }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Agriculture & Sustainable Food Systems",
+      "icon": "bi-tree",
+      "description": "Precision agriculture, hydroponics, soil biology, and sustainable food security.",
+      "subdomains": [
+        {
+          "name": "Agricultural Technology",
+          "description": "Smart farming, automated irrigation, soil microbiome, and organic crop science.",
+          "clusters": [
+            { "name": "Precision Agriculture & Agronomy", "description": "Data-driven crop cultivation and sustainable agri-food supply" }
+          ]
+        }
+      ]
+    }
+  ],
+  "sections": [
+    { "name": "Academic", "description": "Self-reported subject performance and academic strengths.", "order": 1 },
+    { "name": "Mathematical Ability", "description": "Numerical calculations, pattern extrapolation, algebraic reasoning, and quantitative problem solving.", "order": 2 },
+    { "name": "Logical Reasoning", "description": "Deductive logic, syllogisms, classification, coding-decoding, and series completion.", "order": 3 },
+    { "name": "Scientific Thinking", "description": "Observational analysis, cause-and-effect reasoning, hypothesis testing, and experimental evaluation.", "order": 4 },
+    { "name": "Problem Solving", "description": "Evaluating complex real-world scenarios, troubleshooting breakdowns, and decision making.", "order": 5 },
+    { "name": "Analytical Thinking", "description": "Graph interpretation, data comparisons, pattern synthesis, and conclusion formulation.", "order": 6 },
+    { "name": "Communication", "description": "Verbal clarity, reading comprehension, vocabulary precision, and interpersonal expression.", "order": 7 },
+    { "name": "Creativity", "description": "Divergent thinking, aesthetic sensibility, original ideation, and design thinking.", "order": 8 },
+    { "name": "Digital Ability", "description": "Computational thinking, technology fluency, algorithmic logic, and internet literacy.", "order": 9 },
+    { "name": "Learning Ability", "description": "Concept absorption, intellectual curiosity, memory retention, and application agility.", "order": 10 },
+    { "name": "Spatial Ability", "description": "Mental rotation, 2D/3D visualization, map orientation, and structural perception.", "order": 11 },
+    { "name": "Practical Ability", "description": "Hands-on assembly, tool handling, mechanical intuition, and physical troubleshooting.", "order": 12 },
+    { "name": "Interests", "description": "Intrinsic interest ratings across diverse disciplinary fields (1-5 scale).", "order": 13 },
+    { "name": "Activities", "description": "Engagement frequency in extracurricular pursuits, hobbies, and student initiatives.", "order": 14 },
+    { "name": "Teamwork", "description": "Collaborative problem-solving, active listening, and consensus building in groups.", "order": 15 },
+    { "name": "Leadership", "description": "Initiative taking, organizing peers, strategic vision, and inspiring accountability.", "order": 16 },
+    { "name": "Work Preferences", "description": "Environmental, social, and structural preferences for future working conditions.", "order": 17 },
+    { "name": "Career Awareness", "description": "Familiarity with industry pathways, professional roles, and emerging disciplines.", "order": 18 },
+    { "name": "Career Preferences", "description": "Personal aspirations and domain inclinations for future exploration.", "order": 19 }
+  ]
+}

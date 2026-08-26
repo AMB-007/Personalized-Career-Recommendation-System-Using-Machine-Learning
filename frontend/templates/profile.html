@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - {{ student.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card-custom p-4 p-md-5">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom flex-wrap gap-2" style="border-color: var(--border-color) !important;">
+                    <div>
+                        <span class="badge-custom badge-primary-custom mb-1">Account & Academics</span>
+                        <h2 class="fw-bold mb-1" style="color: var(--text-main);">Student Profile</h2>
+                        <p class="small mb-0" style="color: var(--text-secondary);">Manage your demographic settings and self-reported subject marks</p>
+                    </div>
+                    <span class="badge-custom badge-neutral-custom" style="font-size: 0.95rem;">Class {{ student.class_level }}</span>
+                </div>
+
+                <form method="POST" action="{{ url_for('student.profile_page') }}">
+                    <h5 class="fw-bold mb-3" style="color: var(--text-main);"><i class="bi bi-person text-primary me-2"></i> Personal Details</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="first_name" class="form-label-custom">First Name</label>
+                            <input type="text" class="form-control-custom" id="first_name" name="first_name" value="{{ student.first_name }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="last_name" class="form-label-custom">Last Name</label>
+                            <input type="text" class="form-control-custom" id="last_name" name="last_name" value="{{ student.last_name }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="board" class="form-label-custom">School Board</label>
+                            <select class="form-select-custom" id="board" name="board">
+                                <option value="CBSE" {% if student.board == 'CBSE' %}selected{% endif %}>CBSE</option>
+                                <option value="ICSE" {% if student.board == 'ICSE' %}selected{% endif %}>ICSE / ISC</option>
+                                <option value="State Board" {% if student.board == 'State Board' %}selected{% endif %}>State Board</option>
+                                <option value="IB" {% if student.board == 'IB' %}selected{% endif %}>IB</option>
+                                <option value="Cambridge" {% if student.board == 'Cambridge' %}selected{% endif %}>Cambridge</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="medium" class="form-label-custom">Medium of Instruction</label>
+                            <input type="text" class="form-control-custom" id="medium" name="medium" value="{{ student.medium or 'English' }}">
+                        </div>
+
+                        {% if student.class_level >= 11 %}
+                        <div class="col-12">
+                            <label for="stream" class="form-label-custom text-primary">Stream (Class 11–12)</label>
+                            <select class="form-select-custom border-primary" id="stream" name="stream">
+                                <option value="Science-PCM" {% if student.stream == 'Science-PCM' %}selected{% endif %}>Science (Physics, Chemistry, Mathematics)</option>
+                                <option value="Science-PCB" {% if student.stream == 'Science-PCB' %}selected{% endif %}>Science (Physics, Chemistry, Biology)</option>
+                                <option value="Science-PCMB" {% if student.stream == 'Science-PCMB' %}selected{% endif %}>Science (PCMB)</option>
+                                <option value="Commerce" {% if student.stream == 'Commerce' %}selected{% endif %}>Commerce (Accountancy, Economics, Business)</option>
+                                <option value="Humanities" {% if student.stream == 'Humanities' %}selected{% endif %}>Humanities / Arts</option>
+                            </select>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <h5 class="fw-bold mb-3" style="color: var(--text-main);"><i class="bi bi-journal-bookmark text-primary me-2"></i> Academic Scores (% or Marks / 100)</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4 col-6">
+                            <label for="math_score" class="form-label-custom">Mathematics</label>
+                            <input type="number" step="0.1" min="0" max="100" class="form-control-custom" id="math_score" name="math_score" value="{{ academic.mathematics_score if academic and academic.mathematics_score is not none else '' }}" placeholder="e.g. 85">
+                        </div>
+                        <div class="col-md-4 col-6">
+                            <label for="science_score" class="form-label-custom">Science / Physics</label>
+                            <input type="number" step="0.1" min="0" max="100" class="form-control-custom" id="science_score" name="science_score" value="{{ academic.science_score if academic and academic.science_score is not none else '' }}" placeholder="e.g. 88">
+                        </div>
+                        <div class="col-md-4 col-6">
+                            <label for="cs_score" class="form-label-custom">Computer Science</label>
+                            <input type="number" step="0.1" min="0" max="100" class="form-control-custom" id="cs_score" name="cs_score" value="{{ academic.computer_science_score if academic and academic.computer_science_score is not none else '' }}" placeholder="e.g. 92">
+                        </div>
+                        <div class="col-md-4 col-6">
+                            <label for="english_score" class="form-label-custom">English</label>
+                            <input type="number" step="0.1" min="0" max="100" class="form-control-custom" id="english_score" name="english_score" value="{{ academic.english_score if academic and academic.english_score is not none else '' }}" placeholder="e.g. 80">
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top" style="border-color: var(--border-color) !important;">
+                        <a href="{{ url_for('student.dashboard') }}" class="btn btn-outline-custom">
+                            <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                        </a>
+                        <button type="submit" class="btn btn-primary-custom">
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
