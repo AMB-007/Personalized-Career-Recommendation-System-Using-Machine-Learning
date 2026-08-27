@@ -355,39 +355,18 @@ python database/seed.py
 
 ---
 
-### Method B: MySQL Workbench / Command Line Setup
+### Method B: MySQL Workbench All-In-One Script (Single File)
 
-#### Step 1: Create Database & Execute Master Script
-In MySQL Workbench, open and execute [`database/init_database.sql`](file:///c:/Users/arjun/.gemini/antigravity-ide/scratch/career_recommendation_system/database/init_database.sql):
+1. Open **MySQL Workbench** and connect to your MySQL Server.
+2. Open the all-in-one setup file: **[`database/setup.sql`](file:///c:/Users/arjun/.gemini/antigravity-ide/scratch/career_recommendation_system/database/setup.sql)** (`File -> Open SQL Script`).
+3. Click the ⚡ **Execute** button (or press `Ctrl + Shift + Enter`).
+
+*This single file creates `career_recommendation_db`, sets up all 18 tables, seeds demo users, imports all 1,206 career knowledge profiles, populates the adaptive questions, creates analytical views, and runs the verification check automatically.*
+
 ```sql
-CREATE DATABASE IF NOT EXISTS `career_recommendation_db` 
-CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
-USE `career_recommendation_db`;
+-- Or run from terminal:
+mysql -u root -p < database/setup.sql
 ```
-
-#### Step 2: Execute DDL & Dataset Scripts in Order
-Run the following SQL files from the `database/` folder in sequence:
-1. `database/schema.sql` — Creates all 18 relational tables, foreign keys, and indexes.
-2. `database/seed.sql` — Seeds default demo users, career domains, and core metadata.
-3. `database/import_career_dataset.sql` — Inserts all 1,206 career knowledge profiles and 11,000+ required skills.
-4. `database/questions_seed.sql` — Populates the 19-section grade 7–12 adaptive question bank.
-5. `database/views.sql` — Creates analytical views (`v_career_catalog`, `v_student_assessment_summary`).
-
-#### Step 3: Verify First-Time Setup
-Execute this verification query in MySQL Workbench to confirm data integrity:
-```sql
-SELECT 'users' AS table_name, COUNT(*) AS records FROM users
-UNION ALL
-SELECT 'career_domains', COUNT(*) FROM career_domains
-UNION ALL
-SELECT 'careers', COUNT(*) FROM careers
-UNION ALL
-SELECT 'career_skills', COUNT(*) FROM career_skills
-UNION ALL
-SELECT 'questions', COUNT(*) FROM questions;
-```
-*Expected output: `users` $\ge 5$, `career_domains` $= 28$, `careers` $= 1206$, `career_skills` $\ge 11000$, `questions` $\ge 120$.*
 
 ---
 

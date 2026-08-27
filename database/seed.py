@@ -1,7 +1,6 @@
 """
 Database Initialization and Seeding Script for MySQL Server.
-Re-creates the database from scratch and executes database/schema.sql,
-database/seed.sql, and database/views.sql directly into MySQL Server.
+Re-creates the database from scratch and executes database/setup.sql directly into MySQL Server.
 """
 
 import os
@@ -67,9 +66,13 @@ def execute_sql_file(cursor, file_path):
         sql_content = f.read()
 
     stmts = split_sql_statements(sql_content)
-    for stmt in stmts:
+    total = len(stmts)
+    print(f"Executing {total} SQL statements...")
+    for idx, stmt in enumerate(stmts, 1):
         if stmt:
             cursor.execute(stmt)
+            if idx % 500 == 0:
+                print(f"Progress: {idx}/{total} statements executed...")
 
 
 def seed_mysql_database():
@@ -95,45 +98,13 @@ def seed_mysql_database():
     cursor.execute(f"CREATE DATABASE `{db_name}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;")
     cursor.execute(f"USE `{db_name}`;")
 
-    # Step 2: Execute schema.sql
-    schema_file = BASE_DIR / 'database' / 'schema.sql'
-    execute_sql_file(cursor, schema_file)
-
-    # Step 3: Execute seed.sql
-    seed_file = BASE_DIR / 'database' / 'seed.sql'
-    execute_sql_file(cursor, seed_file)
-
-    # Step 4: Import full career knowledge dataset (1,202 careers, 11k skills)
-    cursor.close()
-    conn.close()
-    
-    print("Importing career knowledge dataset...")
-    from database.import_career_dataset import run_career_import_pipeline
-    run_career_import_pipeline()
-
-    # Step 5: Import comprehensive student question bank (19 sections, grades 7-12)
-    print("Seeding student question bank...")
-    from database.build_questions_dataset import seed_questions_into_mysql, export_questions_to_json, export_questions_to_sql
-    export_questions_to_json()
-    export_questions_to_sql()
-    seed_questions_into_mysql()
-
-    # Step 6: Execute views.sql
-    conn = mysql.connector.connect(
-        host=host,
-        user=user,
-        password=password,
-        port=port,
-        database=db_name,
-        autocommit=True
-    )
-    cursor = conn.cursor()
-    views_file = BASE_DIR / 'database' / 'views.sql'
-    execute_sql_file(cursor, views_file)
+    # Step 2: Execute all-in-one setup.sql
+    setup_file = BASE_DIR / 'database' / 'setup.sql'
+    execute_sql_file(cursor, setup_file)
 
     cursor.close()
     conn.close()
-    print("SUCCESS: MySQL Database initialized, seeded with 1,200+ careers, 120+ questions, and views created successfully!")
+    print("SUCCESS: MySQL Database initialized and fully seeded with setup.sql!")
 
 
 if __name__ == '__main__':

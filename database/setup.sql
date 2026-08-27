@@ -1,4 +1,1042 @@
 -- ============================================================
+-- COMPLETE ALL-IN-ONE DATABASE INITIALIZATION SCRIPT
+-- Project: Personalized Career Recommendation System
+-- Database Server: MySQL 8.x / MySQL Workbench
+-- Target Database: career_recommendation_db
+-- Contains: Complete DDL Schema, Demo Users, 1,206 Careers,
+--           11,000+ Skills, Adaptive Questions, and Views.
+-- ============================================================
+
+CREATE DATABASE IF NOT EXISTS career_recommendation_db
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+
+USE career_recommendation_db;
+
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
+
+
+-- 1. SCHEMA DDL
+-- ============================================================
+-- Career Recommendation System - MySQL Workbench Database Schema
+-- Database Server: MySQL 8.x
+-- Tool: MySQL Workbench Compatible
+-- Database Name: career_recommendation_db
+-- ============================================================
+
+CREATE DATABASE IF NOT EXISTS `career_recommendation_db`
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+
+USE `career_recommendation_db`;
+
+-- Drop existing tables in reverse dependency order to prevent foreign key errors
+SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS `learning_resources`;
+DROP TABLE IF EXISTS `career_recommendations`;
+DROP TABLE IF EXISTS `career_pathways`;
+DROP TABLE IF EXISTS `career_education`;
+DROP TABLE IF EXISTS `career_subjects`;
+DROP TABLE IF EXISTS `career_skills`;
+DROP TABLE IF EXISTS `careers`;
+DROP TABLE IF EXISTS `career_clusters`;
+DROP TABLE IF EXISTS `career_subdomains`;
+DROP TABLE IF EXISTS `career_domains`;
+DROP TABLE IF EXISTS `assessment_scores`;
+DROP TABLE IF EXISTS `student_answers`;
+DROP TABLE IF EXISTS `assessment_sessions`;
+DROP TABLE IF EXISTS `question_options`;
+DROP TABLE IF EXISTS `questions`;
+DROP TABLE IF EXISTS `question_sections`;
+DROP TABLE IF EXISTS `academic_scores`;
+DROP TABLE IF EXISTS `students`;
+DROP TABLE IF EXISTS `users`;
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- ------------------------------------------------------------
+-- 1. Table: users
+-- ------------------------------------------------------------
+CREATE TABLE `users` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `username` VARCHAR(100) NOT NULL UNIQUE,
+    `email` VARCHAR(255) NOT NULL UNIQUE,
+    `password_hash` VARCHAR(255) NOT NULL,
+    `role` ENUM('student', 'admin') NOT NULL DEFAULT 'student',
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX `idx_users_role` (`role`),
+    INDEX `idx_users_email` (`email`),
+    INDEX `idx_users_username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- 2. Table: students
+-- ------------------------------------------------------------
+CREATE TABLE `students` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `user_id` BIGINT UNSIGNED NOT NULL UNIQUE,
+    `student_code` VARCHAR(50) NOT NULL UNIQUE,
+    `first_name` VARCHAR(100) NOT NULL,
+    `last_name` VARCHAR(100) NULL,
+    `age` TINYINT UNSIGNED NULL,
+    `gender` VARCHAR(30) NULL,
+    `class_level` TINYINT UNSIGNED NOT NULL,
+    `board` VARCHAR(100) NULL,
+    `medium` VARCHAR(50) NULL,
+    `academic_year` VARCHAR(20) NULL,
+    `stream` VARCHAR(100) NULL DEFAULT 'General',
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT `fk_students_user`
+        FOREIGN KEY (`user_id`)
+        REFERENCES `users` (`id`)
+        ON DELETE CASCADE,
+
+    CONSTRAINT `chk_student_class`
+        CHECK (`class_level` BETWEEN 7 AND 12),
+
+    INDEX `idx_students_user_id` (`user_id`),
+    INDEX `idx_students_class` (`class_level`),
+    INDEX `idx_students_stream` (`stream`),
+    INDEX `idx_students_board` (`board`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- 3. Table: academic_scores
+-- ------------------------------------------------------------
+CREATE TABLE `academic_scores` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `student_id` BIGINT UNSIGNED NOT NULL UNIQUE,
+
+    `mathematics_score` DECIMAL(5,2) NULL,
+    `science_score` DECIMAL(5,2) NULL,
+    `physics_score` DECIMAL(5,2) NULL,
+    `chemistry_score` DECIMAL(5,2) NULL,
+    `biology_score` DECIMAL(5,2) NULL,
+    `computer_science_score` DECIMAL(5,2) NULL,
+    `english_score` DECIMAL(5,2) NULL,
+    `malayalam_score` DECIMAL(5,2) NULL,
+    `hindi_score` DECIMAL(5,2) NULL,
+    `social_science_score` DECIMAL(5,2) NULL,
+    `history_score` DECIMAL(5,2) NULL,
+    `geography_score` DECIMAL(5,2) NULL,
+    `political_science_score` DECIMAL(5,2) NULL,
+    `economics_score` DECIMAL(5,2) NULL,
+    `accountancy_score` DECIMAL(5,2) NULL,
+    `business_studies_score` DECIMAL(5,2) NULL,
+    `psychology_score` DECIMAL(5,2) NULL,
+
+    `overall_percentage` DECIMAL(5,2) NULL,
+
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT `fk_academic_student`
+        FOREIGN KEY (`student_id`)
+        REFERENCES `students` (`id`)
+        ON DELETE CASCADE,
+
+    INDEX `idx_academic_student` (`student_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- 4. Table: question_sections
+-- ------------------------------------------------------------
+CREATE TABLE `question_sections` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `name` VARCHAR(100) NOT NULL UNIQUE,
+    `description` TEXT NULL,
+    `display_order` INT NOT NULL DEFAULT 1,
+    `is_active` BOOLEAN NOT NULL DEFAULT TRUE,
+    INDEX `idx_sections_order` (`display_order`),
+    INDEX `idx_sections_active` (`is_active`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- 5. Table: questions
+-- ------------------------------------------------------------
+CREATE TABLE `questions` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `question_code` VARCHAR(50) NOT NULL UNIQUE,
+    `question_text` TEXT NOT NULL,
+    `section_id` INT UNSIGNED NOT NULL,
+    `question_type` ENUM(
+        'MCQ',
+        'MULTI_SELECT',
+        'RATING',
+        'SCENARIO',
+        'RANKING'
+    ) NOT NULL DEFAULT 'MCQ',
+    `class_min` TINYINT UNSIGNED NOT NULL DEFAULT 7,
+    `class_max` TINYINT UNSIGNED NOT NULL DEFAULT 12,
+    `difficulty` ENUM('Easy', 'Medium', 'Hard') DEFAULT 'Medium',
+    `skill_category` VARCHAR(100) NULL,
+    `stream_specific` VARCHAR(50) DEFAULT 'All',
+    `is_required` BOOLEAN DEFAULT TRUE,
+    `display_order` INT DEFAULT 0,
+    `explanation` TEXT NULL,
+    `is_active` BOOLEAN DEFAULT TRUE,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT `fk_questions_section`
+        FOREIGN KEY (`section_id`)
+        REFERENCES `question_sections` (`id`)
+        ON DELETE RESTRICT,
+
+    CONSTRAINT `chk_question_class`
+        CHECK (
+            `class_min` BETWEEN 7 AND 12
+            AND `class_max` BETWEEN 7 AND 12
+            AND `class_min` <= `class_max`
+        ),
+
+    INDEX `idx_questions_section` (`section_id`),
+    INDEX `idx_questions_class_min` (`class_min`),
+    INDEX `idx_questions_class_max` (`class_max`),
+    INDEX `idx_questions_skill` (`skill_category`),
+    INDEX `idx_questions_active` (`is_active`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- 6. Table: question_options
+-- ------------------------------------------------------------
+CREATE TABLE `question_options` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `question_id` BIGINT UNSIGNED NOT NULL,
+    `option_text` VARCHAR(500) NOT NULL,
+    `option_value` VARCHAR(100) NULL,
+    `score` DECIMAL(6,2) DEFAULT 0.00,
+    `is_correct` BOOLEAN DEFAULT FALSE,
+    `display_order` INT DEFAULT 0,
+
+    CONSTRAINT `fk_options_question`
+        FOREIGN KEY (`question_id`)
+        REFERENCES `questions` (`id`)
+        ON DELETE CASCADE,
+
+    INDEX `idx_options_question_id` (`question_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- 7. Table: assessment_sessions
+-- ------------------------------------------------------------
+CREATE TABLE `assessment_sessions` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `student_id` BIGINT UNSIGNED NOT NULL,
+    `status` ENUM(
+        'not_started',
+        'in_progress',
+        'completed',
+        'abandoned'
+    ) DEFAULT 'not_started',
+    `started_at` DATETIME NULL,
+    `completed_at` DATETIME NULL,
+    `current_question` INT DEFAULT 0,
+    `completion_percentage` DECIMAL(5,2) DEFAULT 0.00,
+    `selected_question_ids` TEXT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT `fk_assessment_student`
+        FOREIGN KEY (`student_id`)
+        REFERENCES `students` (`id`)
+        ON DELETE CASCADE,
+
+    INDEX `idx_assessment_student_id` (`student_id`),
+    INDEX `idx_assessment_status` (`status`),
+    INDEX `idx_assessment_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- 8. Table: student_answers
+-- ------------------------------------------------------------
+CREATE TABLE `student_answers` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `assessment_id` BIGINT UNSIGNED NOT NULL,
+    `question_id` BIGINT UNSIGNED NOT NULL,
+    `selected_option_id` BIGINT UNSIGNED NULL,
+    `selected_option` TEXT NULL,
+    `answer_text` TEXT NULL,
+    `numeric_value` DECIMAL(10,2) NULL,
+    `time_taken_seconds` INT UNSIGNED NULL DEFAULT 0,
+    `answered_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT `fk_answers_assessment`
+        FOREIGN KEY (`assessment_id`)
+        REFERENCES `assessment_sessions` (`id`)
+        ON DELETE CASCADE,
+
+    CONSTRAINT `fk_answers_question`
+        FOREIGN KEY (`question_id`)
+        REFERENCES `questions` (`id`)
+        ON DELETE RESTRICT,
+
+    CONSTRAINT `fk_answers_option`
+        FOREIGN KEY (`selected_option_id`)
+        REFERENCES `question_options` (`id`)
+        ON DELETE SET NULL,
+
+    CONSTRAINT `uq_assessment_question`
+        UNIQUE (`assessment_id`, `question_id`),
+
+    INDEX `idx_answers_assessment` (`assessment_id`),
+    INDEX `idx_answers_question` (`question_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- 9. Table: assessment_scores
+-- ------------------------------------------------------------
+CREATE TABLE `assessment_scores` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `assessment_id` BIGINT UNSIGNED NOT NULL UNIQUE,
+
+    `mathematical_ability` DECIMAL(6,2) DEFAULT 0.00,
+    `logical_reasoning` DECIMAL(6,2) DEFAULT 0.00,
+    `scientific_reasoning` DECIMAL(6,2) DEFAULT 0.00,
+    `problem_solving` DECIMAL(6,2) DEFAULT 0.00,
+    `analytical_ability` DECIMAL(6,2) DEFAULT 0.00,
+    `communication` DECIMAL(6,2) DEFAULT 0.00,
+    `creativity` DECIMAL(6,2) DEFAULT 0.00,
+    `digital_ability` DECIMAL(6,2) DEFAULT 0.00,
+    `learning_ability` DECIMAL(6,2) DEFAULT 0.00,
+    `memory` DECIMAL(6,2) DEFAULT 0.00,
+    `observation` DECIMAL(6,2) DEFAULT 0.00,
+    `spatial_ability` DECIMAL(6,2) DEFAULT 0.00,
+    `practical_ability` DECIMAL(6,2) DEFAULT 0.00,
+    `teamwork` DECIMAL(6,2) DEFAULT 0.00,
+    `leadership` DECIMAL(6,2) DEFAULT 0.00,
+
+    `technology_interest` DECIMAL(6,2) DEFAULT 0.00,
+    `science_interest` DECIMAL(6,2) DEFAULT 0.00,
+    `healthcare_interest` DECIMAL(6,2) DEFAULT 0.00,
+    `business_interest` DECIMAL(6,2) DEFAULT 0.00,
+    `creative_interest` DECIMAL(6,2) DEFAULT 0.00,
+    `research_interest` DECIMAL(6,2) DEFAULT 0.00,
+    `social_interest` DECIMAL(6,2) DEFAULT 0.00,
+
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT `fk_scores_assessment`
+        FOREIGN KEY (`assessment_id`)
+        REFERENCES `assessment_sessions` (`id`)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- 10. Table: career_domains
+-- ------------------------------------------------------------
+CREATE TABLE `career_domains` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `domain_name` VARCHAR(150) NOT NULL UNIQUE,
+    `description` TEXT NULL,
+    `icon` VARCHAR(100) DEFAULT 'bi-briefcase',
+    `display_order` INT DEFAULT 0,
+    `is_active` BOOLEAN DEFAULT TRUE,
+    INDEX `idx_domains_order` (`display_order`),
+    INDEX `idx_domains_active` (`is_active`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- 11. Table: career_subdomains
+-- ------------------------------------------------------------
+CREATE TABLE `career_subdomains` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `domain_id` INT UNSIGNED NOT NULL,
+    `name` VARCHAR(150) NOT NULL,
+    `description` TEXT NULL,
+
+    CONSTRAINT `fk_subdomain_domain`
+        FOREIGN KEY (`domain_id`)
+        REFERENCES `career_domains` (`id`)
+        ON DELETE CASCADE,
+
+    UNIQUE KEY `uq_domain_subdomain` (`domain_id`, `name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- 12. Table: career_clusters
+-- ------------------------------------------------------------
+CREATE TABLE `career_clusters` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `subdomain_id` INT UNSIGNED NOT NULL,
+    `name` VARCHAR(150) NOT NULL,
+    `description` TEXT NULL,
+
+    CONSTRAINT `fk_cluster_subdomain`
+        FOREIGN KEY (`subdomain_id`)
+        REFERENCES `career_subdomains` (`id`)
+        ON DELETE CASCADE,
+
+    UNIQUE KEY `uq_subdomain_cluster` (`subdomain_id`, `name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- 13. Table: careers
+-- ------------------------------------------------------------
+CREATE TABLE `careers` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `career_code` VARCHAR(50) NOT NULL UNIQUE,
+    `career_name` VARCHAR(200) NOT NULL,
+    `domain_id` INT UNSIGNED NOT NULL,
+    `subdomain_id` INT UNSIGNED NULL,
+    `cluster_id` INT UNSIGNED NULL,
+    `description` TEXT NULL,
+    `minimum_education` VARCHAR(150) NULL,
+    `typical_education` VARCHAR(150) NULL,
+    `preferred_subjects` TEXT NULL,
+    `work_environment` VARCHAR(200) NULL,
+    `work_style` VARCHAR(200) NULL,
+    `career_pathway` TEXT NULL,
+    `entry_level_role` VARCHAR(200) NULL,
+    `advanced_role` VARCHAR(200) NULL,
+    `related_careers` TEXT NULL,
+    `is_active` BOOLEAN DEFAULT TRUE,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT `fk_career_domain`
+        FOREIGN KEY (`domain_id`)
+        REFERENCES `career_domains` (`id`)
+        ON DELETE RESTRICT,
+
+    CONSTRAINT `fk_career_subdomain`
+        FOREIGN KEY (`subdomain_id`)
+        REFERENCES `career_subdomains` (`id`)
+        ON DELETE SET NULL,
+
+    CONSTRAINT `fk_career_cluster`
+        FOREIGN KEY (`cluster_id`)
+        REFERENCES `career_clusters` (`id`)
+        ON DELETE SET NULL,
+
+    INDEX `idx_career_name` (`career_name`),
+    INDEX `idx_career_domain` (`domain_id`),
+    INDEX `idx_career_cluster` (`cluster_id`),
+    INDEX `idx_career_active` (`is_active`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- 14. Table: career_skills
+-- ------------------------------------------------------------
+CREATE TABLE `career_skills` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `career_id` BIGINT UNSIGNED NOT NULL,
+    `skill_name` VARCHAR(150) NOT NULL,
+    `importance_level` TINYINT UNSIGNED NOT NULL DEFAULT 4,
+    `importance_label` VARCHAR(30) DEFAULT 'High',
+
+    CONSTRAINT `fk_skill_career`
+        FOREIGN KEY (`career_id`)
+        REFERENCES `careers` (`id`)
+        ON DELETE CASCADE,
+
+    CONSTRAINT `chk_skill_importance`
+        CHECK (`importance_level` BETWEEN 1 AND 5),
+
+    UNIQUE KEY `uq_career_skill` (`career_id`, `skill_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- 15. Table: career_subjects
+-- ------------------------------------------------------------
+CREATE TABLE `career_subjects` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `career_id` BIGINT UNSIGNED NOT NULL,
+    `subject_name` VARCHAR(150) NOT NULL,
+    `importance_level` TINYINT UNSIGNED NOT NULL DEFAULT 4,
+    `importance_label` VARCHAR(30) DEFAULT 'High',
+
+    CONSTRAINT `fk_subject_career`
+        FOREIGN KEY (`career_id`)
+        REFERENCES `careers` (`id`)
+        ON DELETE CASCADE,
+
+    CONSTRAINT `chk_subject_importance`
+        CHECK (`importance_level` BETWEEN 1 AND 5),
+
+    UNIQUE KEY `uq_career_subject` (`career_id`, `subject_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- 16. Table: career_education
+-- ------------------------------------------------------------
+CREATE TABLE `career_education` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `career_id` BIGINT UNSIGNED NOT NULL,
+    `education_level` VARCHAR(150) NOT NULL,
+    `degree_name` VARCHAR(200) NULL,
+    `description` TEXT NULL,
+    `sequence_order` INT NOT NULL DEFAULT 1,
+
+    CONSTRAINT `fk_education_career`
+        FOREIGN KEY (`career_id`)
+        REFERENCES `careers` (`id`)
+        ON DELETE CASCADE,
+
+    INDEX `idx_education_career_seq` (`career_id`, `sequence_order`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- 17. Table: career_pathways
+-- ------------------------------------------------------------
+CREATE TABLE `career_pathways` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `career_id` BIGINT UNSIGNED NOT NULL,
+    `stage_number` INT NOT NULL DEFAULT 1,
+    `stage_name` VARCHAR(150) NOT NULL,
+    `description` TEXT NULL,
+
+    CONSTRAINT `fk_pathway_career`
+        FOREIGN KEY (`career_id`)
+        REFERENCES `careers` (`id`)
+        ON DELETE CASCADE,
+
+    INDEX `idx_pathway_career_stage` (`career_id`, `stage_number`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- 18. Table: career_recommendations
+-- ------------------------------------------------------------
+CREATE TABLE `career_recommendations` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `assessment_id` BIGINT UNSIGNED NOT NULL,
+    `career_id` BIGINT UNSIGNED NOT NULL,
+    `rank_position` INT NOT NULL DEFAULT 1,
+    `score` DECIMAL(8,5) NULL,
+    `recommendation_reason` TEXT NULL,
+    `strengths` TEXT NULL,
+    `skill_gaps` TEXT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT `fk_recommendation_assessment`
+        FOREIGN KEY (`assessment_id`)
+        REFERENCES `assessment_sessions` (`id`)
+        ON DELETE CASCADE,
+
+    CONSTRAINT `fk_recommendation_career`
+        FOREIGN KEY (`career_id`)
+        REFERENCES `careers` (`id`)
+        ON DELETE CASCADE,
+
+    UNIQUE KEY `uq_assessment_career` (`assessment_id`, `career_id`),
+    INDEX `idx_recommendation_assessment` (`assessment_id`),
+    INDEX `idx_recommendation_rank` (`rank_position`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- 19. Table: learning_resources
+-- ------------------------------------------------------------
+CREATE TABLE `learning_resources` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `career_id` BIGINT UNSIGNED NULL,
+    `title` VARCHAR(255) NOT NULL,
+    `description` TEXT NULL,
+    `resource_type` VARCHAR(100) NULL,
+    `url` VARCHAR(1000) NULL,
+    `difficulty` VARCHAR(50) DEFAULT 'Beginner',
+    `class_min` TINYINT UNSIGNED NULL,
+    `class_max` TINYINT UNSIGNED NULL,
+    `is_active` BOOLEAN DEFAULT TRUE,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT `fk_resource_career`
+        FOREIGN KEY (`career_id`)
+        REFERENCES `careers` (`id`)
+        ON DELETE SET NULL,
+
+    INDEX `idx_resource_career` (`career_id`),
+    INDEX `idx_resource_active` (`is_active`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 2. SEED DATA
+-- ============================================================
+-- Career Recommendation System - MySQL Seed Script
+-- Database Name: career_recommendation_db
+-- Target: MySQL 8.x Server & MySQL Workbench
+-- ============================================================
+
+USE `career_recommendation_db`;
+
+-- ------------------------------------------------------------
+-- 1. Insert Question Sections (19 Sections)
+-- ------------------------------------------------------------
+INSERT INTO `question_sections` (`id`, `name`, `description`, `display_order`, `is_active`) VALUES
+(1, 'Academic', 'Self-reported academic marks and core subject proficiencies.', 1, 1),
+(2, 'Mathematical Ability', 'Numerical problem solving, algebra, geometry, and arithmetic logic.', 2, 1),
+(3, 'Logical Reasoning', 'Pattern identification, syllogisms, deductive reasoning, and sequence series.', 3, 1),
+(4, 'Scientific Thinking', 'Hypothesis testing, empirical reasoning, physical laws, and cause-effect deduction.', 4, 1),
+(5, 'Problem Solving', 'Troubleshooting complex multi-step scenarios, strategic decomposition, and decision making.', 5, 1),
+(6, 'Analytical Thinking', 'Data interpretation, graphical analysis, and structured comparative logic.', 6, 1),
+(7, 'Communication', 'Verbal articulation, reading comprehension, writing precision, and interpersonal expression.', 7, 1),
+(8, 'Creativity', 'Original ideation, divergent thinking, aesthetic composition, and innovative design.', 8, 1),
+(9, 'Digital Ability', 'Computational logic, software navigation, algorithmic thinking, and internet fluency.', 9, 1),
+(10, 'Learning Ability', 'Rapid concept absorption, memory recall, intellectual curiosity, and cognitive agility.', 10, 1),
+(11, 'Spatial Ability', 'Mental rotation, 3D visualization, map orientation, and structural geometry.', 11, 1),
+(12, 'Practical Ability', 'Hands-on mechanical aptitude, tool handling, and physical troubleshooting.', 12, 1),
+(13, 'Interests', 'Personal curiosity and intrinsic motivation across disciplinary fields.', 13, 1),
+(14, 'Activities', 'Frequency and involvement in extracurriculars, clubs, projects, and hobbies.', 14, 1),
+(15, 'Teamwork', 'Collaborative problem solving, empathy, active listening, and consensus building.', 15, 1),
+(16, 'Leadership', 'Initiative taking, organizing peers, goal setting, and inspiring responsibility.', 16, 1),
+(17, 'Work Preferences', 'Ideal working environments, pace, structure, autonomy, and collaboration style.', 17, 1),
+(18, 'Career Awareness', 'Knowledge of modern career pathways, industry roles, and emerging disciplines.', 18, 1),
+(19, 'Career Preferences', 'Aspirational vocational targets, impact preferences, and industry goals.', 19, 1)
+ON DUPLICATE KEY UPDATE `description` = VALUES(`description`), `display_order` = VALUES(`display_order`);
+
+-- ------------------------------------------------------------
+-- 2. Insert Career Domains (23 Domains)
+-- ------------------------------------------------------------
+INSERT INTO `career_domains` (`id`, `domain_name`, `description`, `icon`, `display_order`, `is_active`) VALUES
+(1, 'Technology', 'Software engineering, artificial intelligence, cloud architecture, cybersecurity, and data analytics.', 'bi-cpu', 1, 1),
+(2, 'Healthcare', 'Clinical medicine, surgery, nursing, dentistry, pharmacy, and mental healthcare.', 'bi-heart-pulse', 2, 1),
+(3, 'Engineering', 'Mechanical, civil, electrical, robotics, aerospace, and chemical systems design.', 'bi-gear-wide-connected', 3, 1),
+(4, 'Science', 'Pure physical sciences, chemistry, molecular biology, astronomy, and astrophysics.', 'bi-radioactive', 4, 1),
+(5, 'Research', 'Academic inquiry, industrial R&D, clinical trials, and scientific discovery.', 'bi-search', 5, 1),
+(6, 'Business', 'Corporate management, entrepreneurship, international business, and operations.', 'bi-briefcase', 6, 1),
+(7, 'Finance', 'Investment banking, financial analysis, quantitative trading, and accounting.', 'bi-currency-exchange', 7, 1),
+(8, 'Law', 'Constitutional law, corporate jurisprudence, litigation, and human rights advocacy.', 'bi-shield-check', 8, 1),
+(9, 'Education', 'Pedagogy, higher education, curriculum design, and educational technology.', 'bi-book', 9, 1),
+(10, 'Psychology', 'Clinical psychology, cognitive neuropsychology, counseling, and organizational behavior.', 'bi-person-heart', 10, 1),
+(11, 'Arts', 'Fine arts, sculpture, illustration, theater, and performing arts.', 'bi-palette', 11, 1),
+(12, 'Design', 'UI/UX design, industrial product design, architecture, and graphic styling.', 'bi-bezier2', 12, 1),
+(13, 'Media', 'Journalism, film making, broadcast media, public relations, and content production.', 'bi-camera-reels', 13, 1),
+(14, 'Government', 'Civil administrative services, diplomacy, public policy, and defense administration.', 'bi-bank', 14, 1),
+(15, 'Agriculture', 'Agronomy, precision farming, horticulture, and sustainable food systems.', 'bi-tree', 15, 1),
+(16, 'Environment', 'Ecology, renewable energy systems, conservation biology, and climate science.', 'bi-globe-americas', 16, 1),
+(17, 'Sports', 'Athletic coaching, sports physiotherapy, sports analytics, and fitness management.', 'bi-trophy', 17, 1),
+(18, 'Hospitality', 'Hotel management, culinary arts, tourism, and event coordination.', 'bi-cup-hot', 18, 1),
+(19, 'Aviation', 'Commercial flight piloting, air traffic management, avionics, and flight operations.', 'bi-airplane', 19, 1),
+(20, 'Manufacturing', 'Industrial automation, supply chain optimization, and precision tooling.', 'bi-tools', 20, 1),
+(21, 'Construction', 'Structural engineering, construction project management, and urban development.', 'bi-building', 21, 1),
+(22, 'Skilled Trades', 'Electrical grid systems, specialized machining, and technical fabrication.', 'bi-wrench-adjustable', 22, 1),
+(23, 'Transportation', 'Logistics network management, maritime operations, and rail infrastructure.', 'bi-truck', 23, 1)
+ON DUPLICATE KEY UPDATE `description` = VALUES(`description`), `icon` = VALUES(`icon`);
+
+-- ------------------------------------------------------------
+-- 3. Insert Career Subdomains
+-- ------------------------------------------------------------
+INSERT INTO `career_subdomains` (`id`, `domain_id`, `name`, `description`) VALUES
+(1, 1, 'Software & Web Development', 'Building scalable web, mobile, and enterprise software systems.'),
+(2, 1, 'Data Science & Artificial Intelligence', 'Machine learning, statistical modeling, big data architectures, and AI systems.'),
+(3, 1, 'Cybersecurity & Cloud Systems', 'Information security, network protection, cloud infrastructure, and DevOps.'),
+(4, 2, 'Clinical Medicine & Surgery', 'Direct patient diagnosis, surgical intervention, and medical treatment.'),
+(5, 2, 'Allied Health Sciences & Diagnostics', 'Radiology, medical laboratory diagnostics, physiotherapy, and pharmacology.'),
+(6, 3, 'Mechanical & Robotics Engineering', 'Machine design, automation, thermal systems, and robotic kinematics.'),
+(7, 3, 'Civil & Structural Engineering', 'Infrastructure design, structural stability, transport systems, and urban planning.'),
+(8, 6, 'Corporate Strategy & Management', 'Business consulting, executive operations, and organizational management.'),
+(9, 7, 'Banking & Financial Markets', 'Securities trading, portfolio management, auditing, and corporate finance.'),
+(10, 8, 'Corporate & Commercial Law', 'Contracts, intellectual property, mergers & acquisitions, and compliance.'),
+(11, 12, 'Digital & Interaction Design', 'User experience, product interfaces, wireframing, and interactive design.'),
+(12, 15, 'Sustainable Agritech & Farming', 'Modern agricultural technology, soil science, and crop genetics.')
+ON DUPLICATE KEY UPDATE `description` = VALUES(`description`);
+
+-- ------------------------------------------------------------
+-- 4. Insert Career Clusters
+-- ------------------------------------------------------------
+INSERT INTO `career_clusters` (`id`, `subdomain_id`, `name`, `description`) VALUES
+(1, 1, 'Full-Stack Software Engineering', 'End-to-end software application architecture, frontend logic, and backend databases.'),
+(2, 2, 'Applied Machine Learning & AI', 'Predictive modeling, deep learning architectures, computer vision, and NLP.'),
+(3, 3, 'Cloud Infrastructure & DevOps', 'Distributed server clusters, CI/CD pipelines, and cloud reliability.'),
+(4, 4, 'General Medicine & Critical Care', 'Emergency medicine, internal medicine, and patient therapies.'),
+(5, 6, 'Autonomous Robotics & Mechatronics', 'Robotic hardware integration, sensors, actuators, and embedded software.'),
+(6, 9, 'Financial Analysis & Investment Advisory', 'Equities valuation, risk modeling, and capital markets investment.'),
+(7, 10, 'Corporate Legal Advisory', 'Commercial contract governance and regulatory compliance.'),
+(8, 11, 'UI/UX & Product Design', 'Human-computer interaction and user interface design systems.')
+ON DUPLICATE KEY UPDATE `description` = VALUES(`description`);
+
+-- ------------------------------------------------------------
+-- 5. Insert Sample Careers
+-- ------------------------------------------------------------
+INSERT INTO `careers` (
+    `id`, `career_code`, `career_name`, `domain_id`, `subdomain_id`, `cluster_id`,
+    `description`, `minimum_education`, `typical_education`,
+    `preferred_subjects`, `work_environment`, `work_style`,
+    `career_pathway`, `entry_level_role`, `advanced_role`,
+    `related_careers`, `is_active`
+) VALUES
+(
+    1, 'CAR-TECH-001', 'Software Development Engineer', 1, 1, 1,
+    'Designs, builds, tests, and maintains scalable software applications, distributed microservices, and databases.',
+    'B.Tech / B.E. / B.Sc in Computer Science / BCA', 'B.Tech / B.E. in Computer Science or M.Tech / MCA',
+    'Mathematics, Computer Science, Physics', 'Office / Tech Campus / Remote', 'Analytical, Investigative, Team-Oriented',
+    'Higher Secondary (PCM/CS) -> B.Tech CSE -> Junior Software Engineer -> Senior Software Engineer -> Principal Architect',
+    'Junior Software Engineer / Frontend Developer', 'Principal Software Architect / VP of Engineering',
+    'Data Scientist, Cloud Solutions Architect, DevOps Engineer', 1
+),
+(
+    2, 'CAR-TECH-002', 'Data Scientist & AI Specialist', 1, 2, 2,
+    'Extracts actionable insights from massive datasets using advanced mathematical modeling, machine learning algorithms, and statistical analysis.',
+    'B.Tech / B.Sc in Statistics, Mathematics, or Data Science', 'M.Tech / M.Sc / Ph.D in Data Science or Machine Learning',
+    'Mathematics, Statistics, Computer Science', 'Tech Labs / Corporate HQ / Remote', 'Analytical, Investigative, Research-Focused',
+    'Higher Secondary (PCM/Statistics) -> B.Tech / B.Sc Data Science -> Data Analyst -> Machine Learning Engineer -> Chief Data Officer',
+    'Associate Data Analyst / Junior ML Engineer', 'Lead Data Scientist / AI Research Director',
+    'Software Engineer, Business Intelligence Analyst, Quantitative Researcher', 1
+),
+(
+    3, 'CAR-TECH-003', 'Cybersecurity Specialist', 1, 3, 3,
+    'Protects organizational information systems, computer networks, and cloud infrastructure from security breaches, cyber attacks, and data leaks.',
+    'B.Tech / B.Sc in Cybersecurity / Information Technology', 'B.Tech IT / Cybersecurity + CISSP / CEH Certifications',
+    'Computer Science, Mathematics, Physics', 'Security Operations Center (SOC) / Enterprise IT', 'Analytical, Structured, Vigilant',
+    'Higher Secondary (PCM/CS) -> B.Tech CS/Cybersecurity -> SOC Analyst -> Security Engineer -> Chief Information Security Officer (CISO)',
+    'Junior Cybersecurity Analyst / Penetration Tester', 'Chief Information Security Officer (CISO)',
+    'Cloud Security Engineer, Network Engineer, Forensics Specialist', 1
+),
+(
+    4, 'CAR-HLTH-001', 'Medical Practitioner (General Physician)', 2, 4, 4,
+    'Diagnoses acute and chronic illnesses, prescribes treatments, conducts preventive health screenings, and manages primary patient care.',
+    'MBBS (Bachelor of Medicine, Bachelor of Surgery)', 'MBBS + MD / DNB in General Medicine',
+    'Biology, Chemistry, Physics, English', 'Hospitals, Clinics, Medical Research Centers', 'Empathetic, Investigative, Detail-Oriented',
+    'Higher Secondary (PCB) -> NEET UG -> MBBS (5.5 yrs) -> Compulsory Internship -> MD General Medicine -> Consultant Physician',
+    'Resident Medical Officer / Junior Doctor', 'Senior Consultant / Head of Department (HOD)',
+    'Surgeon, Pediatrician, Medical Researcher, Epidemiologist', 1
+),
+(
+    5, 'CAR-ENG-001', 'Robotics & Automation Engineer', 3, 6, 5,
+    'Designs, programs, and integrates autonomous robotic hardware, robotic arms, sensors, and intelligent automation systems for industries.',
+    'B.Tech / B.E. in Robotics, Mechatronics, or Mechanical Engineering', 'M.Tech in Robotics / Artificial Intelligence Systems',
+    'Physics, Mathematics, Computer Science', 'Robotics R&D Laboratories, Manufacturing Facilities', 'Practical, Analytical, Innovative',
+    'Higher Secondary (PCM) -> B.Tech Robotics/Mechatronics -> Robotics Developer -> Automation Lead -> Director of Robotics R&D',
+    'Junior Automation Engineer / Robotic Programmer', 'Chief Robotics Engineer / R&D Director',
+    'Mechanical Engineer, Embedded Systems Engineer, AI Engineer', 1
+),
+(
+    6, 'CAR-FIN-001', 'Financial Analyst & Investment Banker', 7, 9, 6,
+    'Evaluates financial market trends, corporate financial statements, valuations, investment portfolios, and risk mitigation strategies.',
+    'B.Com / BBA in Finance / B.Sc Economics', 'MBA in Finance / Chartered Accountant (CA) / CFA Charterholder',
+    'Mathematics, Economics, Accountancy, Business Studies', 'Investment Banks, Financial Brokerages, Corporate Finance Offices', 'Analytical, Quantitative, High-Pace',
+    'Higher Secondary (Commerce/Science with Math) -> B.Com/BBA/Econ -> CA/CFA/MBA -> Junior Financial Analyst -> Portfolio Fund Manager',
+    'Financial Analyst / Investment Research Associate', 'Managing Director of Investment Banking / Chief Financial Officer (CFO)',
+    'Chartered Accountant, Risk Manager, Management Consultant', 1
+),
+(
+    7, 'CAR-LAW-001', 'Corporate Legal Counsel', 8, 10, 7,
+    'Advises corporations on legal rights, obligations, commercial contract negotiations, mergers and acquisitions, and regulatory compliance.',
+    'BA LLB / BBA LLB (5-Year Integrated Course)', 'LL.M in Corporate & Commercial Law',
+    'English, Political Science, History, Economics, Legal Studies', 'Corporate Law Firms, Multi-National Corporate Legal Departments', 'Structured, Communicative, Strategic',
+    'Higher Secondary (Any Stream with English) -> CLAT Exam -> 5-Year Integrated LLB -> Associate Lawyer -> General Legal Counsel',
+    'Junior Associate Legal Counsel', 'Partner at Law Firm / General Corporate Counsel',
+    'Civil Litigator, Intellectual Property Attorney, Policy Advisor', 1
+),
+(
+    8, 'CAR-DSGN-001', 'UI/UX & Digital Product Designer', 12, 11, 8,
+    'Designs intuitive, accessible, and visually stunning digital user experiences, interfaces, wireframes, and design systems for web and mobile apps.',
+    'B.Des in Interaction Design / B.Sc Visual Communication', 'M.Des in Human-Computer Interaction / Product Design',
+    'Design, Fine Arts, Computer Science, Psychology', 'Design Agencies, Tech Product Companies, Remote Studios', 'Creative, Empathetic, Visual, Collaborative',
+    'Higher Secondary (Any Stream) -> UCEED / NID Exam -> B.Des / M.Des -> Junior UI/UX Designer -> Product Design Lead -> Head of Design',
+    'Junior UX Designer / Visual Interface Designer', 'VP of Design / Chief Design Officer',
+    'Graphic Designer, Design Researcher, Creative Director', 1
+)
+ON DUPLICATE KEY UPDATE `career_name` = VALUES(`career_name`), `description` = VALUES(`description`);
+
+-- ------------------------------------------------------------
+-- 6. Insert Career Skills (Importance 1 to 5)
+-- ------------------------------------------------------------
+INSERT INTO `career_skills` (`career_id`, `skill_name`, `importance_level`) VALUES
+-- Software Development Engineer
+(1, 'Object-Oriented Programming (Python/Java/C++)', 5),
+(1, 'Data Structures & Algorithms', 5),
+(1, 'Database Architecture (SQL/NoSQL)', 4),
+(1, 'System Design & Scalability', 4),
+(1, 'Git Version Control & CI/CD', 4),
+-- Data Scientist
+(2, 'Machine Learning Algorithms', 5),
+(2, 'Applied Statistics & Probability', 5),
+(2, 'Python / R Programming', 5),
+(2, 'Data Visualization & Storytelling', 4),
+(2, 'SQL & Big Data Processing', 4),
+-- Cybersecurity Specialist
+(3, 'Network Security Protocols', 5),
+(3, 'Penetration Testing & Vulnerability Assessment', 5),
+(3, 'Incident Response & Threat Intelligence', 4),
+(3, 'Cryptography & Public Key Infrastructure', 4),
+-- General Physician
+(4, 'Clinical Diagnostic Examination', 5),
+(4, 'Pharmacology & Prescription Management', 5),
+(4, 'Patient Empathy & Communication', 5),
+(4, 'Emergency First Response Care', 4),
+-- Robotics Engineer
+(5, 'Kinematics & Dynamics of Mechanisms', 5),
+(5, 'Embedded C / C++ Programming', 5),
+(5, 'CAD / CAM 3D Modeling', 4),
+(5, 'Sensor Integration & Signal Processing', 4),
+-- Financial Analyst
+(6, 'Financial Modeling & Valuation', 5),
+(6, 'Excel & Quantitative Analysis', 5),
+(6, 'Corporate Balance Sheet Auditing', 4),
+(6, 'Macroeconomic Forecasting', 4),
+-- Corporate Legal Counsel
+(7, 'Contract Drafting & Negotiation', 5),
+(7, 'Commercial Law Jurisprudence', 5),
+(7, 'Legal Research & Case Analysis', 4),
+(7, 'Oral & Written Argumentation', 4),
+-- UI/UX Designer
+(8, 'User Interface Prototyping (Figma)', 5),
+(8, 'User Research & Usability Testing', 5),
+(8, 'Information Architecture & Wireframing', 4),
+(8, 'Design Systems & Typography', 4)
+ON DUPLICATE KEY UPDATE `importance_level` = VALUES(`importance_level`);
+
+-- ------------------------------------------------------------
+-- 7. Insert Career Subjects (Importance 1 to 5)
+-- ------------------------------------------------------------
+INSERT INTO `career_subjects` (`career_id`, `subject_name`, `importance_level`) VALUES
+-- Software Engineer
+(1, 'Computer Science', 5),
+(1, 'Mathematics', 5),
+(1, 'Physics', 4),
+-- Data Scientist
+(2, 'Mathematics', 5),
+(2, 'Computer Science', 5),
+(2, 'Statistics', 5),
+-- Cybersecurity
+(3, 'Computer Science', 5),
+(3, 'Mathematics', 4),
+(3, 'Physics', 3),
+-- Doctor
+(4, 'Biology', 5),
+(4, 'Chemistry', 5),
+(4, 'Physics', 4),
+(4, 'English', 4),
+-- Robotics Engineer
+(5, 'Physics', 5),
+(5, 'Mathematics', 5),
+(5, 'Computer Science', 4),
+-- Financial Analyst
+(6, 'Accountancy', 5),
+(6, 'Economics', 5),
+(6, 'Mathematics', 4),
+(6, 'Business Studies', 4),
+-- Corporate Lawyer
+(7, 'Political Science', 5),
+(7, 'English', 5),
+(7, 'Economics', 4),
+(7, 'History', 3),
+-- UI/UX Designer
+(8, 'Computer Science', 4),
+(8, 'Psychology', 4),
+(8, 'English', 4)
+ON DUPLICATE KEY UPDATE `importance_level` = VALUES(`importance_level`);
+
+-- ------------------------------------------------------------
+-- 8. Insert Career Education Milestones
+-- ------------------------------------------------------------
+INSERT INTO `career_education` (`career_id`, `education_level`, `degree_name`, `description`, `sequence_order`) VALUES
+(1, 'Higher Secondary (10+2)', 'Science Stream (PCM/CS)', 'Focus on core mathematics, physics, and computer science.', 1),
+(1, 'Undergraduate (UG)', 'B.Tech / B.E. in Computer Science', '4-year foundational degree in algorithms, hardware, and software systems.', 2),
+(1, 'Postgraduate (PG / Optional)', 'M.Tech / M.S. in Computer Science', 'Specialization in distributed computing or software architecture.', 3),
+(4, 'Higher Secondary (10+2)', 'Science Stream (PCB)', 'Focus on biology, chemistry, and physics.', 1),
+(4, 'Undergraduate (UG)', 'MBBS', '5.5-year clinical medicine degree including 1-year rotatory internship.', 2),
+(4, 'Postgraduate (PG)', 'MD / MS in Internal Medicine / Surgery', '3-year specialty residency training.', 3),
+(6, 'Higher Secondary (10+2)', 'Commerce / Science with Math', 'Focus on accountancy, economics, and mathematics.', 1),
+(6, 'Undergraduate (UG)', 'B.Com / BBA / B.Sc Economics', '3-year foundational program in corporate financial structures.', 2),
+(6, 'Postgraduate / Professional', 'MBA (Finance) / CFA / CA', 'Advanced financial charter or master of business administration.', 3),
+(7, 'Higher Secondary (10+2)', 'Any Stream (Humanities/Commerce/Science)', 'Focus on language, analytical reading, and social sciences.', 1),
+(7, 'Undergraduate (UG)', '5-Year Integrated B.A. LL.B / B.B.A. LL.B', 'Comprehensive law degree from recognized National Law University.', 2);
+
+-- ------------------------------------------------------------
+-- 9. Insert Career Pathways Stages
+-- ------------------------------------------------------------
+INSERT INTO `career_pathways` (`career_id`, `stage_number`, `stage_name`, `description`) VALUES
+(1, 1, 'Academic Foundation', 'Excel in STEM subjects in grades 9-12 and participate in programming hackathons.'),
+(1, 2, 'Undergraduate Engineering', 'Complete B.Tech in CSE, build full-stack projects, and secure industrial internships.'),
+(1, 3, 'Junior Software Engineer', 'Work in development teams fixing bugs, building microservice features, and learning agile methodology.'),
+(1, 4, 'Senior / Lead Engineer', 'Lead system design, mentor junior engineers, and manage high-traffic production releases.'),
+(1, 5, 'Principal Architect / CTO', 'Define technology strategy, enterprise architecture, and technical innovation.');
+
+-- ------------------------------------------------------------
+-- 10. Insert Learning Resources
+-- ------------------------------------------------------------
+INSERT INTO `learning_resources` (`career_id`, `title`, `description`, `resource_type`, `url`, `difficulty`, `class_min`, `class_max`, `is_active`) VALUES
+(1, 'CS50: Introduction to Computer Science', 'Harvard University foundation course in computational thinking and programming.', 'Online Course', 'https://cs50.harvard.edu', 'Beginner', 7, 12, 1),
+(1, 'LeetCode Problem Solving Platform', 'Interactive algorithmic challenges across arrays, trees, graphs, and dynamic programming.', 'Practice Platform', 'https://leetcode.com', 'Intermediate', 9, 12, 1),
+(2, 'Kaggle Machine Learning Track', 'Hands-on data science tutorials, datasets, and machine learning competitions.', 'Interactive Platform', 'https://www.kaggle.com/learn', 'Intermediate', 9, 12, 1),
+(4, 'Khan Academy Human Biology & Anatomy', 'Comprehensive anatomical and physiological lesson modules for aspiring doctors.', 'Video Lessons', 'https://www.khanacademy.org/science/biology', 'Beginner', 7, 12, 1),
+(8, 'Google UX Design Professional Certificate', 'Practical foundation in design thinking, user research, wireframing, and Figma.', 'Certification Course', 'https://grow.google/certificates/ux-design', 'Beginner', 8, 12, 1);
+
+-- ------------------------------------------------------------
+-- 11. Insert Adaptive Questions (Grades 7 to 12)
+-- ------------------------------------------------------------
+INSERT INTO `questions` (
+    `id`, `question_code`, `question_text`, `section_id`, `question_type`,
+    `class_min`, `class_max`, `difficulty`, `skill_category`,
+    `is_required`, `display_order`, `explanation`, `is_active`
+) VALUES
+-- Section 2: Mathematical Ability
+(1, 'MATH_01_SEQ', 'What is the next number in the arithmetic sequence: 4, 9, 16, 25, 36, ...?', 2, 'MCQ', 7, 12, 'Easy', 'mathematical_ability', 1, 1, 'The sequence represents consecutive squares: 2^2, 3^2, 4^2, 5^2, 6^2, so next is 7^2 = 49.', 1),
+(2, 'MATH_02_ALG', 'If 3x + 15 = 45, what is the value of x?', 2, 'MCQ', 7, 12, 'Easy', 'mathematical_ability', 1, 2, '3x = 45 - 15 = 30 -> x = 10.', 1),
+(3, 'MATH_03_PCT', 'A store offers a 20% discount on an item marked at Rs. 1500. What is the final selling price?', 2, 'MCQ', 8, 12, 'Medium', 'mathematical_ability', 1, 3, 'Discount = 20% of 1500 = 300. Selling Price = 1500 - 300 = Rs. 1200.', 1),
+(4, 'MATH_04_PROB', 'In how many ways can a committee of 3 students be chosen from a group of 7 candidates?', 2, 'MCQ', 10, 12, 'Hard', 'mathematical_ability', 1, 4, 'Combination 7C3 = (7 * 6 * 5) / (3 * 2 * 1) = 35 ways.', 1),
+
+-- Section 3: Logical Reasoning
+(5, 'LOGIC_01_SER', 'Complete the pattern: AZ, BY, CX, DW, ...?', 3, 'MCQ', 7, 12, 'Easy', 'logical_reasoning', 1, 1, 'First letter goes forward (A, B, C, D, E), second letter goes backward (Z, Y, X, W, V). Next is EV.', 1),
+(6, 'LOGIC_02_SYLL', 'Statement 1: All roses are flowers. Statement 2: Some flowers fade quickly. Which conclusion logically follows?', 3, 'MCQ', 8, 12, 'Medium', 'logical_reasoning', 1, 2, 'Only some flowers fade quickly; we cannot conclude all roses fade quickly.', 1),
+(7, 'LOGIC_03_CODE', 'If CODE is written as DPEF in a cipher, how is SMART written in the same code?', 3, 'MCQ', 7, 12, 'Easy', 'logical_reasoning', 1, 3, 'Each letter is shifted by +1. S->T, M->N, A->B, R->S, T->U: TNBSU.', 1),
+
+-- Section 4: Scientific Thinking
+(8, 'SCI_01_EXP', 'When an apple falls from a tree to the ground, which fundamental force is primarily acting upon it?', 4, 'MCQ', 7, 12, 'Easy', 'scientific_reasoning', 1, 1, 'Earth exerts gravitational force pulling objects towards its center.', 1),
+(9, 'SCI_02_CHEM', 'What happens to the rate of most chemical reactions when the temperature of reactants is increased?', 4, 'MCQ', 8, 12, 'Medium', 'scientific_reasoning', 1, 2, 'Higher temperature increases kinetic energy and collision frequency, increasing reaction rate.', 1),
+(10, 'SCI_03_BIO', 'Which organelle in eukaryotic plant cells is responsible for converting sunlight into chemical glucose via photosynthesis?', 4, 'MCQ', 7, 12, 'Easy', 'scientific_reasoning', 1, 3, 'Chloroplasts contain chlorophyll pigments that capture light for photosynthesis.', 1),
+
+-- Section 5: Problem Solving
+(11, 'PS_01_SCENARIO', 'You are leading a science project team and your lab sensor breaks 2 hours before submission. What is your primary response?', 5, 'SCENARIO', 7, 12, 'Medium', 'problem_solving', 1, 1, 'Evaluate the failure point, check for backup components or simulate data, and reassign tasks calmly.', 1),
+
+-- Section 8: Creativity
+(12, 'CREAT_01_RATE', 'How frequently do you enjoy experimenting with original sketches, graphic design, writing stories, or building unique craft inventions?', 8, 'RATING', 7, 12, 'Easy', 'creativity', 1, 1, 'Self-reported engagement in creative and divergent pursuits.', 1),
+
+-- Section 9: Digital Ability
+(13, 'DIGIT_01_RATE', 'Rate your confidence in writing computer code, building scripts, troubleshooting software, or configuring smart devices:', 9, 'RATING', 7, 12, 'Easy', 'digital_ability', 1, 1, 'Self-reported computational confidence and technology comfort.', 1),
+
+-- Section 13: Interests
+(14, 'INT_TECH_RATE', 'How exciting do you find building apps, artificial intelligence, robotics, and futuristic computer technologies?', 13, 'RATING', 7, 12, 'Easy', 'technology_interest', 1, 1, 'Measures intrinsic affinity towards technology careers.', 1),
+(15, 'INT_MED_RATE', 'How strongly are you interested in understanding human anatomy, curing medical diseases, and saving lives in healthcare?', 13, 'RATING', 7, 12, 'Easy', 'healthcare_interest', 1, 2, 'Measures intrinsic affinity towards medicine and healthcare.', 1),
+(16, 'INT_BIZ_RATE', 'How interested are you in running a business enterprise, investing in financial markets, or managing global products?', 13, 'RATING', 7, 12, 'Easy', 'business_interest', 1, 3, 'Measures intrinsic affinity towards business and financial management.', 1),
+(17, 'INT_LAW_RATE', 'How passionate are you about studying laws, debating human rights, constitution, and defending justice in courts?', 13, 'RATING', 7, 12, 'Easy', 'social_interest', 1, 4, 'Measures intrinsic affinity towards jurisprudence and public policy.', 1)
+ON DUPLICATE KEY UPDATE `question_text` = VALUES(`question_text`), `explanation` = VALUES(`explanation`);
+
+-- ------------------------------------------------------------
+-- 12. Insert Question Options
+-- ------------------------------------------------------------
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES
+-- Q1: Next Square
+(1, 1, '42', '42', 0.00, 0, 1),
+(2, 1, '49', '49', 10.00, 1, 2),
+(3, 1, '54', '54', 0.00, 0, 3),
+(4, 1, '64', '64', 0.00, 0, 4),
+
+-- Q2: 3x + 15 = 45
+(5, 2, '5', '5', 0.00, 0, 1),
+(6, 2, '10', '10', 10.00, 1, 2),
+(7, 2, '15', '15', 0.00, 0, 3),
+(8, 2, '30', '30', 0.00, 0, 4),
+
+-- Q3: Discount
+(9, 3, 'Rs. 1100', '1100', 0.00, 0, 1),
+(10, 3, 'Rs. 1200', '1200', 10.00, 1, 2),
+(11, 3, 'Rs. 1300', '1300', 0.00, 0, 3),
+(12, 3, 'Rs. 1400', '1400', 0.00, 0, 4),
+
+-- Q4: 7C3
+(13, 4, '21', '21', 0.00, 0, 1),
+(14, 4, '35', '35', 10.00, 1, 2),
+(15, 4, '42', '42', 0.00, 0, 3),
+(16, 4, '56', '56', 0.00, 0, 4),
+
+-- Q5: AZ, BY, CX, DW...
+(17, 5, 'EV', 'EV', 10.00, 1, 1),
+(18, 5, 'EU', 'EU', 0.00, 0, 2),
+(19, 5, 'FU', 'FU', 0.00, 0, 3),
+(20, 5, 'FV', 'FV', 0.00, 0, 4),
+
+-- Q6: Syllogism
+(21, 6, 'All roses fade quickly.', 'all_fade', 0.00, 0, 1),
+(22, 6, 'Some roses may fade quickly, but we cannot be certain for all.', 'some_fade', 10.00, 1, 2),
+(23, 6, 'No roses fade quickly.', 'no_fade', 0.00, 0, 3),
+(24, 6, 'Roses are not flowers.', 'not_flowers', 0.00, 0, 4),
+
+-- Q7: SMART cipher
+(25, 7, 'TNBSU', 'TNBSU', 10.00, 1, 1),
+(26, 7, 'RLZQS', 'RLZQS', 0.00, 0, 2),
+(27, 7, 'TOBTU', 'TOBTU', 0.00, 0, 3),
+(28, 7, 'SNBSV', 'SNBSV', 0.00, 0, 4),
+
+-- Q8: Apple Gravity
+(29, 8, 'Magnetic Force', 'magnetic', 0.00, 0, 1),
+(30, 8, 'Gravitational Force', 'gravity', 10.00, 1, 2),
+(31, 8, 'Electrostatic Force', 'electrostatic', 0.00, 0, 3),
+(32, 8, 'Nuclear Force', 'nuclear', 0.00, 0, 4),
+
+-- Q9: Reaction Rate
+(33, 9, 'The reaction rate increases.', 'increases', 10.00, 1, 1),
+(34, 9, 'The reaction rate decreases.', 'decreases', 0.00, 0, 2),
+(35, 9, 'The reaction completely stops.', 'stops', 0.00, 0, 3),
+(36, 9, 'Temperature has no effect on reaction rates.', 'no_effect', 0.00, 0, 4),
+
+-- Q10: Chloroplast
+(37, 10, 'Mitochondria', 'mitochondria', 0.00, 0, 1),
+(38, 10, 'Chloroplasts', 'chloroplasts', 10.00, 1, 2),
+(39, 10, 'Endoplasmic Reticulum', 'er', 0.00, 0, 3),
+(40, 10, 'Golgi Apparatus', 'golgi', 0.00, 0, 4),
+
+-- Q11: Scenario
+(41, 11, 'Panic and abandon the project submission.', 'panic', 1.00, 0, 1),
+(42, 11, 'Troubleshoot the sensor circuit, inspect wires, test backup data, and update the report presentation.', 'troubleshoot', 10.00, 1, 2),
+(43, 11, 'Blame a team member for the hardware failure.', 'blame', 0.00, 0, 3),
+(44, 11, 'Wait passively for someone else to fix the hardware.', 'wait', 2.00, 0, 4),
+
+-- Q12: Creativity Rating (1-5)
+(45, 12, '1 - Rare / Never', '1', 2.00, 0, 1),
+(46, 12, '2 - Occasionally', '2', 4.00, 0, 2),
+(47, 12, '3 - Moderate', '3', 6.00, 0, 3),
+(48, 12, '4 - Frequent', '4', 8.00, 0, 4),
+(49, 12, '5 - Passionately / Constant', '5', 10.00, 1, 5),
+
+-- Q13: Digital Ability Rating (1-5)
+(50, 13, '1 - Basic / Limited', '1', 2.00, 0, 1),
+(51, 13, '2 - Familiar with Office/Browsing', '2', 4.00, 0, 2),
+(52, 13, '3 - Comfortable troubleshooting apps', '3', 6.00, 0, 3),
+(53, 13, '4 - Basic coding & automation skills', '4', 8.00, 0, 4),
+(54, 13, '5 - Advanced programming & tech projects', '5', 10.00, 1, 5),
+
+-- Q14-Q17: Interest Ratings (1-5)
+(55, 14, '1 - Not Interested', '1', 2.00, 0, 1),
+(56, 14, '2 - Slightly Interested', '2', 4.00, 0, 2),
+(57, 14, '3 - Moderately Interested', '3', 6.00, 0, 3),
+(58, 14, '4 - Very Interested', '4', 8.00, 0, 4),
+(59, 14, '5 - Extremely Passionate', '5', 10.00, 1, 5),
+
+(60, 15, '1 - Not Interested', '1', 2.00, 0, 1),
+(61, 15, '2 - Slightly Interested', '2', 4.00, 0, 2),
+(62, 15, '3 - Moderately Interested', '3', 6.00, 0, 3),
+(63, 15, '4 - Very Interested', '4', 8.00, 0, 4),
+(64, 15, '5 - Extremely Passionate', '5', 10.00, 1, 5),
+
+(65, 16, '1 - Not Interested', '1', 2.00, 0, 1),
+(66, 16, '2 - Slightly Interested', '2', 4.00, 0, 2),
+(67, 16, '3 - Moderately Interested', '3', 6.00, 0, 3),
+(68, 16, '4 - Very Interested', '4', 8.00, 0, 4),
+(69, 16, '5 - Extremely Passionate', '5', 10.00, 1, 5),
+
+(70, 17, '1 - Not Interested', '1', 2.00, 0, 1),
+(71, 17, '2 - Slightly Interested', '2', 4.00, 0, 2),
+(72, 17, '3 - Moderately Interested', '3', 6.00, 0, 3),
+(73, 17, '4 - Very Interested', '4', 8.00, 0, 4),
+(74, 17, '5 - Extremely Passionate', '5', 10.00, 1, 5)
+ON DUPLICATE KEY UPDATE `option_text` = VALUES(`option_text`), `score` = VALUES(`score`);
+
+-- ------------------------------------------------------------
+-- 13. Insert Default Users, Students & Academic Records
+-- ------------------------------------------------------------
+-- Password for all seed accounts: Admin@123 / Student@123 (scrypt / bcrypt hashed)
+-- Hashed representation: $2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6L656q0cx7E9f2ba
+INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `role`, `created_at`) VALUES
+(1, 'admin', 'admin@careerguidance.edu', '$2b$12$1uTq9qJ3Y8m07X6yE2wEPePqC89F.6D2uVzZ0w2a2E1b9K0P4g9k.', 'admin', NOW()),
+(2, 'rahul_class8', 'rahul.sharma@school.edu', '$2b$12$1uTq9qJ3Y8m07X6yE2wEPePqC89F.6D2uVzZ0w2a2E1b9K0P4g9k.', 'student', NOW()),
+(3, 'ananya_class10', 'ananya.iyer@school.edu', '$2b$12$1uTq9qJ3Y8m07X6yE2wEPePqC89F.6D2uVzZ0w2a2E1b9K0P4g9k.', 'student', NOW()),
+(4, 'aravind_class12', 'aravind.nair@school.edu', '$2b$12$1uTq9qJ3Y8m07X6yE2wEPePqC89F.6D2uVzZ0w2a2E1b9K0P4g9k.', 'student', NOW())
+ON DUPLICATE KEY UPDATE `email` = VALUES(`email`);
+
+INSERT INTO `students` (
+    `id`, `user_id`, `student_code`, `first_name`, `last_name`,
+    `age`, `gender`, `class_level`, `board`, `medium`,
+    `academic_year`, `stream`, `created_at`
+) VALUES
+(1, 2, 'STU-2026-0001', 'Rahul', 'Sharma', 13, 'Male', 8, 'CBSE', 'English', '2026-2027', 'General', NOW()),
+(2, 3, 'STU-2026-0002', 'Ananya', 'Iyer', 15, 'Female', 10, 'ICSE', 'English', '2026-2027', 'General', NOW()),
+(3, 4, 'STU-2026-0003', 'Aravind', 'Nair', 17, 'Male', 12, 'State Board', 'English', '2026-2027', 'Science-PCM', NOW())
+ON DUPLICATE KEY UPDATE `student_code` = VALUES(`student_code`);
+
+INSERT INTO `academic_scores` (
+    `id`, `student_id`,
+    `mathematics_score`, `science_score`, `physics_score`, `chemistry_score`,
+    `computer_science_score`, `english_score`, `social_science_score`,
+    `overall_percentage`, `created_at`
+) VALUES
+(1, 1, 88.00, 85.00, NULL, NULL, 90.00, 82.00, 78.00, 84.60, NOW()),
+(2, 2, 94.00, 92.00, NULL, NULL, 96.00, 89.00, 84.00, 91.00, NOW()),
+(3, 3, 91.00, NULL, 89.00, 86.00, 95.00, 85.00, NULL, 89.20, NOW())
+ON DUPLICATE KEY UPDATE `overall_percentage` = VALUES(`overall_percentage`);
+
+-- 3. 1,206 CAREERS & SKILLS
+-- ============================================================
 -- Career Knowledge Dataset - MySQL Workbench SQL Script
 -- Complete Normalized Dataset of 1,202 Careers across 33 Domains
 -- ============================================================
@@ -3156,3 +4194,881 @@ INSERT INTO `careers` (`id`, `career_code`, `career_name`, `domain_id`, `subdoma
 INSERT INTO `careers` (`id`, `career_code`, `career_name`, `domain_id`, `subdomain_id`, `cluster_id`, `description`, `minimum_education`, `typical_education`, `preferred_subjects`, `work_environment`, `work_style`, `career_pathway`, `entry_level_role`, `advanced_role`, `related_careers`, `is_active`) VALUES (2412, 'CAR-INT-1357-2201', 'Judge', 28, 372, 438, 'Professionals in the Legal Practice field of Law, typically involved in judiciary related work.', 'Higher Secondary', 'Diploma (Relevant Bachelor Degree)', 'Economics', 'Office', 'Structured', 'Diploma -> Judge', 'Junior Judge', 'Senior Judge / Lead Legal Practice Specialist', 'Junior Lawyer, Junior Lawyer, Junior Lawyer', 1) ON DUPLICATE KEY UPDATE `career_name`=VALUES(`career_name`);
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- 4. ADAPTIVE QUESTION BANK
+-- ============================================================
+-- Adaptive Student Question Bank - MySQL Workbench SQL Script
+-- Contains questions across all 19 standardized assessment sections
+-- ============================================================
+USE `career_recommendation_db`;
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+DELETE FROM `question_options`;
+DELETE FROM `questions`;
+
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (1, 'ACAD_01_FAV_78', 'Which school subject do you naturally look forward to the most during the week?', 1, 'MCQ', 7, 8, 'Easy', 'learning_ability', 'All', TRUE, 1, 'Identifies foundational subject inclinations in middle school.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (1, 1, 'Mathematics and numbers', 'A', 1.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (2, 1, 'Science experiments and nature', 'B', 1.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (3, 1, 'Computers and technology', 'C', 1.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (4, 1, 'Social studies, languages, or art', 'D', 1.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (2, 'ACAD_02_STUDY_78', 'How do you prefer to learn and understand new concepts in class?', 1, 'RATING', 7, 8, 'Easy', 'learning_ability', 'All', TRUE, 2, 'Assesses preference for active hands-on exploration versus passive reading.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (5, 2, '1 - Passive Memorization', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (6, 2, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (7, 2, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (8, 2, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (9, 2, '5 - Hands-on Practical Exploration', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (3, 'ACAD_03_STREAM_INT_910', 'When planning for Class 11 and 12, which academic stream currently aligns closest with your goals?', 1, 'MCQ', 9, 10, 'Medium', 'learning_ability', 'All', TRUE, 3, 'Measures secondary student stream inclination ahead of high school transition.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (10, 3, 'Science (Physics, Chemistry, Mathematics / Biology)', 'A', 1.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (11, 3, 'Commerce (Accountancy, Business Studies, Economics)', 'B', 1.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (12, 3, 'Humanities / Arts (History, Political Science, Psychology)', 'C', 1.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (13, 3, 'Applied Vocational / Computer Applications / Design', 'D', 1.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (4, 'ACAD_04_CONF_910', 'How confident do you feel when preparing for complex board-level conceptual exam questions?', 1, 'RATING', 9, 10, 'Medium', 'learning_ability', 'All', TRUE, 4, 'Evaluates self-efficacy and academic resilience under rigorous evaluation.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (14, 4, '1 - Highly Anxious', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (15, 4, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (16, 4, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (17, 4, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (18, 4, '5 - Fully Prepared & Confident', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (5, 'ACAD_05_PREP_1112', 'What is your primary preparation focus alongside your Class 11-12 curriculum?', 1, 'MCQ', 11, 12, 'Medium', 'learning_ability', 'All', TRUE, 5, 'Captures post-secondary trajectory and competitive entrance examination focus.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (19, 5, 'National competitive entrance exams (JEE, NEET, NDA, CLAT, CUET, CA Foundation)', 'A', 1.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (20, 5, 'Board examination excellence and university merit admission', 'B', 1.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (21, 5, 'Building a portfolio / practical projects for design, coding, or entrepreneurship', 'C', 1.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (22, 5, 'Exploring international studies and standardized global tests', 'D', 1.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (6, 'ACAD_SCI_01_1112', 'In your science coursework, which area engages your deepest problem-solving interest?', 1, 'MCQ', 11, 12, 'Hard', 'scientific_reasoning', 'Science', TRUE, 6, 'Differentiates mathematical-physical sciences (PCM) from biological-clinical sciences (PCB).', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (23, 6, 'Mathematical physics, calculus mechanics, and computing algorithms', 'A', 1.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (24, 6, 'Cellular biology, genetic mechanisms, and physiological biochemistry', 'B', 1.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (25, 6, 'Organic synthesis, molecular structures, and industrial chemical processes', 'C', 1.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (26, 6, 'Experimental lab diagnostics and empirical scientific data analysis', 'D', 1.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (7, 'ACAD_COM_01_1112', 'Which dimension of commerce and enterprise excites your analytical curiosity the most?', 1, 'MCQ', 11, 12, 'Hard', 'analytical_ability', 'Commerce', TRUE, 7, 'Differentiates financial accounting, economic modeling, and corporate management paths.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (27, 7, 'Financial statements, taxation laws, auditing, and ledger balance', 'A', 1.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (28, 7, 'Macroeconomic policies, market supply-demand curves, and monetary policy', 'B', 1.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (29, 7, 'Stock market investing, venture capital, and corporate valuation', 'C', 1.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (30, 7, 'Business strategy, marketing psychology, and supply chain operations', 'D', 1.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (8, 'ACAD_HUM_01_1112', 'In humanities and social studies, which core area do you find most intellectually compelling?', 1, 'MCQ', 11, 12, 'Hard', 'analytical_ability', 'Humanities', TRUE, 8, 'Differentiates legal-policy, psychological, and historical-literary pathways.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (31, 8, 'Constitutional law, governance systems, and international diplomacy', 'A', 1.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (32, 8, 'Human cognitive behavior, developmental psychology, and social counseling', 'B', 1.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (33, 8, 'Historical revolutions, archaeological heritage, and geopolitical dynamics', 'C', 1.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (34, 8, 'Literature, journalism, investigative media, and sociological field research', 'D', 1.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (9, 'MATH_01_SEQ_78', 'What is the next number in the square-based sequence: 4, 9, 16, 25, 36, ...?', 2, 'MCQ', 7, 8, 'Easy', 'mathematical_ability', 'All', TRUE, 1, 'The terms represent consecutive squares: 2^2=4, 3^2=9, 4^2=16, 5^2=25, 6^2=36, so next is 7^2 = 49.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (35, 9, '45', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (36, 9, '47', 'B', 0.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (37, 9, '49', 'C', 1.0, 1, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (38, 9, '52', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (10, 'MATH_02_PERC_78', 'A book priced at ₹400 is offered at a 25% discount. What is its final selling price?', 2, 'MCQ', 7, 8, 'Easy', 'mathematical_ability', 'All', TRUE, 2, 'Discount = 25% of 400 = ₹100. Final Price = 400 - 100 = ₹300.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (39, 10, '₹280', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (40, 10, '₹300', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (41, 10, '₹320', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (42, 10, '₹350', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (11, 'MATH_03_RATIO_78', 'If a recipe requires flour and sugar in the ratio 3:2, how much sugar is needed for 450 grams of flour?', 2, 'MCQ', 7, 8, 'Medium', 'mathematical_ability', 'All', TRUE, 3, 'Ratio = 3/2 -> 450 / Sugar = 3/2 -> Sugar = (450 * 2) / 3 = 300 grams.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (43, 11, '225 grams', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (44, 11, '280 grams', 'B', 0.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (45, 11, '300 grams', 'C', 1.0, 1, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (46, 11, '350 grams', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (12, 'MATH_04_ALG_78', 'If 3x + 15 = 45, what is the value of x?', 2, 'MCQ', 7, 8, 'Easy', 'mathematical_ability', 'All', TRUE, 4, '3x = 45 - 15 = 30 -> x = 30 / 3 = 10.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (47, 12, '8', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (48, 12, '10', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (49, 12, '12', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (50, 12, '15', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (13, 'MATH_05_GEOM_78', 'A rectangular playground has a length of 25 meters and a perimeter of 80 meters. What is its width?', 2, 'MCQ', 7, 8, 'Medium', 'mathematical_ability', 'All', TRUE, 5, 'Perimeter = 2*(L + W) = 80 -> L + W = 40 -> W = 40 - 25 = 15 meters.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (51, 13, '12 meters', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (52, 13, '15 meters', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (53, 13, '18 meters', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (54, 13, '20 meters', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (14, 'MATH_06_QUAD_910', 'What are the roots of the quadratic equation x² - 7x + 12 = 0?', 2, 'MCQ', 9, 10, 'Medium', 'mathematical_ability', 'All', TRUE, 6, '(x - 3)(x - 4) = 0 -> x = 3, 4.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (55, 14, 'x = 2, 6', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (56, 14, 'x = 3, 4', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (57, 14, 'x = -3, -4', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (58, 14, 'x = 1, 12', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (15, 'MATH_07_PROB_910', 'Two fair 6-sided dice are rolled simultaneously. What is the probability that the sum of the numbers is 8?', 2, 'MCQ', 9, 10, 'Hard', 'mathematical_ability', 'All', TRUE, 7, 'Combinations summing to 8: (2,6), (3,5), (4,4), (5,3), (6,2) -> 5 outcomes out of 36 -> 5/36.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (59, 15, '4/36 (1/9)', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (60, 15, '5/36', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (61, 15, '6/36 (1/6)', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (62, 15, '7/36', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (16, 'MATH_08_COMM_910', 'An investment of ₹10,000 earns compound interest at 10% per annum compounded annually. What is the total amount after 2 years?', 2, 'MCQ', 9, 10, 'Medium', 'mathematical_ability', 'All', TRUE, 8, 'A = P(1 + r/100)^t = 10,000 * (1.1)^2 = 10,000 * 1.21 = ₹12,100.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (63, 16, '₹11,500', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (64, 16, '₹12,000', 'B', 0.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (65, 16, '₹12,100', 'C', 1.0, 1, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (66, 16, '₹12,500', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (17, 'MATH_09_STAT_910', 'The marks of 7 students in a test are: 14, 18, 12, 20, 16, 15, 17. What is the median mark?', 2, 'MCQ', 9, 10, 'Easy', 'mathematical_ability', 'All', TRUE, 9, 'Arranged in ascending order: 12, 14, 15, 16, 17, 18, 20. The middle (4th) value is 16.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (67, 17, '15', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (68, 17, '16', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (69, 17, '16.5', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (70, 17, '17', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (18, 'MATH_10_TRIG_910', 'A 10-meter ladder leans against a vertical wall making an angle of 60° with the ground. How high up the wall does the ladder reach? (sin 60° = √3/2 ≈ 0.866)', 2, 'MCQ', 9, 10, 'Medium', 'mathematical_ability', 'All', TRUE, 10, 'Height = Hypotenuse * sin(60°) = 10 * 0.866 = 8.66 meters.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (71, 18, '5.00 meters', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (72, 18, '7.07 meters', 'B', 0.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (73, 18, '8.66 meters', 'C', 1.0, 1, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (74, 18, '10.00 meters', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (19, 'MATH_11_PERM_1112', 'In how many ways can a committee of 3 students be chosen from a group of 8 candidates?', 2, 'MCQ', 11, 12, 'Medium', 'mathematical_ability', 'All', TRUE, 11, '8C3 = (8 * 7 * 6) / (3 * 2 * 1) = 56 ways.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (75, 19, '24', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (76, 19, '48', 'B', 0.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (77, 19, '56', 'C', 1.0, 1, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (78, 19, '336', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (20, 'MATH_12_LOG_1112', 'If log₁₀(x) + log₁₀(x - 3) = 1, what is the valid real value of x?', 2, 'MCQ', 11, 12, 'Hard', 'mathematical_ability', 'All', TRUE, 12, 'log₁₀(x(x - 3)) = 1 -> x² - 3x = 10 -> x² - 3x - 10 = 0 -> (x - 5)(x + 2) = 0. Since log requires positive arguments, x = 5.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (79, 20, 'x = 2', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (80, 20, 'x = 4', 'B', 0.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (81, 20, 'x = 5', 'C', 1.0, 1, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (82, 20, 'x = 10', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (21, 'MATH_13_MATR_1112', 'What is the determinant of the 2x2 matrix [[4, 3], [2, 5]]?', 2, 'MCQ', 11, 12, 'Medium', 'mathematical_ability', 'All', TRUE, 13, 'Determinant = (ad - bc) = (4 * 5) - (3 * 2) = 20 - 6 = 14.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (83, 21, '10', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (84, 21, '14', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (85, 21, '26', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (86, 21, '20', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (22, 'MATH_SCI_02_1112', 'What is the derivative of f(x) = 3x³ - 5x² + 7x - 4 with respect to x?', 2, 'MCQ', 11, 12, 'Medium', 'mathematical_ability', 'Science', TRUE, 14, 'd/dx(3x^3 - 5x^2 + 7x - 4) = 9x^2 - 10x + 7.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (87, 22, '9x² - 10x + 7', 'A', 1.0, 1, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (88, 22, '6x² - 5x + 7', 'B', 0.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (89, 22, '9x³ - 10x² + 7', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (90, 22, '3x² - 10x + 4', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (23, 'MATH_COM_02_1112', 'A manufacturing unit has fixed costs of ₹50,000, variable cost per unit of ₹30, and selling price per unit of ₹50. What is the break-even quantity?', 2, 'MCQ', 11, 12, 'Hard', 'mathematical_ability', 'Commerce', TRUE, 15, 'Break-even = Fixed Cost / (Selling Price - Variable Cost) = 50,000 / (50 - 30) = 50,000 / 20 = 2,500 units.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (91, 23, '1,800 units', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (92, 23, '2,200 units', 'B', 0.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (93, 23, '2,500 units', 'C', 1.0, 1, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (94, 23, '3,000 units', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (24, 'LOGIC_01_SER_78', 'Complete the letter series: AZ, BY, CX, DW, ...?', 3, 'MCQ', 7, 8, 'Easy', 'logical_reasoning', 'All', TRUE, 1, 'First letters increase forward (A, B, C, D, E), second letters move backward (Z, Y, X, W, V) -> EV.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (95, 24, 'EU', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (96, 24, 'EV', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (97, 24, 'FU', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (98, 24, 'FV', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (25, 'LOGIC_02_ANLG_78', 'Thermometer is to Temperature as Barometer is to:', 3, 'MCQ', 7, 8, 'Easy', 'logical_reasoning', 'All', TRUE, 2, 'A thermometer measures temperature; a barometer measures atmospheric pressure.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (99, 25, 'Humidity', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (100, 25, 'Atmospheric Pressure', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (101, 25, 'Wind Velocity', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (102, 25, 'Rainfall Volume', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (26, 'LOGIC_03_DIR_78', 'Anil walks 10 meters North, turns right and walks 6 meters, then turns right again and walks 10 meters. In which direction is he from his starting point?', 3, 'MCQ', 7, 8, 'Medium', 'logical_reasoning', 'All', TRUE, 3, '10m North, 6m East, 10m South puts him exactly 6 meters East of his start point.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (103, 26, 'North', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (104, 26, 'East', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (105, 26, 'South', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (106, 26, 'West', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (27, 'LOGIC_04_CLASS_78', 'Which word does NOT belong with the others in the group?', 3, 'MCQ', 7, 8, 'Easy', 'logical_reasoning', 'All', TRUE, 4, 'Guitar, Violin, and Cello are stringed instruments played with fingers/bows; Flute is a wind woodwind instrument.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (107, 27, 'Guitar', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (108, 27, 'Violin', 'B', 0.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (109, 27, 'Flute', 'C', 1.0, 1, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (110, 27, 'Cello', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (28, 'LOGIC_05_SYLL_910', 'Statements: (1) All scientists are curious. (2) Some curious people are inventors. Conclusion: (I) All inventors are scientists. (II) Some scientists might be inventors. Which is logically valid?', 3, 'MCQ', 9, 10, 'Medium', 'logical_reasoning', 'All', TRUE, 5, 'Only conclusion II is a possible logical deduction; I is an invalid overgeneralization.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (111, 28, 'Only Conclusion I follows', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (112, 28, 'Only Conclusion II follows', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (113, 28, 'Both I and II follow', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (114, 28, 'Neither follows', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (29, 'LOGIC_06_SEAT_910', 'Five students P, Q, R, S, T sit in a row. S is to the immediate right of P. Q is to the immediate left of P. T is to the right of S. Who is sitting in the middle?', 3, 'MCQ', 9, 10, 'Medium', 'logical_reasoning', 'All', TRUE, 6, 'Order from left to right: Q, P, S, T (with R at the edge). P is flanked by Q and S, placing P in the central position.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (115, 29, 'Q', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (116, 29, 'P', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (117, 29, 'S', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (118, 29, 'T', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (30, 'LOGIC_07_CODE_910', 'In a certain code, ''LOGIC'' is coded as ''MQHJD'' (each letter shifted +1 forward). How is ''BRAIN'' coded in that same system?', 3, 'MCQ', 9, 10, 'Easy', 'logical_reasoning', 'All', TRUE, 7, 'B->C, R->S, A->B, I->J, N->O -> ''CSBJO''.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (119, 30, 'CSBJO', 'A', 1.0, 1, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (120, 30, 'CRBJO', 'B', 0.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (121, 30, 'DSCKP', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (122, 30, 'BQZHM', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (31, 'LOGIC_08_COND_1112', 'Consider the rule: ''If a student passes the entrance test (P), they receive a merit scholarship (Q).'' Which of the following is logically equivalent to this rule (the contrapositive)?', 3, 'MCQ', 11, 12, 'Hard', 'logical_reasoning', 'All', TRUE, 8, 'The contrapositive of ''If P then Q'' is ''If not Q, then not P'' (If a student did not receive a merit scholarship, they did not pass the entrance test).', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (123, 31, 'If a student receives a scholarship, they passed the entrance test', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (124, 31, 'If a student does not receive a scholarship, they did not pass the entrance test', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (125, 31, 'If a student fails the test, they do not get a scholarship', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (126, 31, 'A student receives a scholarship only if they fail the test', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (32, 'LOGIC_09_ASSUMP_1112', 'Statement: ''The school introduced coding classes in Class 6 to prepare students for high-tech future careers.'' What assumption is implicitly made?', 3, 'MCQ', 11, 12, 'Hard', 'logical_reasoning', 'All', TRUE, 9, 'The initiative assumes that early computational foundational training positively equips students for future technological employment requirements.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (127, 32, 'Every single student in Class 6 will become a professional software engineer', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (128, 32, 'Early exposure to computational thinking contributes to readiness for technology-driven career landscapes', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (129, 32, 'No other subject will be taught in Class 6', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (130, 32, 'Traditional non-tech careers will vanish completely within two years', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (33, 'SCI_01_EXP_78', 'A student wants to test whether sunlight affects seed germination. Which factor should be changed while keeping all other conditions identical?', 4, 'MCQ', 7, 8, 'Easy', 'scientific_reasoning', 'All', TRUE, 1, 'In a controlled experiment, only the independent variable being tested (light exposure) should vary.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (131, 33, 'Amount of water given to each pot', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (132, 33, 'Type of soil used in each pot', 'B', 0.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (133, 33, 'Exposure to sunlight (dark vs bright)', 'C', 1.0, 1, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (134, 33, 'Number of seeds placed in each pot', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (34, 'SCI_02_DENS_78', 'An iron nail sinks in water, but a huge ship made of iron and steel floats. What scientific principle explains this?', 4, 'MCQ', 7, 8, 'Medium', 'scientific_reasoning', 'All', TRUE, 2, 'The hollow shape of the ship gives it a large volume and air pockets, making its overall average density less than water.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (135, 34, 'The ship is coated with water-repellent paint', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (136, 34, 'The hollow design reduces the ship''s average density below that of water', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (137, 34, 'Ocean water has zero buoyancy force', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (138, 34, 'Iron changes its chemical properties when heated', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (35, 'SCI_03_HEAT_78', 'Why are small gaps left between consecutive metal rails on a railway track?', 4, 'MCQ', 7, 8, 'Easy', 'scientific_reasoning', 'All', TRUE, 3, 'Metals expand thermally during hot summer temperatures; expansion gaps prevent tracks from buckling.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (139, 35, 'To save iron and construction costs', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (140, 35, 'To allow thermal expansion during hot summer days without track buckling', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (141, 35, 'To let rainwater drain into the ground', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (142, 35, 'To make the train produce a rhythmic sound', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (36, 'SCI_04_HYP_910', 'An enzyme reaction speeds up as temperature rises from 20°C to 40°C, but drops sharply above 45°C. What is the most plausible biological hypothesis?', 4, 'MCQ', 9, 10, 'Medium', 'scientific_reasoning', 'All', TRUE, 4, 'Enzymes are protein catalysts; at excessive temperatures (>45°C), their 3D tertiary structure denatures and loses function.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (143, 36, 'The substrate concentration drops to zero at 45°C', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (144, 36, 'High temperature denatures the enzyme''s protein active site', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (145, 36, 'Water molecules evaporate completely at 45°C', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (146, 36, 'Enzymes turn into lipids at elevated temperatures', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (37, 'SCI_05_CIRCUIT_910', 'In a series circuit with 3 identical light bulbs, what happens if one bulb burns out (breaks the circuit)?', 4, 'MCQ', 9, 10, 'Medium', 'scientific_reasoning', 'All', TRUE, 5, 'In a series circuit, there is only one current path; an open break stops current flow to all components.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (147, 37, 'The other two bulbs shine twice as brightly', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (148, 37, 'The other two bulbs go out completely', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (149, 37, 'The remaining bulbs flicker intermittently', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (150, 37, 'The voltage across the battery increases', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (38, 'SCI_06_GEN_910', 'In a cross between two heterozygous tall pea plants (Tt x Tt), what percentage of offspring are expected to be short (tt)?', 4, 'MCQ', 9, 10, 'Medium', 'scientific_reasoning', 'All', TRUE, 6, 'Punnett square for Tt x Tt produces 1 TT (tall), 2 Tt (tall), 1 tt (short) -> 1/4 = 25% short plants.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (151, 38, '0%', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (152, 38, '25%', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (153, 38, '50%', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (154, 38, '75%', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (39, 'SCI_07_EVID_1112', 'A clinical study reports that Drug X reduces fever 20% faster than a placebo, but the sample size was only 6 patients. How should a scientific researcher evaluate this finding?', 4, 'MCQ', 11, 12, 'Hard', 'scientific_reasoning', 'All', TRUE, 7, 'Small sample sizes have high variance and lack statistical power; results require double-blind randomized trials with large cohorts.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (155, 39, 'Accept the result immediately as definitive proof', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (156, 39, 'Reject validity until verified by large-scale randomized controlled trials', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (157, 39, 'Conclude that fever is completely cured by Drug X', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (158, 39, 'Publish immediately without peer review', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (40, 'SCI_08_THERM_1112', 'According to the Second Law of Thermodynamics, in an isolated system during any spontaneous natural process, what happens to the total entropy?', 4, 'MCQ', 11, 12, 'Hard', 'scientific_reasoning', 'Science', TRUE, 8, 'The Second Law dictates that the total entropy (disorder) of an isolated system always increases over time (ΔS_total > 0).', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (159, 40, 'Entropy always decreases to absolute zero', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (160, 40, 'Entropy always increases or remains constant in a reversible process', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (161, 40, 'Entropy transforms directly into gravitational potential energy', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (162, 40, 'Entropy fluctuates purely at random without direction', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (41, 'PS_01_QUEUE_78', 'Scenario: During school lunch break, long lines form at the single food counter, causing delays. What is the most effective immediate solution?', 5, 'SCENARIO', 7, 8, 'Easy', 'problem_solving', 'All', TRUE, 1, 'Separating payment/ordering from collection parallelizes throughput and eliminates bottlenecks.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (163, 41, 'Tell students to run faster to the canteen', 'A', 0.2, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (164, 41, 'Create two separate lines: one for pre-packed tokens and one for food pickup', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (165, 41, 'Cancel the lunch break', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (166, 41, 'Serve food only to older students first', 'D', 0.2, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (42, 'PS_02_DIAG_78', 'Your computer monitor displays a black screen when turned on, but the CPU power light is green. What is the logical first troubleshooting step?', 5, 'MCQ', 7, 8, 'Easy', 'problem_solving', 'All', TRUE, 2, 'Check physical display cable connection and monitor power supply before software or internal hardware diagnosis.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (167, 42, 'Reinstall the entire operating system', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (168, 42, 'Check if monitor power and HDMI/video display cable are firmly plugged in', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (169, 42, 'Replace the computer motherboard immediately', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (170, 42, 'Delete all browser cache files', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (43, 'PS_03_TRADE_910', 'Scenario: Your science exhibition team has only 2 days left before submission. The main robot chassis is complete, but the automated audio greeting is buggy. How should you prioritize?', 5, 'SCENARIO', 9, 10, 'Medium', 'problem_solving', 'All', TRUE, 3, 'Focus on core functional requirements and system stability rather than non-essential cosmetic features under deadline pressure.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (171, 43, 'Dismantle the entire robot to start over', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (172, 43, 'Disable the optional audio feature and rigorously test the primary robotic mobility functions', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (173, 43, 'Spend all remaining time fixing audio while leaving mobility untested', 'C', 0.3, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (174, 43, 'Withdraw from the exhibition', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (44, 'PS_04_ROOT_910', 'A school library reports that book lending dropped 40% in 6 months. What analytical root-cause investigation step should be taken first?', 5, 'SCENARIO', 9, 10, 'Medium', 'problem_solving', 'All', TRUE, 4, 'Gather empirical survey data from students regarding catalogue relevance, digital access, and library timings before proposing interventions.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (175, 44, 'Buy 1,000 random novels without asking anyone', 'A', 0.1, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (176, 44, 'Survey students on catalog relevance, digital access, and opening hours to identify friction points', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (177, 44, 'Impose mandatory library attendance fines on all classes', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (178, 44, 'Close the library permanently', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (45, 'PS_05_OPTIM_1112', 'Scenario: A hospital has 3 ambulances and must respond to 5 emergency calls simultaneously in different zones. What strategy optimizes survival outcomes?', 5, 'SCENARIO', 11, 12, 'Hard', 'problem_solving', 'All', TRUE, 5, 'Triage severity scoring coupled with GPS route optimization ensures highest-criticality cases receive immediate response while coordinating secondary dispatch.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (179, 45, 'Dispatch strictly on a first-come, first-served basis regardless of injury severity', 'A', 0.2, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (180, 45, 'Triage by medical severity score and dispatch closest units to critical emergencies while routing non-critical to backup partners', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (181, 45, 'Wait until all 5 patients are ready before dispatching', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (182, 45, 'Send all 3 ambulances to the closest hospital', 'D', 0.1, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (46, 'PS_06_SYSTEMS_1112', 'When a retail company discounts a product by 50%, store sales surge 200%, but supplier warehouses run out of stock for 3 weeks. What systems-thinking failure occurred?', 5, 'MCQ', 11, 12, 'Hard', 'problem_solving', 'All', TRUE, 6, 'Failing to integrate upstream supply chain lead-time feedback loops with front-end marketing promotion demand creates stockouts.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (183, 46, 'The customers bought too many products', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (184, 46, 'Failure to coordinate demand spikes with upstream supply chain inventory lead times', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (185, 46, 'The warehouse workers took too many holidays', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (186, 46, 'Discounts should be banned by law', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (47, 'ANAL_01_CHART_910', 'A line graph shows renewable energy usage rising from 10% in 2015 to 25% in 2020 and 40% in 2025. What is the average annual percentage-point growth rate over the 10-year period?', 6, 'MCQ', 7, 10, 'Medium', 'analytical_ability', 'All', TRUE, 1, 'Total growth = 40% - 10% = 30 percentage points over 10 years -> 30 / 10 = 3 percentage points per year.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (187, 47, '2.0 percentage points / year', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (188, 47, '3.0 percentage points / year', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (189, 47, '4.5 percentage points / year', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (190, 47, '5.0 percentage points / year', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (48, 'ANAL_02_CORR_910', 'Ice cream sales and drowning incidents both peak during July. What is the most accurate analytical interpretation?', 6, 'MCQ', 9, 10, 'Medium', 'analytical_ability', 'All', TRUE, 2, 'Correlation does not imply causation; both variables are driven by a confounding seasonal factor (hot summer weather and increased swimming).', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (191, 48, 'Eating ice cream causes people to drown', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (192, 48, 'Both variables correlate with a third confounding factor: hot summer weather', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (193, 48, 'Drowning incidents cause increased demand for cold ice cream', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (194, 48, 'The data is completely fabricated', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (49, 'ANAL_03_TABLE_910', 'In a survey of 200 students: 120 play sports, 80 play video games, and 40 participate in both. How many students participate in NEITHER activity?', 6, 'MCQ', 9, 10, 'Medium', 'analytical_ability', 'All', TRUE, 3, 'Total participating in at least one = 120 + 80 - 40 = 160. Neither = 200 - 160 = 40 students.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (195, 49, '20', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (196, 49, '30', 'B', 0.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (197, 49, '40', 'C', 1.0, 1, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (198, 49, '50', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (50, 'ANAL_04_SCAT_1112', 'In a dataset of 500 company employees, years of experience has a correlation of r = +0.82 with salary, but an employee with 20 years experience earns less than entry level. What is this data point called?', 6, 'MCQ', 11, 12, 'Medium', 'analytical_ability', 'All', TRUE, 4, 'An individual data point that deviates markedly from the general trend of the sample is an outlier/anomaly.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (199, 50, 'Standard Normal Distribution', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (200, 50, 'Statistical Outlier / Anomaly', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (201, 50, 'Dependent Variable', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (202, 50, 'Regression Slope Coefficient', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (51, 'ANAL_05_POLICY_1112', 'A city introduces a 10% tax on sugary drinks. Consumption drops 15%, but total calorie intake remains unchanged because consumers buy sweetened baked snacks instead. What analytical concept explains this?', 6, 'MCQ', 11, 12, 'Hard', 'analytical_ability', 'All', TRUE, 5, 'Cross-price elasticity and the substitution effect describe consumers shifting demand to alternative close substitutes when one good is taxed.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (203, 51, 'The law of diminishing marginal utility', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (204, 51, 'Cross-price elasticity and the Substitution Effect', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (205, 51, 'Monopolistic price gouging', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (206, 51, 'Random sampling error', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (52, 'COMM_01_AUD_78', 'Scenario: You are explaining how an electric circuit works to a 6-year-old child. What approach is most effective?', 7, 'SCENARIO', 7, 8, 'Easy', 'communication', 'All', TRUE, 1, 'Effective communicators tailor technical metaphors to their listener''s cognitive frame of reference.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (207, 52, 'Recite the formal equations for Maxwell''s electromagnetic fields', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (208, 52, 'Use an analogy like water flowing through pipes and turning a waterwheel', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (209, 52, 'Show a complex 20-page schematic diagram without speaking', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (210, 52, 'Tell them to wait 10 years until high school', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (53, 'COMM_02_DEBATE_910', 'During a structured debate, your opponent raises a factual point that challenges your argument. What is the strongest communication response?', 7, 'SCENARIO', 9, 10, 'Medium', 'communication', 'All', TRUE, 2, 'Acknowledge valid points constructively and re-anchor your position with nuanced evidence.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (211, 53, 'Interrupt loudly to prevent the audience from hearing them', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (212, 53, 'Acknowledge their valid point and reframe your argument with deeper contextual evidence', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (213, 53, 'Attack their personal background rather than the topic', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (214, 53, 'Walk off the stage', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (54, 'COMM_03_EXEC_1112', 'Scenario: You have 3 minutes to pitch a project proposal to school trustees. What structure creates maximum clarity and impact?', 7, 'SCENARIO', 11, 12, 'Medium', 'communication', 'All', TRUE, 3, 'Problem-Solution-Impact structure delivers compelling synthesis under tight executive constraints.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (215, 54, 'Spend 2.5 minutes on personal introductions and greeting pleasantries', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (216, 54, 'State the core problem, present the validated solution, and demonstrate measurable impact and budget needs', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (217, 54, 'Read every word from a 50-bullet-point dense slide deck', 'C', 0.1, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (218, 54, 'Refuse to give a presentation without written approval', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (55, 'CREAT_01_ALT_78', 'When given an everyday object like an empty plastic bottle, how often do you envision transforming it into something new (bird feeder, planter, science model)?', 8, 'RATING', 7, 8, 'Easy', 'creativity', 'All', TRUE, 1, 'Measures spontaneous lateral thinking and divergent ideation.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (219, 55, '1 - Never Think of Crafts', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (220, 55, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (221, 55, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (222, 55, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (223, 55, '5 - Constantly Repurposing & Prototyping', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (56, 'CREAT_02_DESIGN_910', 'Scenario: Design a mobile app interface for elderly users with low eyesight. Which creative feature solves the core challenge best?', 8, 'SCENARIO', 9, 10, 'Medium', 'creativity', 'All', TRUE, 2, 'Human-centered creative design prioritizes high-contrast typography, intuitive voice commands, and minimal cognitive load.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (224, 56, 'Add complex animated 3D particle effects and small text', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (225, 56, 'Implement high-contrast typography, intuitive voice-guided commands, and large tactile touch zones', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (226, 56, 'Hide all buttons inside nested multi-level menus', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (227, 56, 'Remove color entirely from the screen', 'D', 0.2, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (57, 'CREAT_03_SYNTH_1112', 'How often do you blend concepts from completely different fields (e.g. applying biological biomimicry to architectural design or music to coding)?', 8, 'RATING', 11, 12, 'Hard', 'creativity', 'All', TRUE, 3, 'Cross-domain synthesis is the highest hallmark of transformative creative problem solving.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (228, 57, '1 - Never Synthesize', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (229, 57, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (230, 57, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (231, 57, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (232, 57, '5 - Constantly Design Interdisciplinary Concepts', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (58, 'DIG_01_SEC_78', 'You receive an email claiming you won an iPhone and asking you to click an unknown link and enter your parent''s phone number. What should you do?', 9, 'MCQ', 7, 8, 'Easy', 'digital_ability', 'All', TRUE, 1, 'Recognizing phishing attempts and suspicious links is fundamental to cyber safety.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (233, 58, 'Click the link immediately to claim the prize', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (234, 58, 'Forward the email to all school friends', 'B', 0.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (235, 58, 'Do not click, flag the email as phishing / spam, and alert an adult', 'C', 1.0, 1, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (236, 58, 'Reply asking for two iPhones instead of one', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (59, 'DIG_02_ALGO_910', 'What is the output of the following logic loop: count = 0; for i from 1 to 4 do count = count + i; print(count)?', 9, 'MCQ', 9, 10, 'Medium', 'digital_ability', 'All', TRUE, 2, 'Iteration: i=1 -> 1; i=2 -> 1+2=3; i=3 -> 3+3=6; i=4 -> 6+4=10.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (237, 59, '4', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (238, 59, '8', 'B', 0.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (239, 59, '10', 'C', 1.0, 1, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (240, 59, '14', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (60, 'DIG_03_DB_910', 'In a relational database for a school, which field serves best as a Unique Primary Key for identifying each student?', 9, 'MCQ', 9, 10, 'Medium', 'digital_ability', 'All', TRUE, 3, 'A Student Admission / Roll Number is strictly unique, whereas first names, birth cities, and grades can have duplicates.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (241, 60, 'Student First Name', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (242, 60, 'Student Admission ID / Roll Number', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (243, 60, 'Grade / Class Level', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (244, 60, 'Favorite Color', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (61, 'DIG_04_AI_1112', 'How does a Machine Learning classification model differ fundamentally from a traditional rule-based software program?', 9, 'MCQ', 11, 12, 'Hard', 'digital_ability', 'All', TRUE, 4, 'Traditional programming executes human-coded IF-THEN rules; ML algorithms learn patterns, weights, and decision boundaries directly from training data.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (245, 61, 'ML requires no computer hardware to run', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (246, 61, 'ML learns statistical patterns and weights from data rather than relying solely on explicit hardcoded rules', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (247, 61, 'Rule-based programs are always 100% inaccurate', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (248, 61, 'There is no difference between ML and traditional programming', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (62, 'LEARN_01_NEW_78', 'When you encounter a completely new or confusing topic in class, what is your usual reaction?', 10, 'SCENARIO', 7, 8, 'Easy', 'learning_ability', 'All', TRUE, 1, 'Active learning resilience involves asking clarifying questions and seeking conceptual mastery.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (249, 62, 'Give up and ignore the subject', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (250, 62, 'Ask questions, look up examples, and practice until the concept clicks', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (251, 62, 'Wait for exam day to guess answers', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (252, 62, 'Blame the textbook author', 'D', 0.1, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (63, 'LEARN_02_AUTON_910', 'How comfortable are you learning a new skill independently using online tutorials, documentation, or books without formal classroom supervision?', 10, 'RATING', 9, 10, 'Medium', 'learning_ability', 'All', TRUE, 2, 'Self-directed learning autonomy is a critical predictor for higher education success.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (253, 63, '1 - Need Constant Supervision', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (254, 63, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (255, 63, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (256, 63, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (257, 63, '5 - Thrive on Independent Deep Research', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (64, 'LEARN_03_ADAPT_1112', 'When a strategy you relied on for years stops producing top results in advanced coursework, how rapidly do you adapt and adopt new mental models?', 10, 'RATING', 11, 12, 'Hard', 'learning_ability', 'All', TRUE, 3, 'Metacognitive adaptability measures agility in unlearning ineffective strategies.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (258, 64, '1 - Resist Change', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (259, 64, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (260, 64, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (261, 64, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (262, 64, '5 - Rapidly Self-Optimize & Adapt', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (65, 'SPAT_01_CUBE_910', 'If a solid cube is painted blue on all 6 faces and then cut into 27 equal smaller cubes (3x3x3), how many small cubes have exactly 2 blue faces?', 11, 'MCQ', 7, 10, 'Medium', 'spatial_ability', 'All', TRUE, 1, 'Cubes with 2 painted faces lie along the 12 edges (excluding corners). For 3x3x3, each of the 12 edges has 1 middle cube -> 12 cubes.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (263, 65, '8', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (264, 65, '12', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (265, 65, '16', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (266, 65, '24', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (66, 'SPAT_02_FOLD_910', 'When a flat cross-shaped cardboard net with 6 numbered squares is folded into a cube, which faces are always opposite to each other?', 11, 'MCQ', 9, 10, 'Medium', 'spatial_ability', 'All', TRUE, 2, 'In an unfolded cube net, faces separated by exactly one intervening square fold into opposite parallel faces.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (267, 66, 'Faces separated by one intervening square in a straight line', 'A', 1.0, 1, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (268, 66, 'Any two adjacent corner squares', 'B', 0.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (269, 66, 'The top and left-most tabs only', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (270, 66, 'Faces cannot be predicted without folding physically', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (67, 'SPAT_03_GEAR_1112', 'Gear A (with 20 teeth) rotates clockwise at 100 RPM and drives Gear B (with 40 teeth), which in turn drives Gear C (with 10 teeth). In which direction and speed does Gear C rotate?', 11, 'MCQ', 11, 12, 'Hard', 'spatial_ability', 'All', TRUE, 3, 'A (Clockwise) -> B (Counter-clockwise) -> C (Clockwise). Speed = 100 * (20/10) = 200 RPM Clockwise.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (271, 67, 'Counter-clockwise at 50 RPM', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (272, 67, 'Clockwise at 200 RPM', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (273, 67, 'Counter-clockwise at 200 RPM', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (274, 67, 'Clockwise at 100 RPM', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (68, 'PRAC_01_LEVER_910', 'To lift a heavy 100 kg stone with a rigid metal crowbar, where should the pivot fulcrum be placed to require the minimum lifting effort?', 12, 'MCQ', 7, 10, 'Easy', 'practical_ability', 'All', TRUE, 1, 'Placing the fulcrum close to the heavy load maximizes the mechanical advantage (Effort Arm > Load Arm).', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (275, 68, 'As close as possible to the heavy stone (load)', 'A', 1.0, 1, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (276, 68, 'Exactly in the middle of the crowbar', 'B', 0.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (277, 68, 'Right under your hands (effort point)', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (278, 68, 'Fulcrum placement does not affect required force', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (69, 'PRAC_02_TOOL_910', 'Which precision measurement tool is best suited for measuring the exact internal diameter of a small engine cylinder or pipe?', 12, 'MCQ', 9, 10, 'Medium', 'practical_ability', 'All', TRUE, 2, 'Vernier calipers have dedicated inside jaws designed for high-precision internal diameter measurement.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (279, 69, 'Standard wooden meter ruler', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (280, 69, 'Vernier Caliper with internal measurement jaws', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (281, 69, 'Flexible tailor''s measuring tape', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (282, 69, 'Protractor', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (70, 'PRAC_03_DIAG_1112', 'Scenario: A 12V DC cooling fan in an electronic device is not spinning. A multimeter shows 12V across the power terminals. What is the most likely diagnosis?', 12, 'MCQ', 11, 12, 'Hard', 'practical_ability', 'All', TRUE, 3, 'Since full operating voltage is present at the terminals, the external power supply is working and the internal fan motor windings or bearings have failed.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (283, 70, 'The main wall power outlet is disconnected', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (284, 70, 'The fan motor internal coil is open-circuited or mechanically seized', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (285, 70, 'The multimeter battery is low', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (286, 70, 'The electrical polarity reversed itself naturally', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (71, 'INT_MATH', 'How interested are you in mathematics, quantitative equations, and financial models?', 13, 'RATING', 7, 12, 'Easy', 'mathematical_ability', 'All', TRUE, 1, 'Mathematics interest.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (287, 71, '1 - Not Interested', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (288, 71, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (289, 71, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (290, 71, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (291, 71, '5 - Very Interested', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (72, 'INT_SCI', 'How interested are you in physics, space exploration, and scientific research?', 13, 'RATING', 7, 12, 'Easy', 'science_interest', 'All', TRUE, 2, 'Science interest.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (292, 72, '1 - Not Interested', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (293, 72, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (294, 72, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (295, 72, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (296, 72, '5 - Very Interested', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (73, 'INT_TECH', 'How interested are you in computer programming, artificial intelligence, and digital apps?', 13, 'RATING', 7, 12, 'Easy', 'technology_interest', 'All', TRUE, 3, 'Technology interest.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (297, 73, '1 - Not Interested', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (298, 73, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (299, 73, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (300, 73, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (301, 73, '5 - Very Interested', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (74, 'INT_MED', 'How interested are you in medicine, surgery, healthcare clinics, and curing illnesses?', 13, 'RATING', 7, 12, 'Easy', 'healthcare_interest', 'All', TRUE, 4, 'Healthcare interest.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (302, 74, '1 - Not Interested', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (303, 74, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (304, 74, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (305, 74, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (306, 74, '5 - Very Interested', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (75, 'INT_ENG', 'How interested are you in mechanical engines, robotics, building structures, and engineering?', 13, 'RATING', 7, 12, 'Easy', 'practical_ability', 'All', TRUE, 5, 'Engineering interest.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (307, 75, '1 - Not Interested', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (308, 75, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (309, 75, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (310, 75, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (311, 75, '5 - Very Interested', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (76, 'INT_BUS', 'How interested are you in business startups, commercial entrepreneurship, and corporate leadership?', 13, 'RATING', 7, 12, 'Easy', 'business_interest', 'All', TRUE, 6, 'Business interest.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (312, 76, '1 - Not Interested', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (313, 76, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (314, 76, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (315, 76, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (316, 76, '5 - Very Interested', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (77, 'INT_FIN', 'How interested are you in stock markets, banking, corporate finance, and wealth investment?', 13, 'RATING', 7, 12, 'Easy', 'business_interest', 'All', TRUE, 7, 'Finance interest.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (317, 77, '1 - Not Interested', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (318, 77, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (319, 77, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (320, 77, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (321, 77, '5 - Very Interested', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (78, 'INT_LAW', 'How interested are you in constitutional law, legal defense, courtroom justice, and advocacy?', 13, 'RATING', 7, 12, 'Easy', 'social_interest', 'All', TRUE, 8, 'Law interest.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (322, 78, '1 - Not Interested', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (323, 78, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (324, 78, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (325, 78, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (326, 78, '5 - Very Interested', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (79, 'INT_EDU', 'How interested are you in teaching, academic mentoring, student counseling, and education?', 13, 'RATING', 7, 12, 'Easy', 'social_interest', 'All', TRUE, 9, 'Education interest.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (327, 79, '1 - Not Interested', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (328, 79, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (329, 79, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (330, 79, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (331, 79, '5 - Very Interested', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (80, 'INT_PSY', 'How interested are you in human psychology, mental health, cognitive therapy, and behavior?', 13, 'RATING', 7, 12, 'Easy', 'social_interest', 'All', TRUE, 10, 'Psychology interest.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (332, 80, '1 - Not Interested', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (333, 80, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (334, 80, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (335, 80, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (336, 80, '5 - Very Interested', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (81, 'INT_ART', 'How interested are you in fine arts, painting, illustration, and sculpture?', 13, 'RATING', 7, 12, 'Easy', 'creative_interest', 'All', TRUE, 11, 'Arts interest.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (337, 81, '1 - Not Interested', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (338, 81, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (339, 81, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (340, 81, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (341, 81, '5 - Very Interested', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (82, 'INT_DES', 'How interested are you in UI/UX design, graphic design, interior decor, and architecture?', 13, 'RATING', 7, 12, 'Easy', 'creative_interest', 'All', TRUE, 12, 'Design interest.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (342, 82, '1 - Not Interested', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (343, 82, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (344, 82, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (345, 82, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (346, 82, '5 - Very Interested', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (83, 'INT_WRITE', 'How interested are you in creative writing, journalism, literature, and blogging?', 13, 'RATING', 7, 12, 'Easy', 'communication', 'All', TRUE, 13, 'Writing interest.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (347, 83, '1 - Not Interested', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (348, 83, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (349, 83, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (350, 83, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (351, 83, '5 - Very Interested', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (84, 'INT_MEDIA', 'How interested are you in filmmaking, digital media, photography, broadcasting, and podcasting?', 13, 'RATING', 7, 12, 'Easy', 'creative_interest', 'All', TRUE, 14, 'Media interest.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (352, 84, '1 - Not Interested', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (353, 84, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (354, 84, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (355, 84, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (356, 84, '5 - Very Interested', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (85, 'INT_SPT', 'How interested are you in athletics, competitive team sports, fitness training, and sports science?', 13, 'RATING', 7, 12, 'Easy', 'practical_ability', 'All', TRUE, 15, 'Sports interest.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (357, 85, '1 - Not Interested', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (358, 85, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (359, 85, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (360, 85, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (361, 85, '5 - Very Interested', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (86, 'INT_NAT', 'How interested are you in wildlife protection, animal care, biology reserves, and forestry?', 13, 'RATING', 7, 12, 'Easy', 'science_interest', 'All', TRUE, 16, 'Nature interest.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (362, 86, '1 - Not Interested', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (363, 86, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (364, 86, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (365, 86, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (366, 86, '5 - Very Interested', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (87, 'INT_RES', 'How interested are you in academic research, laboratory experiments, and publishing breakthroughs?', 13, 'RATING', 7, 12, 'Easy', 'research_interest', 'All', TRUE, 17, 'Research interest.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (367, 87, '1 - Not Interested', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (368, 87, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (369, 87, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (370, 87, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (371, 87, '5 - Very Interested', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (88, 'INT_SOC', 'How interested are you in community development, charity volunteering, and NGO public service?', 13, 'RATING', 7, 12, 'Easy', 'social_interest', 'All', TRUE, 18, 'Social service interest.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (372, 88, '1 - Not Interested', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (373, 88, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (374, 88, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (375, 88, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (376, 88, '5 - Very Interested', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (89, 'INT_AVI', 'How interested are you in aerospace engineering, drones, and aircraft piloting?', 13, 'RATING', 7, 12, 'Easy', 'practical_ability', 'All', TRUE, 19, 'Aviation interest.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (377, 89, '1 - Not Interested', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (378, 89, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (379, 89, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (380, 89, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (381, 89, '5 - Very Interested', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (90, 'INT_AGR', 'How interested are you in modern agriculture, crop sciences, soil agronomy, and organic farming?', 13, 'RATING', 7, 12, 'Easy', 'science_interest', 'All', TRUE, 20, 'Agriculture interest.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (382, 90, '1 - Not Interested', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (383, 90, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (384, 90, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (385, 90, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (386, 90, '5 - Very Interested', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (91, 'INT_ENV', 'How interested are you in climate change solutions, renewable solar/wind energy, and sustainability?', 13, 'RATING', 7, 12, 'Easy', 'science_interest', 'All', TRUE, 21, 'Environment interest.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (387, 91, '1 - Not Interested', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (388, 91, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (389, 91, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (390, 91, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (391, 91, '5 - Very Interested', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (92, 'ACT_CODE', 'How often do you write computer code, build scripts, or create digital web/app projects?', 14, 'RATING', 7, 12, 'Easy', 'digital_ability', 'All', TRUE, 1, 'Coding activity.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (392, 92, '1 - Never', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (393, 92, '2 - Rarely', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (394, 92, '3 - Sometimes', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (395, 92, '4 - Often', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (396, 92, '5 - Very Often', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (93, 'ACT_ROBOT', 'How often do you assemble electronics kits, Arduino/Raspberry Pi projects, or robotics models?', 14, 'RATING', 7, 12, 'Easy', 'practical_ability', 'All', TRUE, 2, 'Robotics maker activity.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (397, 93, '1 - Never', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (398, 93, '2 - Rarely', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (399, 93, '3 - Sometimes', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (400, 93, '4 - Often', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (401, 93, '5 - Very Often', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (94, 'ACT_SCICLUB', 'How often do you conduct science experiments or participate in school science club exhibitions?', 14, 'RATING', 7, 12, 'Easy', 'scientific_reasoning', 'All', TRUE, 3, 'Science club activity.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (402, 94, '1 - Never', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (403, 94, '2 - Rarely', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (404, 94, '3 - Sometimes', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (405, 94, '4 - Often', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (406, 94, '5 - Very Often', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (95, 'ACT_MATHCLUB', 'How often do you practice competitive math Olympiad problems, logic puzzles, or Sudoku?', 14, 'RATING', 7, 12, 'Easy', 'mathematical_ability', 'All', TRUE, 4, 'Math club activity.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (407, 95, '1 - Never', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (408, 95, '2 - Rarely', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (409, 95, '3 - Sometimes', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (410, 95, '4 - Often', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (411, 95, '5 - Very Often', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (96, 'ACT_DEBATE', 'How often do you participate in debates, Model UN, public speaking, or student declamations?', 14, 'RATING', 7, 12, 'Easy', 'communication', 'All', TRUE, 5, 'Debate activity.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (412, 96, '1 - Never', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (413, 96, '2 - Rarely', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (414, 96, '3 - Sometimes', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (415, 96, '4 - Often', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (416, 96, '5 - Very Often', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (97, 'ACT_DRAMA', 'How often do you act in school theater plays, musical performances, or dramatic storytelling?', 14, 'RATING', 7, 12, 'Easy', 'creativity', 'All', TRUE, 6, 'Drama & performing arts activity.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (417, 97, '1 - Never', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (418, 97, '2 - Rarely', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (419, 97, '3 - Sometimes', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (420, 97, '4 - Often', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (421, 97, '5 - Very Often', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (98, 'ACT_ART', 'How often do you sketch, paint, design digital artwork, or create craft models?', 14, 'RATING', 7, 12, 'Easy', 'creativity', 'All', TRUE, 7, 'Art & design activity.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (422, 98, '1 - Never', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (423, 98, '2 - Rarely', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (424, 98, '3 - Sometimes', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (425, 98, '4 - Often', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (426, 98, '5 - Very Often', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (99, 'ACT_MUSIC', 'How often do you play a musical instrument, compose music, or sing?', 14, 'RATING', 7, 12, 'Easy', 'creativity', 'All', TRUE, 8, 'Music activity.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (427, 99, '1 - Never', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (428, 99, '2 - Rarely', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (429, 99, '3 - Sometimes', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (430, 99, '4 - Often', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (431, 99, '5 - Very Often', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (100, 'ACT_SPORTS', 'How often do you participate in competitive outdoor team sports or athletic fitness training?', 14, 'RATING', 7, 12, 'Easy', 'practical_ability', 'All', TRUE, 9, 'Sports activity.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (432, 100, '1 - Never', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (433, 100, '2 - Rarely', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (434, 100, '3 - Sometimes', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (435, 100, '4 - Often', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (436, 100, '5 - Very Often', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (101, 'ACT_READING', 'How often do you read non-fiction books, industry blogs, science magazines, or news journals?', 14, 'RATING', 7, 12, 'Easy', 'learning_ability', 'All', TRUE, 10, 'Reading activity.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (437, 101, '1 - Never', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (438, 101, '2 - Rarely', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (439, 101, '3 - Sometimes', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (440, 101, '4 - Often', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (441, 101, '5 - Very Often', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (102, 'ACT_PHOTO', 'How often do you practice photography, video editing, or visual media production?', 14, 'RATING', 7, 12, 'Easy', 'creative_interest', 'All', TRUE, 11, 'Photography activity.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (442, 102, '1 - Never', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (443, 102, '2 - Rarely', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (444, 102, '3 - Sometimes', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (445, 102, '4 - Often', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (446, 102, '5 - Very Often', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (103, 'ACT_VOLUNTEER', 'How often do you volunteer for community social service, cleanliness drives, or charity work?', 14, 'RATING', 7, 12, 'Easy', 'social_interest', 'All', TRUE, 12, 'Volunteering activity.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (447, 103, '1 - Never', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (448, 103, '2 - Rarely', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (449, 103, '3 - Sometimes', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (450, 103, '4 - Often', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (451, 103, '5 - Very Often', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (104, 'ACT_ENTREP', 'How often do you brainstorm business startup ideas, organize bake sales, or plan monetization projects?', 14, 'RATING', 7, 12, 'Easy', 'business_interest', 'All', TRUE, 13, 'Entrepreneurship activity.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (452, 104, '1 - Never', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (453, 104, '2 - Rarely', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (454, 104, '3 - Sometimes', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (455, 104, '4 - Often', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (456, 104, '5 - Very Often', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (105, 'ACT_WRITING', 'How often do you write personal essays, articles, poems, or stories outside school requirements?', 14, 'RATING', 7, 12, 'Easy', 'communication', 'All', TRUE, 14, 'Creative writing activity.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (457, 105, '1 - Never', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (458, 105, '2 - Rarely', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (459, 105, '3 - Sometimes', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (460, 105, '4 - Often', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (461, 105, '5 - Very Often', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (106, 'TEAM_01_DISP_78', 'Scenario: During a group project, two teammates strongly disagree on the poster design. How do you resolve this?', 15, 'SCENARIO', 7, 8, 'Easy', 'teamwork', 'All', TRUE, 1, 'Collaborative compromise harmonizes multiple viewpoints constructively.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (462, 106, 'Pick the loudest person''s idea to end the argument quickly', 'A', 0.2, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (463, 106, 'Listen to both ideas, find common ground, and combine the best elements of both', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (464, 106, 'Tell both to leave the group and work completely alone', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (465, 106, 'Complain to the principal immediately', 'D', 0.1, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (107, 'TEAM_02_DEADLINE_910', 'Scenario: A teammate is falling behind on their assigned part of a project due to illness. How should the team respond?', 15, 'SCENARIO', 9, 10, 'Medium', 'teamwork', 'All', TRUE, 2, 'High-performing teams exhibit mutual support and dynamic workload reallocation.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (466, 107, 'Remove their name from the project without asking', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (467, 107, 'Check in empathetically, redistribute manageable tasks among remaining members, and support them', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (468, 107, 'Ignore their incomplete section and submit partial work', 'C', 0.1, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (469, 107, 'Wait until the last minute and panic', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (108, 'TEAM_03_CROSS_1112', 'Scenario: In a multidisciplinary team (engineers, designers, marketers), differing technical jargons create friction. What is the best team intervention?', 15, 'SCENARIO', 11, 12, 'Hard', 'teamwork', 'All', TRUE, 3, 'Establishing shared project milestones and plain language cross-functional alignment bridges disciplinary silos.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (470, 108, 'Demand that designers learn engineering code immediately', 'A', 0.1, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (471, 108, 'Establish a shared project glossary, align on unified customer outcomes, and schedule weekly cross-review syncs', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (472, 108, 'Split into completely isolated groups with zero communication', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (473, 108, 'Let the loudest department make all decisions', 'D', 0.1, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (109, 'LEAD_01_INIT_78', 'Scenario: Your teacher asks the class to organize a classroom clean-up drive, but no one is stepping forward. What do you do?', 16, 'SCENARIO', 7, 8, 'Easy', 'leadership', 'All', TRUE, 1, 'Leadership begins with initiative and inviting collaborative peer participation.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (474, 109, 'Wait quietly for someone else to act', 'A', 0.2, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (475, 109, 'Step up, volunteer to start, and encourage friends to take small specific roles', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (476, 109, 'Leave the classroom', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (477, 109, 'Complain that clean-up is boring', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (110, 'LEAD_02_DELEG_910', 'Scenario: As captain of a school event, you have 4 major tasks to complete. How should you assign responsibilities?', 16, 'SCENARIO', 9, 10, 'Medium', 'leadership', 'All', TRUE, 2, 'Effective leaders match individual strengths to tasks and provide clear support.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (478, 110, 'Do all 4 tasks entirely by yourself to maintain total control', 'A', 0.2, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (479, 110, 'Match tasks to members'' individual strengths, define clear outcomes, and empower them with trust', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (480, 110, 'Assign tasks randomly by drawing chits', 'C', 0.2, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (481, 110, 'Order people around without helping', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (111, 'LEAD_03_ETHIC_1112', 'Scenario: Your team discovers a minor calculation error in a contest submission that gave you an unfair winning score. What leadership action do you take?', 16, 'SCENARIO', 11, 12, 'Hard', 'leadership', 'All', TRUE, 3, 'Integrity and ethical transparency under pressure define genuine leadership character.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (482, 111, 'Hide the error and pretend nothing happened', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (483, 111, 'Notify the judges transparently, explain the calculation correction, and accept the rightful outcome', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (484, 111, 'Blame the junior teammate who typed the numbers', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (485, 111, 'Argue with the organizers', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (112, 'WORK_01_ENV', 'Which physical work environment appeals most to your ideal day-to-day lifestyle?', 17, 'MCQ', 7, 12, 'Easy', 'practical_ability', 'All', TRUE, 1, 'Physical workplace preference mapping.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (486, 112, 'Modern technology office / Creative studio / Tech hub', 'A', 1.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (487, 112, 'Scientific laboratory / Hospital / Medical diagnostic clinic', 'B', 1.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (488, 112, 'Outdoor field sites / Ecological reserves / Construction infrastructure', 'C', 1.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (489, 112, 'Flexible remote home office / Global digital nomad lifestyle', 'D', 1.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (113, 'WORK_02_STYLE', 'Do you prefer deep, focused, independent work or highly interactive, people-facing collaboration?', 17, 'RATING', 7, 12, 'Easy', 'communication', 'All', TRUE, 2, 'Independent analysis vs interpersonal collaboration continuum.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (490, 113, '1 - 100% Solo Independent Focus', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (491, 113, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (492, 113, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (493, 113, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (494, 113, '5 - Constant Collaborative Engagement', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (114, 'WORK_03_DATA_PEOPLE', 'Do you feel more energized working with code, numbers, and machines, or interacting directly with clients, patients, and audiences?', 17, 'RATING', 7, 12, 'Easy', 'communication', 'All', TRUE, 3, 'Data/Technology orientation vs People-facing orientation.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (495, 114, '1 - Strictly Data & Code', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (496, 114, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (497, 114, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (498, 114, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (499, 114, '5 - Strictly People & Social Interaction', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (115, 'WORK_04_TRAVEL', 'How appealing is frequent domestic or international professional travel to you?', 17, 'RATING', 7, 12, 'Easy', 'learning_ability', 'All', TRUE, 4, 'Travel and mobility preference.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (500, 115, '1 - Zero Travel (Stable Location)', '1', 20.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (501, 115, '2 - Slight', '2', 40.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (502, 115, '3 - Moderate / Neutral', '3', 60.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (503, 115, '4 - High', '4', 80.0, 0, 4);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (504, 115, '5 - Frequent National/Global Travel', '5', 100.0, 0, 5);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (116, 'AWARE_01_ROLES_78', 'Which career role is primarily responsible for ensuring airplanes fly safely along predetermined flight paths and altitudes?', 18, 'MCQ', 7, 8, 'Easy', 'observation', 'All', TRUE, 1, 'Air Traffic Controllers coordinate aircraft movements and navigation corridors.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (505, 116, 'Mechanical Automobile Fitter', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (506, 116, 'Air Traffic Controller / Flight Pilot', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (507, 116, 'Architectural Land Surveyor', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (508, 116, 'Chartered Accountant', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (117, 'AWARE_02_STUDY_78', 'If a student loves both biology and computer coding, which exciting modern interdisciplinary field blends both?', 18, 'MCQ', 7, 8, 'Easy', 'learning_ability', 'All', TRUE, 2, 'Bioinformatics and Computational Biology merge genetic biology with computer algorithms.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (509, 117, 'Bioinformatics & Computational Biology', 'A', 1.0, 1, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (510, 117, 'Civil Structural Masonry', 'B', 0.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (511, 117, 'Corporate Tax Law', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (512, 117, 'Classical History Archaeology', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (118, 'AWARE_03_TRENDS_910', 'Which combination of emerging fields is creating significant new cross-disciplinary careers globally?', 18, 'MCQ', 9, 10, 'Medium', 'learning_ability', 'All', TRUE, 3, 'Artificial Intelligence, Renewable Green Energy, and Genomic Biotechnology represent high-growth 21st-century frontiers.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (513, 118, 'Typewriter assembly and telegraph transmission', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (514, 118, 'Artificial Intelligence, Renewable Energy & Genomic Biotechnology', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (515, 118, 'Manual film reel developing', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (516, 118, 'Steam locomotive stoking', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (119, 'AWARE_04_STREAMS_910', 'Which higher secondary stream provides the mandatory foundational subject requirements for pursuing a Bachelor of Architecture (B.Arch)?', 18, 'MCQ', 9, 10, 'Medium', 'learning_ability', 'All', TRUE, 4, 'B.Arch admission councils mandate Physics, Chemistry, and Mathematics (PCM) with qualifying entrance exams (NATA / JEE Main Paper 2).', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (517, 119, 'Science stream with Mathematics and Physics', 'A', 1.0, 1, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (518, 119, 'Commerce without Mathematics', 'B', 0.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (519, 119, 'Pure Literature and Languages only', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (520, 119, 'No formal school prerequisites are required', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (120, 'AWARE_05_DEG_1112', 'Which degree or professional qualification is directly required to practice as an advocate in court?', 18, 'MCQ', 11, 12, 'Medium', 'learning_ability', 'All', TRUE, 5, 'An LL.B. (Bachelor of Laws) or integrated B.A./B.B.A. LL.B. accredited by the Bar Council is mandatory for legal practice.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (521, 120, 'B.Tech Computer Science', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (522, 120, 'LL.B. (Bachelor of Laws) + Bar Council Enrollment', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (523, 120, 'MBBS (Bachelor of Medicine)', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (524, 120, 'B.Com General Accounting', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (121, 'AWARE_06_EXAMS_1112', 'Which competitive entrance exam is the primary national gateway for admission to undergraduate medical (MBBS/BDS) programs across India?', 18, 'MCQ', 11, 12, 'Easy', 'learning_ability', 'All', TRUE, 6, 'NEET-UG (National Eligibility cum Entrance Test) is the standardized national medical gateway.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (525, 121, 'JEE Advanced', 'A', 0.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (526, 121, 'NEET-UG', 'B', 1.0, 1, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (527, 121, 'CLAT', 'C', 0.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (528, 121, 'CAT', 'D', 0.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (122, 'PREF_01_PRIMARY', 'Which broad industry sector currently represents your highest aspirational career goal?', 19, 'MCQ', 7, 12, 'Easy', 'learning_ability', 'All', TRUE, 1, 'Primary student career preference capture.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (529, 122, 'Technology, Software & Artificial Intelligence', 'A', 1.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (530, 122, 'Healthcare, Medicine, Nursing & Biotechnology', 'B', 1.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (531, 122, 'Engineering, Robotics, Aviation & Architecture', 'C', 1.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (532, 122, 'Business, Finance, Law, Civil Services & Creative Media', 'D', 1.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (123, 'PREF_02_GOAL', 'When thinking about your career 10 years after college, what type of professional impact matters most to you?', 19, 'MCQ', 7, 12, 'Medium', 'learning_ability', 'All', TRUE, 2, 'Long-term intrinsic motivation and career values orientation.', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (533, 123, 'Innovating breakthrough technological inventions or software products', 'A', 1.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (534, 123, 'Healing patients, saving lives, and advancing health research', 'B', 1.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (535, 123, 'Leading high-growth commercial enterprises and driving business strategy', 'C', 1.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (536, 123, 'Serving the public, upholding justice, creating art, or educating future generations', 'D', 1.0, 0, 4);
+INSERT INTO `questions` (`id`, `question_code`, `question_text`, `section_id`, `question_type`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, `is_required`, `display_order`, `explanation`, `is_active`) VALUES (124, 'PREF_03_SECTOR', 'Which organizational structure aligns closest with your working aspirations?', 19, 'MCQ', 9, 12, 'Medium', 'learning_ability', 'All', TRUE, 3, 'Sector preference (Public vs Private Corporate vs Startup Entrepreneurship vs Academia).', TRUE);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (537, 124, 'Fast-paced Tech Startup / Entrepreneurship Venture', 'A', 1.0, 0, 1);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (538, 124, 'Established Global Corporation / Multinational Enterprise', 'B', 1.0, 0, 2);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (539, 124, 'Civil Services / Public Governance / Defense Forces', 'C', 1.0, 0, 3);
+INSERT INTO `question_options` (`id`, `question_id`, `option_text`, `option_value`, `score`, `is_correct`, `display_order`) VALUES (540, 124, 'University Research Lab / Creative Independent Practice', 'D', 1.0, 0, 4);
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- 5. ANALYTICAL VIEWS
+-- ============================================================
+-- Career Recommendation System - MySQL Views Script
+-- Database Name: career_recommendation_db
+-- Target: MySQL 8.x Server & MySQL Workbench
+-- ============================================================
+
+USE `career_recommendation_db`;
+
+-- Drop existing views if present
+DROP VIEW IF EXISTS `v_domain_career_counts`;
+DROP VIEW IF EXISTS `v_top_recommendations`;
+DROP VIEW IF EXISTS `v_assessment_summary`;
+DROP VIEW IF EXISTS `v_active_questions`;
+DROP VIEW IF EXISTS `v_career_catalogue`;
+DROP VIEW IF EXISTS `v_student_profiles`;
+
+-- ------------------------------------------------------------
+-- 1. View: v_student_profiles
+-- Consolidates user account, demographic profile, and academic scores
+-- ------------------------------------------------------------
+CREATE VIEW `v_student_profiles` AS
+SELECT 
+    s.id AS student_id,
+    s.user_id,
+    u.username,
+    u.email,
+    s.student_code,
+    s.first_name,
+    s.last_name,
+    CONCAT(s.first_name, ' ', COALESCE(s.last_name, '')) AS full_name,
+    s.age,
+    s.gender,
+    s.class_level,
+    s.board,
+    s.medium,
+    s.academic_year,
+    s.stream,
+    a.mathematics_score,
+    a.science_score,
+    a.physics_score,
+    a.chemistry_score,
+    a.biology_score,
+    a.computer_science_score,
+    a.english_score,
+    a.social_science_score,
+    a.overall_percentage,
+    s.created_at AS registered_at
+FROM `students` s
+JOIN `users` u ON s.user_id = u.id
+LEFT JOIN `academic_scores` a ON s.id = a.student_id;
+
+-- ------------------------------------------------------------
+-- 2. View: v_career_catalogue
+-- Comprehensive career directory with domain, subdomain, cluster, and requirement counts
+-- ------------------------------------------------------------
+CREATE VIEW `v_career_catalogue` AS
+SELECT 
+    c.id AS career_id,
+    c.career_code,
+    c.career_name,
+    d.id AS domain_id,
+    d.domain_name,
+    d.icon AS domain_icon,
+    sub.name AS subdomain_name,
+    clu.name AS cluster_name,
+    c.description,
+    c.minimum_education,
+    c.typical_education,
+    c.work_environment,
+    c.work_style,
+    c.entry_level_role,
+    c.advanced_role,
+    (SELECT COUNT(*) FROM `career_skills` cs WHERE cs.career_id = c.id) AS skill_count,
+    (SELECT COUNT(*) FROM `career_subjects` csub WHERE csub.career_id = c.id) AS subject_count,
+    (SELECT COUNT(*) FROM `career_education` ce WHERE ce.career_id = c.id) AS education_milestone_count,
+    c.is_active,
+    c.created_at
+FROM `careers` c
+JOIN `career_domains` d ON c.domain_id = d.id
+LEFT JOIN `career_subdomains` sub ON c.subdomain_id = sub.id
+LEFT JOIN `career_clusters` clu ON c.cluster_id = clu.id;
+
+-- ------------------------------------------------------------
+-- 3. View: v_active_questions
+-- Dynamic question bank directory with section and options details
+-- ------------------------------------------------------------
+CREATE VIEW `v_active_questions` AS
+SELECT 
+    q.id AS question_id,
+    q.question_code,
+    q.question_text,
+    qs.id AS section_id,
+    qs.name AS section_name,
+    q.question_type,
+    q.class_min,
+    q.class_max,
+    CONCAT('Class ', q.class_min, ' - ', q.class_max) AS grade_range,
+    q.difficulty,
+    q.skill_category,
+    q.is_required,
+    q.display_order,
+    (SELECT COUNT(*) FROM `question_options` qo WHERE qo.question_id = q.id) AS option_count,
+    q.is_active
+FROM `questions` q
+JOIN `question_sections` qs ON q.section_id = qs.id
+WHERE q.is_active = TRUE;
+
+-- ------------------------------------------------------------
+-- 4. View: v_assessment_summary
+-- Completed and in-progress assessment sessions with multi-dimensional score highlights
+-- ------------------------------------------------------------
+CREATE VIEW `v_assessment_summary` AS
+SELECT 
+    sess.id AS session_id,
+    sess.student_id,
+    s.student_code,
+    CONCAT(s.first_name, ' ', COALESCE(s.last_name, '')) AS student_name,
+    s.class_level,
+    s.stream,
+    sess.status,
+    sess.started_at,
+    sess.completed_at,
+    sess.completion_percentage,
+    sc.mathematical_ability,
+    sc.logical_reasoning,
+    sc.scientific_reasoning,
+    sc.problem_solving,
+    sc.analytical_ability,
+    sc.technology_interest,
+    sc.science_interest,
+    sc.healthcare_interest,
+    sc.business_interest
+FROM `assessment_sessions` sess
+JOIN `students` s ON sess.student_id = s.id
+LEFT JOIN `assessment_scores` sc ON sess.id = sc.assessment_id;
+
+-- ------------------------------------------------------------
+-- 5. View: v_top_recommendations
+-- Top ranked career recommendations generated for student assessment sessions
+-- ------------------------------------------------------------
+CREATE VIEW `v_top_recommendations` AS
+SELECT 
+    cr.id AS recommendation_id,
+    cr.assessment_id,
+    sess.student_id,
+    s.student_code,
+    CONCAT(s.first_name, ' ', COALESCE(s.last_name, '')) AS student_name,
+    cr.rank_position,
+    c.id AS career_id,
+    c.career_code,
+    c.career_name,
+    d.domain_name,
+    cr.score AS match_score,
+    cr.recommendation_reason,
+    cr.strengths,
+    cr.skill_gaps,
+    cr.created_at AS recommended_at
+FROM `career_recommendations` cr
+JOIN `assessment_sessions` sess ON cr.assessment_id = sess.id
+JOIN `students` s ON sess.student_id = s.id
+JOIN `careers` c ON cr.career_id = c.id
+JOIN `career_domains` d ON c.domain_id = d.id;
+
+-- ------------------------------------------------------------
+-- 6. View: v_domain_career_counts
+-- Aggregated career statistics per industry domain
+-- ------------------------------------------------------------
+CREATE VIEW `v_domain_career_counts` AS
+SELECT 
+    d.id AS domain_id,
+    d.domain_name,
+    d.icon,
+    d.display_order,
+    COUNT(DISTINCT sub.id) AS total_subdomains,
+    COUNT(DISTINCT c.id) AS total_careers,
+    COUNT(DISTINCT CASE WHEN c.is_active = TRUE THEN c.id END) AS active_careers
+FROM `career_domains` d
+LEFT JOIN `career_subdomains` sub ON d.id = sub.domain_id
+LEFT JOIN `careers` c ON d.id = c.domain_id
+GROUP BY d.id, d.domain_name, d.icon, d.display_order;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- ============================================================
+-- Data Integrity Verification Check
+-- ============================================================
+SELECT 'users' AS table_name, COUNT(*) AS records FROM users
+UNION ALL
+SELECT 'career_domains', COUNT(*) FROM career_domains
+UNION ALL
+SELECT 'careers', COUNT(*) FROM careers
+UNION ALL
+SELECT 'career_skills', COUNT(*) FROM career_skills
+UNION ALL
+SELECT 'questions', COUNT(*) FROM questions
+UNION ALL
+SELECT 'v_career_catalog', COUNT(*) FROM _career_catalog;
