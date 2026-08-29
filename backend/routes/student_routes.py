@@ -1,6 +1,6 @@
 """
 Student Profile & Dashboard Routes.
-Displays student overview, assessment progress, recent score highlights, and profile settings.
+Displays student overview, assessment progress, multi-attempt history, score highlights, and profile settings.
 """
 
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
@@ -26,9 +26,25 @@ def dashboard():
         flash('Student profile not found. Please contact support.', 'danger')
         return redirect(url_for('main.index'))
 
-    # Fetch latest sessions
-    latest_session = AssessmentSession.query.filter_by(student_id=student.id).order_by(AssessmentSession.created_at.desc()).first()
+    # Fetch all sessions in reverse chronological order
     all_sessions = AssessmentSession.query.filter_by(student_id=student.id).order_by(AssessmentSession.created_at.desc()).all()
+    latest_session = all_sessions[0] if all_sessions else None
+
+    # Build rich attempt history objects with top career recommendation for each completed session
+    history_items = []
+    for idx, sess in enumerate(reversed(all_sessions), 1):
+        top_rec = None
+        score_obj = None
+        if sess.status == 'completed':
+            top_rec = CareerRecommendation.query.filter_by(assessment_id=sess.id, rank_position=1).first()
+            score_obj = AssessmentScore.query.filter_by(assessment_id=sess.id).first()
+        history_items.append({
+            'attempt_number': idx,
+            'session': sess,
+            'top_rec': top_rec,
+            'score_obj': score_obj
+        })
+    history_items.reverse()  # Most recent attempt on top
 
     recent_scores = None
     recent_recs = []
@@ -41,6 +57,7 @@ def dashboard():
         student=student,
         latest_session=latest_session,
         all_sessions=all_sessions,
+        history_items=history_items,
         recent_scores=recent_scores,
         recent_recs=recent_recs
     )
@@ -101,15 +118,15 @@ def api_update_profile():
 
     data = request.get_json() or {}
     if 'first_name' in data:
-        student.first_name = str(data['first_name']).strip()
+        student.first_name = data['first_name']
     if 'last_name' in data:
-        student.last_name = str(data['last_name']).strip()
+        student.last_name = data['last_name']
+    if 'class_level' in data:
+        student.class_level = int(data['class_level'])
+    if 'stream' in data:
+        student.stream = data['stream']
     if 'board' in data:
-        student.board = str(data['board']).strip()
-    if 'medium' in data:
-        student.medium = str(data['medium']).strip()
-    if 'stream' in data and student.class_level in [11, 12]:
-        student.stream = str(data['stream']).strip()
+        student.board = data['board']
 
     db.session.commit()
-    return api_response(student.to_dict(), message="Profile updated successfully.")
+    return api_response(student.to_dict())

@@ -39,6 +39,23 @@ class PredictionService:
         if not isinstance(feature_df, pd.DataFrame) or feature_df.empty:
             raise ValueError("Feature input must be a non-empty DataFrame or list of dicts.")
 
+        # Graceful auto-computation of engineered alignment features if base features provided
+        if 'composite_alignment_index' not in feature_df.columns and 'ability_match_component' in feature_df.columns:
+            a_val = feature_df['ability_match_component'].fillna(50.0).astype(float)
+            i_val = feature_df['interest_match_component'].fillna(50.0).astype(float)
+            ac_val = feature_df['academic_match_component'].fillna(80.0).astype(float)
+            l_val = feature_df['learning_match_component'].fillna(50.0).astype(float)
+            feature_df['composite_alignment_index'] = np.round(
+                0.17 * (0.4447 * a_val + 0.3136 * i_val + 0.0997 * ac_val + 0.1007 * l_val + 3.784) +
+                0.83 * (0.45 * a_val + 0.35 * i_val + 0.10 * ac_val + 0.10 * l_val),
+                2
+            )
+            feature_df['ability_interest_synergy'] = np.round((a_val * i_val) / 100.0, 2)
+            feature_df['ability_interest_gap'] = np.round(np.abs(a_val - i_val), 2)
+            feature_df['min_core_match'] = np.minimum(a_val, i_val)
+            feature_df['max_core_match'] = np.maximum(a_val, i_val)
+            feature_df['harmonic_core_match'] = np.round(2.0 * (a_val * i_val) / (a_val + i_val + 1e-5), 2)
+
         required_features = get_feature_columns()
         missing_cols = [c for c in required_features if c not in feature_df.columns]
         if missing_cols:

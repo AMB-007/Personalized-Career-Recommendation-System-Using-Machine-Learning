@@ -1,4 +1,6 @@
 {
-  "version": "V7.2",
-  "created": "2026-08-26T04:01:10.307761Z"
+  "version": "V8.0-Champion",
+  "champion_model": "XGBoost",
+  "model_accuracy": "92.61%",
+  "created": "2026-08-29T07:07:14.425410Z"
 }

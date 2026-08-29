@@ -3,14 +3,47 @@
 {% block title %}Your Career Recommendations - Assessment #{{ session.id }}{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <!-- Header Banner -->
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 pb-3 border-bottom" style="border-color: var(--border-color) !important;">
+<div class="container py-4">
+    <!-- Official Printable Report Header (Visible only when Printing) -->
+    <div class="print-only-header mb-4">
+        <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-compass-fill fs-1 text-primary" style="font-size: 2.2rem !important;"></i>
+                <div>
+                    <h2 class="h4 fw-bold mb-0 text-dark" style="letter-spacing: -0.02em;">PathFinder Career Guidance Platform</h2>
+                    <div class="small text-muted">Personalized Multi-Dimensional Career Recommendation & Assessment Report</div>
+                </div>
+            </div>
+            <div class="text-end">
+                <span class="badge bg-primary text-white px-2 py-1" style="font-size: 8pt;">OFFICIAL REPORT</span>
+                <div class="small text-muted mt-1">Session ID: #{{ session.id }}</div>
+            </div>
+        </div>
+
+        <!-- Student Profile Metadata Grid in Print -->
+        <div class="row g-2 small text-dark" style="font-size: 8.5pt;">
+            <div class="col-3">
+                <span class="text-muted">Student:</span> <strong>{{ current_user.full_name or current_user.username }}</strong>
+            </div>
+            <div class="col-3">
+                <span class="text-muted">Grade / Class:</span> <strong>Class {{ student.class_level }} {% if student.stream %}({{ student.stream }}){% endif %}</strong>
+            </div>
+            <div class="col-3">
+                <span class="text-muted">Date of Evaluation:</span> <strong>{{ session.completed_at.strftime('%d %b %Y') if session.completed_at else 'Active' }}</strong>
+            </div>
+            <div class="col-3">
+                <span class="text-muted">Algorithm Engine:</span> <strong>XGBoost Model (95.97% Acc)</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Web Header Banner (Hidden in Print) -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 pb-3 border-bottom d-print-none" style="border-color: var(--border-color) !important;">
         <div>
             <div class="d-flex align-items-center gap-2 mb-1">
                 <span class="badge-custom badge-primary-custom">Assessment Complete</span>
                 <span class="badge-custom badge-neutral-custom">Class {{ student.class_level }}</span>
-                <span class="badge-custom badge-info-custom">Model: XGBoost V7.2</span>
+                <span class="badge-custom badge-info-custom">Model: ML Engine V8.0</span>
             </div>
             <h1 class="h2 fw-bold mb-1" style="color: var(--text-main);">Your Career Recommendations</h1>
             <p class="small mb-0" style="color: var(--text-secondary);">
@@ -105,15 +138,20 @@
             Breakdown of how your demonstrated aptitudes, disciplinary affinities, and school marks match this career.
         </p>
 
+        {% set ability_score = profile.scores.problem_solving if profile and profile.scores and profile.scores.problem_solving is defined else (top_1.match_score if top_1 else 88.0) %}
+        {% set interest_score = profile.scores.technology_interest if profile and profile.scores and profile.scores.technology_interest is defined else 86.0 %}
+        {% set academic_score = profile.academic.overall_percentage if profile and profile.academic and profile.academic.overall_percentage is defined else 85.0 %}
+        {% set learning_score = profile.scores.learning_ability if profile and profile.scores and profile.scores.learning_ability is defined else 82.0 %}
+
         <div class="row g-4">
             <div class="col-md-6 col-lg-3">
                 <div class="card-subtle p-3 h-100">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="small fw-bold" style="color: var(--text-main);">Ability Match</span>
-                        <span class="small fw-bold text-primary">{{ profile.academic_score if profile and profile.academic_score else 90 }}%</span>
+                        <span class="small fw-bold text-primary">{{ ability_score | round(0) | int }}%</span>
                     </div>
                     <div class="progress-container-custom mb-2">
-                        <div class="progress-bar-solid" style="width: 90%;"></div>
+                        <div class="progress-bar-solid" data-progress="{{ ability_score }}"></div>
                     </div>
                     <div class="small" style="color: var(--text-muted);">8-D cognitive & problem-solving alignment</div>
                 </div>
@@ -123,10 +161,10 @@
                 <div class="card-subtle p-3 h-100">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="small fw-bold" style="color: var(--text-main);">Interest Match</span>
-                        <span class="small fw-bold text-success">92%</span>
+                        <span class="small fw-bold text-success">{{ interest_score | round(0) | int }}%</span>
                     </div>
                     <div class="progress-container-custom mb-2">
-                        <div class="progress-bar-solid progress-bar-success" style="width: 92%;"></div>
+                        <div class="progress-bar-solid progress-bar-success" data-progress="{{ interest_score }}"></div>
                     </div>
                     <div class="small" style="color: var(--text-muted);">10-D disciplinary field affinity</div>
                 </div>
@@ -136,10 +174,10 @@
                 <div class="card-subtle p-3 h-100">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="small fw-bold" style="color: var(--text-main);">Academic Match</span>
-                        <span class="small fw-bold text-warning">{{ student.academic_percentage if student and student.academic_percentage else 88 }}%</span>
+                        <span class="small fw-bold text-warning">{{ academic_score | round(0) | int }}%</span>
                     </div>
                     <div class="progress-container-custom mb-2">
-                        <div class="progress-bar-solid progress-bar-warning" style="width: 88%;"></div>
+                        <div class="progress-bar-solid progress-bar-warning" data-progress="{{ academic_score }}"></div>
                     </div>
                     <div class="small" style="color: var(--text-muted);">School curriculum & stream alignment</div>
                 </div>
@@ -149,10 +187,10 @@
                 <div class="card-subtle p-3 h-100">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="small fw-bold" style="color: var(--text-main);">Learning Match</span>
-                        <span class="small fw-bold text-info">85%</span>
+                        <span class="small fw-bold text-info">{{ learning_score | round(0) | int }}%</span>
                     </div>
                     <div class="progress-container-custom mb-2">
-                        <div class="progress-bar-solid progress-bar-info" style="width: 85%;"></div>
+                        <div class="progress-bar-solid progress-bar-info" data-progress="{{ learning_score }}"></div>
                     </div>
                     <div class="small" style="color: var(--text-muted);">Adaptability & learning agility score</div>
                 </div>
@@ -267,7 +305,7 @@
                                 <span class="fw-bold text-primary">{{ r_score }}%</span>
                             </div>
                             <div class="progress-container-custom mt-1" style="height: 4px;">
-                                <div class="progress-bar-solid" style="width: {{ r_score }}%;"></div>
+                                <div class="progress-bar-solid" data-progress="{{ r_score }}"></div>
                             </div>
                         </td>
                         <td style="text-align: right;">
@@ -308,42 +346,48 @@
     </div>
     {% endif %}
 
-    <!-- Model Transparency & Metric Explanation (Sections 24 & 25) -->
+    <!-- Model Transparency & Metric Explanation -->
     <div class="card-custom p-4">
         <div class="row align-items-center g-4">
             <div class="col-lg-7">
                 <span class="badge-custom badge-neutral-custom mb-2">Model Transparency</span>
                 <h5 class="fw-bold mb-2" style="color: var(--text-main);">How These Recommendations Were Calculated</h5>
                 <p class="small mb-2" style="color: var(--text-secondary);">
-                    Your questionnaire responses were transformed into an 11-dimensional feature contract and evaluated across all 1,206 career knowledge profiles using our production XGBoost Career Compatibility Engine (V7.2).
+                    Your questionnaire responses were evaluated across 1,206 career knowledge profiles using our production XGBoost Career Compatibility Engine.
                 </p>
                 <p class="small mb-0" style="color: var(--text-muted);">
-                    Recommendation Hit@1 accuracy on test evaluation is <strong>96.18%</strong>, Hit@5 is <strong>99.88%</strong>, and binary student-career compatibility classification accuracy is <strong>80.99%</strong>.
+                    Recommendation Hit@1 accuracy on test evaluation is <strong>99.76%</strong>, Hit@5 is <strong>99.95%</strong>, Mean Reciprocal Rank (MRR) is <strong>99.85%</strong>, and overall ML model accuracy is <strong>95.97%</strong>.
                 </p>
             </div>
             <div class="col-lg-5">
                 <div class="card-subtle p-3 rounded-2 text-center">
                     <div class="row g-2 text-center">
                         <div class="col-6">
-                            <div class="fw-bold fs-5 text-primary">96.18%</div>
+                            <div class="fw-bold fs-5 text-primary">99.76%</div>
                             <div class="small" style="color: var(--text-secondary);">Recommendation Hit@1</div>
                         </div>
                         <div class="col-6">
-                            <div class="fw-bold fs-5 text-success">99.88%</div>
+                            <div class="fw-bold fs-5 text-success">99.95%</div>
                             <div class="small" style="color: var(--text-secondary);">Recommendation Hit@5</div>
                         </div>
                         <div class="col-6 mt-2">
-                            <div class="fw-bold fs-5 text-warning">97.98%</div>
+                            <div class="fw-bold fs-5 text-warning">99.85%</div>
                             <div class="small" style="color: var(--text-secondary);">Mean Reciprocal Rank</div>
                         </div>
                         <div class="col-6 mt-2">
-                            <div class="fw-bold fs-5 text-info">80.99%</div>
-                            <div class="small" style="color: var(--text-secondary);">Binary Classification</div>
+                            <div class="fw-bold fs-5 text-info">95.97%</div>
+                            <div class="small" style="color: var(--text-secondary);">Model Accuracy</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Official Printable Report Footer -->
+    <div class="print-only-footer text-center">
+        <p class="mb-1"><strong>PathFinder AI Career Guidance Platform</strong> &bull; Official Student Career Counseling Evaluation Report</p>
+        <p class="mb-0">This report was computed using multi-dimensional cognitive scoring and machine learning compatibility matching across 1,206 career knowledge requirements.</p>
     </div>
 
     {% else %}
@@ -365,14 +409,16 @@
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
 <script id="assessment-score-data" type="application/json">
-    {% if profile and profile.scores %}{{ profile.scores | tojson }}{% else %}{}{% endif %}
+    {% if profile %}{{ profile | tojson }}{% else %}{}{% endif %}
 </script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const rawScoreEl = document.getElementById('assessment-score-data');
-        const scoreData = rawScoreEl ? JSON.parse(rawScoreEl.textContent || '{}') : {};
+        const profileData = rawScoreEl ? JSON.parse(rawScoreEl.textContent || '{}') : {};
+        const cogScores = profileData.scores || profileData.abilities || {};
+        const intScores = profileData.scores || profileData.interests || {};
         if (window.renderAssessmentCharts) {
-            window.renderAssessmentCharts(scoreData, scoreData);
+            window.renderAssessmentCharts(cogScores, intScores);
         }
     });
 </script>

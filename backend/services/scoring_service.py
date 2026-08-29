@@ -63,48 +63,75 @@ class ScoringService:
             category_scores[dim] = 0.0
             category_max[dim] = 0.0
 
+        # Skill alias dictionary mapping question skill_categories to database columns
+        SKILL_ALIASES = {
+            'medical_interest': 'healthcare_interest',
+            'health_interest': 'healthcare_interest',
+            'scientific_interest': 'science_interest',
+            'engineering_interest': 'technology_interest',
+            'governance_interest': 'social_interest',
+            'law_interest': 'social_interest',
+            'arts_interest': 'creative_interest',
+            'design_interest': 'creative_interest',
+            'math_ability': 'mathematical_ability',
+            'math': 'mathematical_ability',
+            'analytical_thinking': 'analytical_ability',
+            'spatial_reasoning': 'spatial_ability',
+            'digital_fluency': 'digital_ability',
+            'computational_thinking': 'digital_ability'
+        }
+
         for ans in answers:
             q = ans.question
             if not q or not q.skill_category:
                 continue
 
-            skill = q.skill_category
+            raw_skill = q.skill_category.strip()
+            target_skills = [raw_skill]
+            if raw_skill in SKILL_ALIASES:
+                target_skills.append(SKILL_ALIASES[raw_skill])
+
+            # Also cross-map scientific_interest to research_interest
+            if raw_skill in ['scientific_interest', 'science_interest']:
+                target_skills.append('research_interest')
+
+            pts = 0.0
+            max_pts = 100.0
 
             if q.question_type in ['MCQ', 'SCENARIO']:
-                # Find selected option score
                 selected_opt = QuestionOption.query.filter_by(question_id=q.id, option_value=ans.selected_option).first()
-                pts = selected_opt.score if selected_opt else 0.0
-                max_pts = 1.0  # standard MCQ max
-
-                category_scores[skill] = category_scores.get(skill, 0.0) + pts
-                category_max[skill] = category_max.get(skill, 0.0) + max_pts
+                raw_score = (selected_opt.score if selected_opt else 0.0)
+                all_opts = QuestionOption.query.filter_by(question_id=q.id).all()
+                opt_max = max([opt.score for opt in all_opts] or [1.0])
+                pts = raw_score
+                max_pts = opt_max if opt_max > 0 else 1.0
 
             elif q.question_type == 'RATING':
-                # Rating scale (1 to 5) or numeric value
                 val = ans.numeric_value
                 if val is None and ans.selected_option:
                     try:
                         val = float(ans.selected_option)
                     except ValueError:
-                        # Check if mapped option score exists
                         selected_opt = QuestionOption.query.filter_by(question_id=q.id, option_value=ans.selected_option).first()
                         val = selected_opt.score if selected_opt else 60.0
 
                 if val is not None:
-                    # Normalize 1-5 scale to 0-100 or use direct score if 0-100
                     normalized_val = val if val > 5 else (val / 5.0) * 100.0
-                    category_scores[skill] = category_scores.get(skill, 0.0) + normalized_val
-                    category_max[skill] = category_max.get(skill, 0.0) + 100.0
+                    pts = normalized_val
+                    max_pts = 100.0
 
             elif q.question_type == 'MULTI_SELECT':
-                # Multi-select options
                 selected_vals = (ans.selected_option or '').split(',')
                 opts = QuestionOption.query.filter_by(question_id=q.id).all()
-                max_pts = sum(opt.score for opt in opts if opt.score > 0) or 1.0
-                pts = sum(opt.score for opt in opts if opt.option_value in selected_vals)
+                total_max = sum(opt.score for opt in opts if opt.score > 0) or 1.0
+                earned = sum(opt.score for opt in opts if opt.option_value in selected_vals)
+                pts = earned
+                max_pts = total_max if total_max > 0 else 1.0
 
-                category_scores[skill] = category_scores.get(skill, 0.0) + pts
-                category_max[skill] = category_max.get(skill, 0.0) + max_pts
+            for skill in set(target_skills):
+                if skill in category_scores:
+                    category_scores[skill] = category_scores.get(skill, 0.0) + pts
+                    category_max[skill] = category_max.get(skill, 0.0) + max_pts
 
         # Calculate final normalized percentage (0 - 100) for each dimension
         normalized_results: Dict[str, float] = {}
@@ -112,10 +139,32 @@ class ScoringService:
             max_p = category_max.get(dim, 0.0)
             if max_p > 0:
                 score_pct = (category_scores.get(dim, 0.0) / max_p) * 100.0
-            else:
-                # Default baseline value for unexplored dimensions
-                score_pct = 50.0
-            normalized_results[dim] = max(0.0, min(100.0, round(score_pct, 1)))
+                normalized_results[dim] = max(0.0, min(100.0, round(score_pct, 1)))
+
+        # Dynamic correlated baseline for dimensions without direct questions
+        def get_dim(d_name: str, fallback: float = 60.0) -> float:
+            return normalized_results.get(d_name, fallback)
+
+        # Infer correlated baseline if missing
+        if 'research_interest' not in normalized_results:
+            normalized_results['research_interest'] = round((get_dim('scientific_reasoning', 65.0) * 0.6 + get_dim('analytical_ability', 65.0) * 0.4), 1)
+        if 'science_interest' not in normalized_results:
+            normalized_results['science_interest'] = round(get_dim('scientific_reasoning', 65.0), 1)
+        if 'technology_interest' not in normalized_results:
+            normalized_results['technology_interest'] = round((get_dim('digital_ability', 70.0) * 0.6 + get_dim('logical_reasoning', 70.0) * 0.4), 1)
+        if 'healthcare_interest' not in normalized_results:
+            normalized_results['healthcare_interest'] = round((get_dim('scientific_reasoning', 60.0) * 0.7 + get_dim('social_interest', 60.0) * 0.3), 1)
+        if 'business_interest' not in normalized_results:
+            normalized_results['business_interest'] = round((get_dim('mathematical_ability', 60.0) * 0.5 + get_dim('communication', 60.0) * 0.5), 1)
+        if 'creative_interest' not in normalized_results:
+            normalized_results['creative_interest'] = round(get_dim('creativity', 65.0), 1)
+        if 'social_interest' not in normalized_results:
+            normalized_results['social_interest'] = round((get_dim('communication', 60.0) * 0.6 + get_dim('teamwork', 60.0) * 0.4), 1)
+
+        # Fill any remaining cognitive dimensions with a personalized baseline
+        for dim in tracked_dimensions:
+            if dim not in normalized_results:
+                normalized_results[dim] = 60.0
 
         # Update or create AssessmentScore record
         score_record = AssessmentScore.query.filter_by(assessment_id=session.id).first()

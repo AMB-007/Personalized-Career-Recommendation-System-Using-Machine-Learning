@@ -104,7 +104,8 @@ class CareerService:
     @classmethod
     def get_career_by_id(cls, career_id: int) -> Optional[Dict[str, Any]]:
         """Fetches complete career profile with skills, subjects, and education pathways."""
-        career = Career.query.get(career_id)
+        from backend.extensions import db
+        career = db.session.get(Career, career_id)
         return career.to_dict() if career else None
 
     @classmethod

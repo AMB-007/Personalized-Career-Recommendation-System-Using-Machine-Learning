@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from backend.extensions import db
 
 
@@ -13,12 +13,12 @@ class AssessmentSession(db.Model):
         default='not_started',
         index=True
     )
-    started_at = db.Column(db.DateTime, default=datetime.utcnow)
+    started_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     completed_at = db.Column(db.DateTime, nullable=True)
     current_question = db.Column(db.Integer, default=0)
     completion_percentage = db.Column(db.Float, default=0.0)
     selected_question_ids = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
 
     # Relationships
     answers = db.relationship('StudentAnswer', backref='session', lazy='dynamic', cascade='all, delete-orphan')
@@ -54,7 +54,7 @@ class StudentAnswer(db.Model):
     answer_text = db.Column(db.Text, nullable=True)
     numeric_value = db.Column(db.Float, nullable=True)
     time_taken_seconds = db.Column(db.Integer, default=0)
-    answered_at = db.Column(db.DateTime, default=datetime.utcnow)
+    answered_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     # Composite Unique Constraint: one answer per question per assessment
     __table_args__ = (
@@ -112,7 +112,7 @@ class AssessmentScore(db.Model):
     research_interest = db.Column(db.Float, default=0.0)
     social_interest = db.Column(db.Float, default=0.0)
 
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     def to_dict(self):
         return {

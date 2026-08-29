@@ -177,7 +177,7 @@ def api_save_answer():
     if not session_id or not question_id:
         return api_error("Missing session_id or question_id.", status_code=400)
 
-    session = AssessmentSession.query.get(session_id)
+    session = db.session.get(AssessmentSession, session_id)
     if not session or (not current_user.is_admin and session.student_id != current_user.student.id):
         return api_error("Unauthorized access to assessment session.", status_code=403)
 
@@ -208,7 +208,7 @@ def api_submit_assessment():
     if not session_id:
         return api_error("Missing session_id parameter.", status_code=400)
 
-    session = AssessmentSession.query.get(session_id)
+    session = db.session.get(AssessmentSession, session_id)
     if not session or (not current_user.is_admin and session.student_id != current_user.student.id):
         return api_error("Unauthorized access to assessment session.", status_code=403)
 

@@ -30,6 +30,14 @@ def index():
     return render_template('index.html', domains=domains, sample_careers=sample_careers)
 
 
+@main_bp.route('/favicon.ico')
+def favicon():
+    """Serve branded SVG favicon for browser tab icon requests."""
+    from flask import send_from_directory
+    return send_from_directory(str(BASE_DIR / 'frontend' / 'static'), 'favicon.svg', mimetype='image/svg+xml')
+
+
+
 def create_app(config_name=None):
     """Factory function to configure and create Flask application instances connected to MySQL."""
     if config_name is None:

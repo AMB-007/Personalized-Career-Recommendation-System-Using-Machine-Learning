@@ -266,19 +266,19 @@ class TestAssessmentWorkflowAllCohorts(unittest.TestCase):
 
     def test_cohort_01_class_7_general(self):
         """Test Class 7 (Middle School General Cohort)."""
-        self._execute_cohort_lifecycle_test(7, 'General', min_q=30, max_q=40)
+        self._execute_cohort_lifecycle_test(7, 'General', min_q=48, max_q=55)
 
     def test_cohort_02_class_8_general(self):
         """Test Class 8 (Middle School General Cohort)."""
-        self._execute_cohort_lifecycle_test(8, 'General', min_q=30, max_q=40)
+        self._execute_cohort_lifecycle_test(8, 'General', min_q=48, max_q=55)
 
     def test_cohort_03_class_9_general(self):
         """Test Class 9 (Secondary School General Cohort)."""
-        self._execute_cohort_lifecycle_test(9, 'General', min_q=40, max_q=50)
+        self._execute_cohort_lifecycle_test(9, 'General', min_q=48, max_q=55)
 
     def test_cohort_04_class_10_general(self):
         """Test Class 10 (Secondary School General Cohort)."""
-        self._execute_cohort_lifecycle_test(10, 'General', min_q=40, max_q=50)
+        self._execute_cohort_lifecycle_test(10, 'General', min_q=48, max_q=55)
 
     def test_cohort_05_class_11_science_pcm(self):
         """Test Class 11 Science-PCM Cohort."""
@@ -307,6 +307,12 @@ class TestAssessmentWorkflowAllCohorts(unittest.TestCase):
     def test_cohort_11_class_12_humanities(self):
         """Test Class 12 Humanities Cohort."""
         self._execute_cohort_lifecycle_test(12, 'Humanities', min_q=50, max_q=60)
+
+    @classmethod
+    def tearDownClass(cls):
+        db.session.remove()
+        db.drop_all()
+        cls.app_context.pop()
 
 
 if __name__ == '__main__':

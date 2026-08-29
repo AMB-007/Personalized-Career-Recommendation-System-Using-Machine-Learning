@@ -186,6 +186,12 @@ class TestStudentProfileAndBaseline(unittest.TestCase):
         self.assertIn('abilities', json_data['data'])
         self.assertIn('strengths', json_data['data'])
 
+    @classmethod
+    def tearDownClass(cls):
+        db.session.remove()
+        db.drop_all()
+        cls.app_context.pop()
+
 
 if __name__ == '__main__':
     unittest.main()

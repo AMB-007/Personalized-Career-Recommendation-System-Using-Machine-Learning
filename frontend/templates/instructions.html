@@ -72,6 +72,32 @@
                     </div>
                 </div>
 
+                <h5 class="fw-bold mb-3" style="color: var(--text-main);">Choose Assessment Mode:</h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="card-subtle p-3 h-100 cursor-pointer mode-option-card active" id="mode-card-standard" onclick="selectAssessmentMode('standard')" style="border: 2px solid var(--primary); border-radius: var(--radius-md);">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="bi bi-shield-check text-success fs-5"></i>
+                                <strong style="color: var(--text-main);">Standard Relaxed Mode</strong>
+                            </div>
+                            <p class="small mb-0" style="color: var(--text-secondary);">
+                                Untimed, relaxed pace. Suitable for self-reflection and comprehensive exploration.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card-subtle p-3 h-100 cursor-pointer mode-option-card" id="mode-card-timed" onclick="selectAssessmentMode('timed')" style="border: 1.5px solid var(--border-color); border-radius: var(--radius-md);">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="bi bi-stopwatch text-warning fs-5"></i>
+                                <strong style="color: var(--text-main);">Timed Challenge Mode</strong>
+                            </div>
+                            <p class="small mb-0" style="color: var(--text-secondary);">
+                                45-minute countdown clock. Simulates real-world aptitude and competitive testing conditions.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 pt-3 border-top" style="border-color: var(--border-color) !important;">
                     <a href="{{ url_for('student.dashboard') }}" class="btn btn-outline-custom">
                         <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
@@ -86,4 +112,23 @@
         </div>
     </div>
 </div>
+
+<script>
+function selectAssessmentMode(mode) {
+    localStorage.setItem('assessment_mode', mode);
+    const standardCard = document.getElementById('mode-card-standard');
+    const timedCard = document.getElementById('mode-card-timed');
+    if (mode === 'timed') {
+        timedCard.style.border = '2px solid var(--primary)';
+        standardCard.style.border = '1.5px solid var(--border-color)';
+    } else {
+        standardCard.style.border = '2px solid var(--primary)';
+        timedCard.style.border = '1.5px solid var(--border-color)';
+    }
+}
+// Default to standard mode on load
+document.addEventListener('DOMContentLoaded', () => {
+    selectAssessmentMode(localStorage.getItem('assessment_mode') || 'standard');
+});
+</script>
 {% endblock %}

@@ -243,11 +243,21 @@ class StudentProfileService:
                     'growth_tip': meta.get('growth_text', 'Focus on guided conceptual practice and hands-on exercises.')
                 })
 
+        scores_flat = {}
+        for dim, info in abilities_dict.items():
+            scores_flat[dim] = info['score']
+        for dim, info in interests_dict.items():
+            scores_flat[dim] = info['score']
+            short_dim = dim.replace('_interest', '')
+            scores_flat[short_dim] = info['score']
+            scores_flat[f"{short_dim}_interest"] = info['score']
+
         return {
             'student': student.to_dict(),
             'academic': academic_profile,
             'abilities': abilities_dict,
             'interests': interests_dict,
+            'scores': scores_flat,
             'activities': activity_scores,
             'work_preferences': work_preferences,
             'strengths': strengths,

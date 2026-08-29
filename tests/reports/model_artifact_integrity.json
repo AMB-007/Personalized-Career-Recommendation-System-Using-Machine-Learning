@@ -1,20 +1,20 @@
 {
-  "model_version": "V7.2",
-  "algorithm": "XGBoost",
+  "model_version": "V8.0-Champion",
+  "algorithm": "CatBoost",
   "files": {
     "model.joblib": {
-      "sha256": "6f380e9d0ae79609298daa1ab052a034c16435f51ea05db4d893486bff13c863",
-      "size_bytes": 864979,
+      "sha256": "29f1bc43797a215b85350d547b7cfb0abf33db61645ac3dc81070e405827673b",
+      "size_bytes": 2204808,
       "status": "verified"
     },
     "preprocessor.joblib": {
-      "sha256": "5ba1b5d579b825376321c84576a95ff935f9b9e4a4c8b423c7f22b31c420725b",
-      "size_bytes": 44183,
+      "sha256": "f8749def05f9359cafe9f28afcde6d1033a03a6cb3fe6bb28711716d2859354c",
+      "size_bytes": 44791,
       "status": "verified"
     },
     "feature_columns.json": {
-      "sha256": "0275ac295bf851e2b733215cb2b8fd04dda9766efa13943f90735376183eb51f",
-      "size_bytes": 243,
+      "sha256": "d3bdd10bd963ac6809e812c24ba5867f487290ac7ba3cc6d54a8d769594b3616",
+      "size_bytes": 401,
       "status": "verified"
     },
     "classes.json": {
@@ -23,18 +23,18 @@
       "status": "verified"
     },
     "model_config.json": {
-      "sha256": "5468043d1ddb3a12a30df01cc9384e50e2072c26ca94149df773b4601a55964c",
-      "size_bytes": 416,
+      "sha256": "64a1ff49d211e9c5d0372bf6811e9165efcec423af11fd1d81599153269e154b",
+      "size_bytes": 1313,
       "status": "verified"
     },
     "version.json": {
-      "sha256": "278be79c828371612f8915380c7d49717d270c6b8d932a5fd409b3f4ba06d268",
-      "size_bytes": 70,
+      "sha256": "e61247855ec2c5401fdcb29217b5155ac04743ac62aad1931a74260b28644e0d",
+      "size_bytes": 142,
       "status": "verified"
     },
     "career_knowledge_requirements.csv": {
-      "sha256": "9ca9ce64ff2479a77f2da93780b3df260076fd3f02697b10afc7e18a8df04bd9",
-      "size_bytes": 230233,
+      "sha256": "663bae8c0e7274b1aa0d4f411ab8a29b4793bafa97db4d9742c4e0daaf19c5ae",
+      "size_bytes": 231440,
       "status": "verified"
     }
   }

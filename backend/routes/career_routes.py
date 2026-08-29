@@ -87,12 +87,11 @@ def explorer_page():
 
 
 @career_bp.route('/careers/<int:career_id>')
-def career_detail_page(career_id):
+def career_detail_page(career_id: int):
     career_dict = CareerService.get_career_by_id(career_id)
     if not career_dict:
         abort(404)
-
-    career_obj = Career.query.get(career_id)
+    career_obj = db.session.get(Career, career_id)
     related_list = []
     if career_obj and career_obj.domain_id:
         related_list = Career.query.filter(
@@ -146,6 +145,9 @@ def api_health():
         db_ready = False
 
     version_info = get_model_version() if model_ready else {}
+    config = get_model_config() if model_ready else {}
+    model_name = config.get('model', 'CatBoost')
+    model_ver = version_info.get('version', 'V8.0-Champion')
 
     return api_response({
         'status': 'healthy' if (model_ready and prep_ready and cat_ready and db_ready) else 'degraded',
@@ -153,8 +155,8 @@ def api_health():
         'preprocessor_loaded': prep_ready,
         'career_catalogue_loaded': cat_ready,
         'database': db_ready,
-        'algorithm': 'XGBoost',
-        'model_version': version_info.get('version', 'V7.2')
+        'algorithm': model_name,
+        'model_version': model_ver
     })
 
 
@@ -165,37 +167,74 @@ def api_model_info():
         config = get_model_config()
         version_info = get_model_version()
         features = get_feature_columns()
+        model_name = config.get('model', 'CatBoost')
+        model_ver = version_info.get('version', 'V8.0-Champion')
+
+        class_metrics = {
+            'accuracy': 0.8107,
+            'balanced_accuracy': 0.7249,
+            'precision': 0.8372,
+            'recall': 0.9166,
+            'f1_score': 0.8751,
+            'roc_auc': 0.8537,
+            'pr_auc': 0.9349
+        }
+        rec_metrics = {
+            'hit_at_1': 0.9603,
+            'hit_at_3': 0.9964,
+            'hit_at_5': 0.9989,
+            'hit_at_10': 0.9995,
+            'mrr': 0.9781,
+            'ndcg_at_5': 0.9211
+        }
+
+        try:
+            import json
+            from pathlib import Path
+            hist_path = Path(__file__).resolve().parent.parent / "ml" / "models" / "training_history.json"
+            if hist_path.exists():
+                with open(hist_path, "r", encoding="utf-8") as f:
+                    hist_data = json.load(f)
+                    if "final_metrics" in hist_data:
+                        fm = hist_data["final_metrics"]
+                        class_metrics = {
+                            'accuracy': round(float(fm.get('accuracy', 0.8107)), 4),
+                            'balanced_accuracy': round(float(fm.get('balanced_accuracy', 0.7249)), 4),
+                            'precision': round(float(fm.get('precision', 0.8372)), 4),
+                            'recall': round(float(fm.get('recall', 0.9166)), 4),
+                            'f1_score': round(float(fm.get('f1', 0.8751)), 4),
+                            'roc_auc': round(float(fm.get('roc_auc', 0.8537)), 4),
+                            'pr_auc': round(float(fm.get('pr_auc', 0.9349)), 4)
+                        }
+                    if "ranking_metrics" in hist_data:
+                        rm = hist_data["ranking_metrics"]
+                        rec_metrics = {
+                            'hit_at_1': round(float(rm.get('Hit@1', 0.9603)), 4),
+                            'hit_at_3': round(float(rm.get('Hit@3', 0.9964)), 4),
+                            'hit_at_5': round(float(rm.get('Hit@5', 0.9989)), 4),
+                            'hit_at_10': round(float(rm.get('Hit@10', 0.9995)), 4),
+                            'mrr': round(float(rm.get('MRR', 0.9781)), 4),
+                            'ndcg_at_5': round(float(rm.get('NDCG@5', 0.9211)), 4)
+                        }
+        except Exception:
+            pass
 
         return api_response({
             'status': 'loaded',
-            'model': config.get('model', 'XGBoost'),
-            'algorithm': config.get('model', 'XGBoost'),
-            'model_version': version_info.get('version', 'V7.2'),
+            'model': model_name,
+            'algorithm': model_name,
+            'model_version': model_ver,
             'feature_count': len(features),
             'features': features,
-            'threshold': float(config.get('threshold', 0.495)),
+            'threshold': float(config.get('threshold', 0.405)),
             'created_at': version_info.get('created'),
-            'classification_metrics': {
-                'accuracy': 0.8099,
-                'balanced_accuracy': 0.7171,
-                'precision': 0.8321,
-                'recall': 0.9240,
-                'f1_score': 0.8756,
-                'roc_auc': 0.8525,
-                'pr_auc': 0.9348
-            },
-            'recommendation_metrics': {
-                'hit_at_1': 0.9618,
-                'hit_at_3': 0.9968,
-                'hit_at_5': 0.9988,
-                'hit_at_10': 0.9994,
-                'mrr': 0.9798,
-                'ndcg_at_5': 0.9212
-            }
+            'classification_metrics': class_metrics,
+            'recommendation_metrics': rec_metrics
         })
     except Exception as e:
         logger.error(f"Error fetching model info: {str(e)}")
         return api_error("Failed to load model information.", status_code=500)
+
 
 
 @career_bp.route('/api/predictions', methods=['POST'])
@@ -239,9 +278,12 @@ def api_generate_recommendations():
         try:
             persisted_recs = RecommendationService.generate_recommendations_for_session(session, top_k=top_k)
             version_info = get_model_version()
+            config = get_model_config()
+            model_name = config.get('model', 'CatBoost')
+            model_ver = version_info.get('version', 'V8.0-Champion')
             return api_response({
-                'model': 'XGBoost',
-                'model_version': version_info.get('version', 'V7.2'),
+                'model': model_name,
+                'model_version': model_ver,
                 'assessment_id': session.id,
                 'student_id': session.student.student_code if session.student else session.student_id,
                 'recommendations': [r.to_dict() for r in persisted_recs]
@@ -329,11 +371,14 @@ def api_get_recommendations(assessment_id):
 
     recs = RecommendationService.get_recommendations_for_session(assessment_id)
     version_info = get_model_version()
+    config = get_model_config()
+    model_name = config.get('model', 'CatBoost')
+    model_ver = version_info.get('version', 'V8.0-Champion')
     return api_response({
         'assessment_id': assessment_id,
-        'model': 'XGBoost',
-        'model_version': version_info.get('version', 'V7.2'),
-        'model_status': 'XGBoost Compatibility Model (V7.2 Active)',
+        'model': model_name,
+        'model_version': model_ver,
+        'model_status': f"{model_name} Compatibility Model ({model_ver} Active)",
         'recommendations': recs
     })
 
@@ -364,10 +409,13 @@ def api_get_student_recommendations(student_id):
 
     recs = RecommendationService.get_recommendations_for_session(latest_session.id)
     version_info = get_model_version()
+    config = get_model_config()
+    model_name = config.get('model', 'CatBoost')
+    model_ver = version_info.get('version', 'V8.0-Champion')
     return api_response({
         'student_id': student.student_code,
         'assessment_id': latest_session.id,
-        'model': 'XGBoost',
-        'model_version': version_info.get('version', 'V7.2'),
+        'model': model_name,
+        'model_version': model_ver,
         'recommendations': recs
     })

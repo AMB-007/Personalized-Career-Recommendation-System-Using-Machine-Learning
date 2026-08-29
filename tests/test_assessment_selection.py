@@ -6,6 +6,7 @@ stream filtering, and session persistence across page refreshes.
 
 import os
 import sys
+import json
 import unittest
 from pathlib import Path
 from collections import Counter
@@ -88,25 +89,25 @@ class TestAssessmentSelection(unittest.TestCase):
         cls.app_context.pop()
 
     def test_cohort_target_counts(self):
-        """Verify selected question count falls into target bounds for all classes."""
-        # Class 7-8: 30-40 questions
+        """Verify selected question count falls into target bounds (50 to 55) for all classes."""
+        # Class 7-8: 48-55 questions (target 50)
         for c in [7, 8]:
             selected = AssessmentSelectionService.select_balanced_questions(c)
-            self.assertGreaterEqual(len(selected), 30, f"Class {c} question count < 30: {len(selected)}")
-            self.assertLessEqual(len(selected), 40, f"Class {c} question count > 40: {len(selected)}")
+            self.assertGreaterEqual(len(selected), 48, f"Class {c} question count < 48: {len(selected)}")
+            self.assertLessEqual(len(selected), 55, f"Class {c} question count > 55: {len(selected)}")
 
-        # Class 9-10: 40-50 questions
+        # Class 9-10: 48-55 questions (target 52)
         for c in [9, 10]:
             selected = AssessmentSelectionService.select_balanced_questions(c)
-            self.assertGreaterEqual(len(selected), 40, f"Class {c} question count < 40: {len(selected)}")
-            self.assertLessEqual(len(selected), 50, f"Class {c} question count > 50: {len(selected)}")
+            self.assertGreaterEqual(len(selected), 48, f"Class {c} question count < 48: {len(selected)}")
+            self.assertLessEqual(len(selected), 55, f"Class {c} question count > 55: {len(selected)}")
 
-        # Class 11-12: 50-60 questions
+        # Class 11-12: 50-58 questions (target 55)
         for c in [11, 12]:
             for stream in ['Science-PCM', 'Commerce', 'Humanities']:
                 selected = AssessmentSelectionService.select_balanced_questions(c, stream=stream)
                 self.assertGreaterEqual(len(selected), 50, f"Class {c} ({stream}) question count < 50: {len(selected)}")
-                self.assertLessEqual(len(selected), 60, f"Class {c} ({stream}) question count > 60: {len(selected)}")
+                self.assertLessEqual(len(selected), 58, f"Class {c} ({stream}) question count > 58: {len(selected)}")
 
     def test_section_coverage_across_cohorts(self):
         """Verify selected questions include all major sections and ability dimensions."""
@@ -156,6 +157,72 @@ class TestAssessmentSelection(unittest.TestCase):
         q_second_ids = [q.id for q in q_second]
 
         self.assertEqual(q_first_ids, q_second_ids, "Questions changed on session re-fetch / refresh!")
+
+    def test_distinct_questions_across_multiple_attempts_for_same_student(self):
+        """Verify that when a student takes a 2nd attempt, the selection engine selects fresh, non-overlapping questions."""
+        import uuid
+        uid = uuid.uuid4().hex[:6]
+        user = User(username=f'retake_u_{uid}', email=f'retake_{uid}@test.com', role='student')
+        user.set_password('Pass1234!')
+        db.session.add(user)
+        db.session.commit()
+
+        student = Student(user_id=user.id, student_code=f'STU-RET-{uid}', first_name='Retake', last_name='Student', class_level=8, stream='General')
+        db.session.add(student)
+        db.session.commit()
+
+        # Attempt 1
+        session_1 = AssessmentService.start_new_session(student.id)
+        q_ids_1 = set(json.loads(session_1.selected_question_ids))
+        self.assertGreaterEqual(len(q_ids_1), 30)
+
+        # Mark Attempt 1 completed
+        session_1.status = 'completed'
+        db.session.commit()
+
+        # Attempt 2
+        session_2 = AssessmentService.start_new_session(student.id)
+        q_ids_2 = set(json.loads(session_2.selected_question_ids))
+        self.assertGreaterEqual(len(q_ids_2), 30)
+
+        # Verify Attempt 2 has substantial fresh questions (overlap < 20%)
+        overlap = q_ids_1.intersection(q_ids_2)
+        overlap_pct = len(overlap) / len(q_ids_2)
+        self.assertLessEqual(overlap_pct, 0.20, f"Attempt 2 had too much overlap with Attempt 1: {len(overlap)} questions ({overlap_pct*100:.1f}%)")
+
+    def test_different_students_receive_distinct_question_sets(self):
+        """Verify that two students in the same grade cohort receive uniquely randomized question sets."""
+        import uuid
+        uid1 = uuid.uuid4().hex[:6]
+        uid2 = uuid.uuid4().hex[:6]
+
+        u1 = User(username=f'rand1_{uid1}', email=f'rand1_{uid1}@test.com', role='student')
+        u1.set_password('Pass1234!')
+        u2 = User(username=f'rand2_{uid2}', email=f'rand2_{uid2}@test.com', role='student')
+        u2.set_password('Pass1234!')
+        db.session.add_all([u1, u2])
+        db.session.commit()
+
+        s1 = Student(user_id=u1.id, student_code=f'STU-R1-{uid1}', first_name='Student', last_name='One', class_level=10, stream='General')
+        s2 = Student(user_id=u2.id, student_code=f'STU-R2-{uid2}', first_name='Student', last_name='Two', class_level=10, stream='General')
+        db.session.add_all([s1, s2])
+        db.session.commit()
+
+        sess1 = AssessmentService.start_new_session(s1.id)
+        sess2 = AssessmentService.start_new_session(s2.id)
+
+        q_ids_1 = json.loads(sess1.selected_question_ids)
+        q_ids_2 = json.loads(sess2.selected_question_ids)
+
+        # Verify not identical in composition/order
+        self.assertNotEqual(q_ids_1, q_ids_2, "Two different students received identical question sets!")
+
+    def test_class_7_cannot_receive_class_12_advanced_questions(self):
+        """Verify strict level-wise eligibility bounds: Class 7 only gets Class 7-8 eligible questions."""
+        selected_7 = AssessmentSelectionService.select_balanced_questions(7)
+        for q in selected_7:
+            self.assertLessEqual(q.class_min, 7, f"Question {q.question_code} has class_min {q.class_min} > 7!")
+            self.assertGreaterEqual(q.class_max, 7, f"Question {q.question_code} has class_max {q.class_max} < 7!")
 
 
 if __name__ == '__main__':

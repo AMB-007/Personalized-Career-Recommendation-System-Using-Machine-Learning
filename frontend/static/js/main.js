@@ -25,11 +25,13 @@ function updateThemeToggleButtons(theme) {
     const toggles = document.querySelectorAll('.theme-toggle-btn');
     toggles.forEach(btn => {
         if (theme === 'dark') {
-            btn.innerHTML = '<i class="bi bi-sun-fill text-warning me-1"></i> <span class="d-none d-sm-inline">Light</span>';
+            btn.innerHTML = '<i class="bi bi-sun-fill text-warning"></i>';
             btn.setAttribute('aria-label', 'Switch to light mode');
+            btn.setAttribute('title', 'Switch to light mode');
         } else {
-            btn.innerHTML = '<i class="bi bi-moon-fill text-primary me-1"></i> <span class="d-none d-sm-inline">Dark</span>';
+            btn.innerHTML = '<i class="bi bi-moon-stars-fill text-primary"></i>';
             btn.setAttribute('aria-label', 'Switch to dark mode');
+            btn.setAttribute('title', 'Switch to dark mode');
         }
     });
 }
@@ -79,6 +81,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 5000);
     });
+
+    // Auto-initialize dynamic progress bars with data-progress attribute
+    const progressElements = document.querySelectorAll('[data-progress]');
+    progressElements.forEach(el => {
+        const val = el.getAttribute('data-progress');
+        if (val !== null && val !== '') {
+            el.style.width = `${val}%`;
+        }
+    });
 });
 
 window.toggleTheme = toggleTheme;
+

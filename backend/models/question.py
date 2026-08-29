@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from backend.extensions import db
 
 
@@ -51,7 +51,7 @@ class Question(db.Model):
     display_order = db.Column(db.Integer, default=0)
     explanation = db.Column(db.Text, nullable=True)
     is_active = db.Column(db.Boolean, default=True, index=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     # Relationship
     options = db.relationship('QuestionOption', backref='question', lazy='joined', cascade='all, delete-orphan', order_by='QuestionOption.display_order')

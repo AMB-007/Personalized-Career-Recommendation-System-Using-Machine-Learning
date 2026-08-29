@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.ext.hybrid import hybrid_property
 from backend.extensions import db
 
@@ -15,7 +15,7 @@ class CareerRecommendation(db.Model):
     recommendation_reason = db.Column(db.Text, nullable=True)
     strengths = db.Column(db.Text, nullable=True)
     skill_gaps = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     __table_args__ = (
         db.UniqueConstraint('assessment_id', 'career_id', name='uq_assessment_career'),

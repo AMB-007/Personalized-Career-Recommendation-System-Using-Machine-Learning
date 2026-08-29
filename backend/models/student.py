@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from backend.extensions import db
 
 
@@ -18,8 +18,8 @@ class Student(db.Model):
     medium = db.Column(db.String(50), nullable=True)  # English, Malayalam, Hindi, etc.
     academic_year = db.Column(db.String(20), nullable=True)
     stream = db.Column(db.String(100), nullable=True, default='General', index=True)  # General (7-10), Science-PCM, Science-PCB, Commerce, Humanities
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     # Relationships
     academic_scores = db.relationship('AcademicScore', backref='student', uselist=False, cascade='all, delete-orphan')

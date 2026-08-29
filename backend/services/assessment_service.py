@@ -4,7 +4,7 @@ Manages session creation, adaptive question retrieval by student grade level, an
 progress tracking, and final submission scoring triggers with strict transactional rollback safety.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
 from backend.extensions import db
 from backend.models.assessment import AssessmentSession, StudentAnswer, AssessmentScore
@@ -59,7 +59,11 @@ class AssessmentService:
 
         # Fallback / Initial Selection
         student = session.student
-        selected = AssessmentSelectionService.select_balanced_questions(student.class_level, student.stream)
+        selected = AssessmentSelectionService.select_balanced_questions(
+            student.class_level,
+            student.stream,
+            student_id=student.id
+        )
         session.selected_question_ids = json.dumps([q.id for q in selected])
         db.session.commit()
         return selected
@@ -71,17 +75,18 @@ class AssessmentService:
         if not student:
             raise ValueError(f"Student ID {student_id} not found.")
 
-        # Pre-select balanced questions for the session
+        # Pre-select balanced questions for the session with retake exclusion
         selected_questions = AssessmentSelectionService.select_balanced_questions(
             student.class_level,
-            student.stream
+            student.stream,
+            student_id=student.id
         )
         selected_ids = [q.id for q in selected_questions]
 
         session = AssessmentSession(
             student_id=student_id,
             status='in_progress',
-            started_at=datetime.utcnow(),
+            started_at=datetime.now(timezone.utc),
             current_question=1,
             completion_percentage=0.0,
             selected_question_ids=json.dumps(selected_ids)
@@ -123,7 +128,7 @@ class AssessmentService:
         answer.answer_text = str(answer_text) if answer_text is not None else None
         answer.numeric_value = float(numeric_value) if numeric_value is not None else None
         answer.time_taken_seconds = int(time_taken_seconds)
-        answer.answered_at = datetime.utcnow()
+        answer.answered_at = datetime.now(timezone.utc)
 
         # Update progress percentage based on session's actual question count
         session_questions = cls.get_questions_for_session(session)
@@ -159,7 +164,7 @@ class AssessmentService:
 
         try:
             session.status = 'completed'
-            session.completed_at = datetime.utcnow()
+            session.completed_at = datetime.now(timezone.utc)
             session.completion_percentage = 100.0
 
             # 1. Compute multi-dimensional score profile

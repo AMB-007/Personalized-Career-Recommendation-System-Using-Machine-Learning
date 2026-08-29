@@ -1,45 +1,48 @@
 """
 Assessment Question Selection Engine.
-Selects a balanced, grade-appropriate, and difficulty-curated subset of questions
-from the master question pool in MySQL for each student assessment session.
-Guarantees section quotas, core cognitive ability coverage, and stream filtering.
+Selects a balanced, grade-appropriate, randomized, and attempt-differentiated subset of questions
+from the master question pool in MySQL/SQLite for each student assessment session.
+Guarantees section quotas, core cognitive ability coverage, stream filtering, and prevents duplicate
+questions across consecutive attempts for the same student.
 """
 
 import json
-from typing import List, Dict, Any, Optional
+import random
+from typing import List, Dict, Any, Optional, Set
 from backend.models.question import Question, QuestionSection
+from backend.models.assessment import AssessmentSession, StudentAnswer
 
 
 class AssessmentSelectionService:
-    """Intelligent adaptive question selection and balancing service."""
+    """Intelligent adaptive question selection, randomization, and attempt-differentiation service."""
 
-    # Target question counts per student grade cohort
+    # Target question counts per student grade cohort (50 to 55 based on class level)
     COHORT_TARGETS = {
-        'middle_school': {'min_class': 7, 'max_class': 8, 'target_count': 35, 'difficulty_pref': ['Easy', 'Medium']},
-        'secondary': {'min_class': 9, 'max_class': 10, 'target_count': 45, 'difficulty_pref': ['Easy', 'Medium', 'Hard']},
+        'middle_school': {'min_class': 7, 'max_class': 8, 'target_count': 50, 'difficulty_pref': ['Easy', 'Medium']},
+        'secondary': {'min_class': 9, 'max_class': 10, 'target_count': 52, 'difficulty_pref': ['Easy', 'Medium', 'Hard']},
         'higher_secondary': {'min_class': 11, 'max_class': 12, 'target_count': 55, 'difficulty_pref': ['Medium', 'Hard', 'Easy']}
     }
 
     # Minimum questions required per section for a balanced assessment
     SECTION_QUOTAS = {
-        # Section ID: (Min Count Middle School, Min Count Secondary, Min Count Higher Sec)
+        # Section ID: (Min Count Middle School [50], Min Count Secondary [52], Min Count Higher Sec [55])
         1: (2, 2, 2),   # Academic Profile
-        2: (4, 5, 5),   # Mathematical Ability
-        3: (3, 4, 4),   # Logical Reasoning
-        4: (3, 4, 4),   # Scientific Thinking
-        5: (2, 3, 3),   # Problem Solving
-        6: (1, 3, 3),   # Analytical Thinking
-        7: (1, 2, 2),   # Communication
-        8: (1, 2, 2),   # Creativity
-        9: (1, 2, 3),   # Digital Ability
-        10: (1, 2, 2),  # Learning Ability
-        11: (1, 2, 2),  # Spatial Ability
-        12: (1, 2, 2),  # Practical Ability
-        13: (6, 8, 10), # Interests
-        14: (3, 4, 5),  # Activities
+        2: (5, 5, 6),   # Mathematical Ability
+        3: (4, 4, 5),   # Logical Reasoning
+        4: (4, 4, 5),   # Scientific Thinking
+        5: (3, 3, 3),   # Problem Solving
+        6: (2, 3, 3),   # Analytical Thinking
+        7: (2, 2, 2),   # Communication
+        8: (2, 2, 2),   # Creativity
+        9: (2, 3, 3),   # Digital Ability
+        10: (2, 2, 2),  # Learning Ability
+        11: (2, 2, 2),  # Spatial Ability
+        12: (2, 2, 2),  # Practical Ability
+        13: (8, 8, 10), # Interests
+        14: (4, 4, 4),  # Activities
         15: (1, 1, 1),  # Teamwork
         16: (1, 1, 1),  # Leadership
-        17: (1, 2, 2),  # Work Preferences
+        17: (2, 2, 2),  # Work Preferences
         18: (1, 1, 1),  # Career Awareness
         19: (1, 1, 1)   # Career Preferences
     }
@@ -55,18 +58,54 @@ class AssessmentSelectionService:
             return 'higher_secondary'
 
     @classmethod
+    def get_student_prior_question_ids(cls, student_id: int) -> Set[int]:
+        """
+        Retrieves all question IDs previously assigned or answered by a student
+        across all past assessment sessions to prevent duplicates in retakes.
+        """
+        prior_ids: Set[int] = set()
+        try:
+            sessions = AssessmentSession.query.filter_by(student_id=student_id).all()
+            session_ids = [s.id for s in sessions]
+
+            # 1. From session metadata
+            for s in sessions:
+                if s.selected_question_ids:
+                    try:
+                        ids = json.loads(s.selected_question_ids)
+                        if isinstance(ids, list):
+                            prior_ids.update(ids)
+                    except Exception:
+                        pass
+
+            # 2. From actual answered responses
+            if session_ids:
+                answers = StudentAnswer.query.filter(
+                    StudentAnswer.assessment_id.in_(session_ids)
+                ).with_entities(StudentAnswer.question_id).all()
+                for (qid,) in answers:
+                    prior_ids.add(qid)
+        except Exception:
+            pass
+
+        return prior_ids
+
+    @classmethod
     def select_balanced_questions(
         cls,
         class_level: int,
-        stream: Optional[str] = None
+        stream: Optional[str] = None,
+        student_id: Optional[int] = None,
+        exclude_question_ids: Optional[Set[int]] = None,
+        random_seed: Optional[int] = None
     ) -> List[Question]:
         """
-        Selects a balanced, curated subset of questions from the master question bank.
+        Selects a balanced, curated, randomized, and attempt-differentiated subset of questions:
         1. Queries all eligible active questions for class_level and stream.
-        2. Groups questions by section_id and difficulty.
-        3. Fulfills guaranteed section quotas and ability coverage.
-        4. Reaches exact cohort target count while prioritizing cohort-appropriate difficulty.
-        5. Returns the selected questions ordered by section and display order.
+        2. Automatically excludes questions previously attempted by student_id in prior sessions.
+        3. Fulfills section quotas and ability coverage with randomized balanced sampling.
+        4. Fills remaining slots up to target_count with cohort-appropriate difficulty.
+        5. Returns selected questions ordered naturally by section and display order.
         """
         cohort_key = cls.get_cohort_key(class_level)
         cohort_config = cls.COHORT_TARGETS[cohort_key]
@@ -76,7 +115,14 @@ class AssessmentSelectionService:
         # Determine index for quota tuple (0 for middle, 1 for secondary, 2 for higher secondary)
         quota_idx = 0 if cohort_key == 'middle_school' else (1 if cohort_key == 'secondary' else 2)
 
-        # 1. Fetch eligible question pool from MySQL
+        # 1. Build exclusion set for retakes
+        excluded: Set[int] = set()
+        if exclude_question_ids:
+            excluded.update(exclude_question_ids)
+        if student_id is not None:
+            excluded.update(cls.get_student_prior_question_ids(student_id))
+
+        # 2. Fetch eligible question pool from database
         query = Question.query.filter(
             Question.is_active == True,
             Question.class_min <= class_level,
@@ -99,51 +145,78 @@ class AssessmentSelectionService:
             )
 
         eligible_pool = query.order_by(Question.section_id.asc(), Question.display_order.asc()).all()
+        if not eligible_pool:
+            return []
 
-        # 2. Group pool by section_id
-        section_buckets: Dict[int, List[Question]] = {}
-        for q in eligible_pool:
-            section_buckets.setdefault(q.section_id, []).append(q)
+        # 3. Partition eligible pool into Fresh (unattempted) vs Previously Attempted
+        fresh_pool = [q for q in eligible_pool if q.id not in excluded]
+        fallback_pool = [q for q in eligible_pool if q.id in excluded]
+
+        # Use PRNG for dynamic per-user and per-attempt randomized sampling
+        rng = random.Random(random_seed) if random_seed is not None else random.Random()
+
+        # Group fresh questions by section
+        fresh_section_buckets: Dict[int, List[Question]] = {}
+        for q in fresh_pool:
+            fresh_section_buckets.setdefault(q.section_id, []).append(q)
+
+        fallback_section_buckets: Dict[int, List[Question]] = {}
+        for q in fallback_pool:
+            fallback_section_buckets.setdefault(q.section_id, []).append(q)
 
         selected_questions_map: Dict[int, Question] = {}
 
-        # 3. Step 1: Satisfy Minimum Section Quotas
-        for section_id, q_list in section_buckets.items():
+        # 4. Step 1: Satisfy Minimum Section Quotas (prioritizing fresh questions)
+        all_section_ids = sorted(list(cls.SECTION_QUOTAS.keys()))
+        for section_id in all_section_ids:
             min_required = cls.SECTION_QUOTAS.get(section_id, (1, 1, 1))[quota_idx]
-            
-            # Sort within section by difficulty priority match
-            sorted_q = sorted(
-                q_list,
-                key=lambda q: (
-                    diff_priority.index(q.difficulty) if q.difficulty in diff_priority else 99,
-                    q.display_order
-                )
-            )
+            fresh_q_list = list(fresh_section_buckets.get(section_id, []))
+            fallback_q_list = list(fallback_section_buckets.get(section_id, []))
 
-            # Pick up to min_required from this section
-            picked = sorted_q[:min_required]
-            for q in picked:
+            # Sort candidate pool prioritizing cohort difficulty, then randomize within difficulty
+            def sort_key(q):
+                p_idx = diff_priority.index(q.difficulty) if q.difficulty in diff_priority else 99
+                return (p_idx, rng.random())
+
+            fresh_q_list.sort(key=sort_key)
+            fallback_q_list.sort(key=sort_key)
+
+            # Pick from fresh first
+            picked_fresh = fresh_q_list[:min_required]
+            for q in picked_fresh:
                 selected_questions_map[q.id] = q
 
-        # 4. Step 2: Fill remaining slots up to target_count using preferred difficulty distribution
-        remaining_pool = [q for q in eligible_pool if q.id not in selected_questions_map]
-        
-        # Sort remaining pool prioritizing cohort difficulty and section balance
-        sorted_remaining = sorted(
-            remaining_pool,
-            key=lambda q: (
-                diff_priority.index(q.difficulty) if q.difficulty in diff_priority else 99,
-                q.section_id,
-                q.display_order
-            )
-        )
+            # If fresh pool was insufficient for quota, pick shortfall from fallback pool
+            shortfall = min_required - len(picked_fresh)
+            if shortfall > 0 and fallback_q_list:
+                picked_fallback = fallback_q_list[:shortfall]
+                for q in picked_fallback:
+                    selected_questions_map[q.id] = q
+
+        # 5. Step 2: Fill remaining slots up to target_count using preferred difficulty distribution
+        remaining_fresh = [q for q in fresh_pool if q.id not in selected_questions_map]
+        remaining_fallback = [q for q in fallback_pool if q.id not in selected_questions_map]
+
+        remaining_fresh.sort(key=lambda q: (
+            diff_priority.index(q.difficulty) if q.difficulty in diff_priority else 99,
+            rng.random()
+        ))
+        remaining_fallback.sort(key=lambda q: (
+            diff_priority.index(q.difficulty) if q.difficulty in diff_priority else 99,
+            rng.random()
+        ))
 
         slots_needed = target_count - len(selected_questions_map)
-        if slots_needed > 0:
-            for q in sorted_remaining[:slots_needed]:
+        if slots_needed > 0 and remaining_fresh:
+            for q in remaining_fresh[:slots_needed]:
+                selected_questions_map[q.id] = q
+            slots_needed = target_count - len(selected_questions_map)
+
+        if slots_needed > 0 and remaining_fallback:
+            for q in remaining_fallback[:slots_needed]:
                 selected_questions_map[q.id] = q
 
-        # 5. Return final selected questions in natural section and display order
+        # 6. Return final selected questions in natural section, display order, and ID
         final_list = sorted(
             selected_questions_map.values(),
             key=lambda q: (q.section_id, q.display_order, q.id)

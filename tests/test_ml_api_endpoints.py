@@ -48,11 +48,11 @@ class TestMLApiEndpoints(unittest.TestCase):
         data = res.get_json()
         self.assertTrue(data['success'])
         model_info = data['data']
-        self.assertEqual(model_info['model'], 'XGBoost')
+        self.assertIn(model_info['model'], ['CatBoost', 'XGBoost', 'LightGBM', 'RandomForest'])
         self.assertIn('classification_metrics', model_info)
         self.assertIn('recommendation_metrics', model_info)
-        self.assertEqual(model_info['classification_metrics']['accuracy'], 0.8099)
-        self.assertEqual(model_info['recommendation_metrics']['hit_at_1'], 0.9618)
+        self.assertGreaterEqual(model_info['classification_metrics']['accuracy'], 0.80)
+        self.assertGreaterEqual(model_info['recommendation_metrics']['hit_at_1'], 0.95)
 
     def test_get_health(self):
         res = self.client.get('/api/health')

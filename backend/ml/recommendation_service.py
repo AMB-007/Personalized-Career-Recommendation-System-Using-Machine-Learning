@@ -13,12 +13,13 @@ import numpy as np
 
 from backend.ml.feature_builder import FeatureBuilder
 from backend.ml.prediction_service import PredictionService
-from backend.ml.model_loader import get_model_version
+from backend.ml.model_loader import get_model_version, get_model_config
 
 logger = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 DEFAULT_CAREER_DATA_PATH = BASE_DIR / "backend" / "ml" / "data" / "career_knowledge_requirements.csv"
+
 
 
 class CareerRecommendationEngine:
@@ -141,9 +142,13 @@ class CareerRecommendationEngine:
 
         logger.debug(f"RECOMMENDATIONS_GENERATED: Extracted Top {len(recommendations_list)} recommendations")
 
+        config = get_model_config()
+        model_name = config.get('model', 'CatBoost')
+        version_name = version_info.get('version', 'V8.0-Champion')
+
         return {
-            'model': 'XGBoost Career Compatibility Model',
-            'model_version': version_info.get('version', 'V7.2'),
+            'model': f"{model_name} Career Compatibility Model",
+            'model_version': version_name,
             'student_id': student_profile.get('student_id') or student_profile.get('student_code'),
             'total_evaluated_careers': total_evaluated,
             'top_1': recommendations_list[0] if recommendations_list else None,

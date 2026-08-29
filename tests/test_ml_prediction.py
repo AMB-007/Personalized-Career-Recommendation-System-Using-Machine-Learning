@@ -21,6 +21,7 @@ class TestMLPredictionService(unittest.TestCase):
             'interest_match_component': 60.23,
             'academic_match_component': 90.9,
             'learning_match_component': 54.7,
+            'compatibility_score': 74.5,
             'career_name': 'Counsellor',
             'career_domain': 'Technology',
             'career_subdomain': 'Track 5',

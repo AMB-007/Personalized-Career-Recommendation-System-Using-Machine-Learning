@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from backend.extensions import db
 
 
@@ -111,8 +111,8 @@ class Career(db.Model):
     advanced_role = db.Column(db.String(200), nullable=True)
     related_careers = db.Column(db.Text, nullable=True)
     is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     # Relationships
     skills = db.relationship('CareerSkill', backref='career', cascade='all, delete-orphan', lazy='joined')
@@ -251,7 +251,7 @@ class LearningResource(db.Model):
     class_min = db.Column(db.SmallInteger, nullable=True)
     class_max = db.Column(db.SmallInteger, nullable=True)
     is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     def to_dict(self):
         return {

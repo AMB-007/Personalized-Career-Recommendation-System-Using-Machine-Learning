@@ -151,6 +151,16 @@ class FeatureBuilder:
 
         ability_match = cls.calculate_ability_match(scores, career_item)
         interest_match = cls.calculate_interest_match(scores, career_item)
+        comp_align = round(
+            0.17 * (0.4447 * ability_match + 0.3136 * interest_match + 0.0997 * academic_score + 0.1007 * learning_score + 3.784) +
+            0.83 * (0.45 * ability_match + 0.35 * interest_match + 0.10 * academic_score + 0.10 * learning_score),
+            2
+        )
+        ab_syn = round((ability_match * interest_match) / 100.0, 2)
+        ab_gap = round(abs(ability_match - interest_match), 2)
+        min_core = min(ability_match, interest_match)
+        max_core = max(ability_match, interest_match)
+        harm_core = round(2.0 * (ability_match * interest_match) / (ability_match + interest_match + 1e-5), 2)
 
         row = {
             'age': age,
@@ -159,6 +169,12 @@ class FeatureBuilder:
             'interest_match_component': interest_match,
             'academic_match_component': academic_score,
             'learning_match_component': learning_score,
+            'composite_alignment_index': comp_align,
+            'ability_interest_synergy': ab_syn,
+            'ability_interest_gap': ab_gap,
+            'min_core_match': min_core,
+            'max_core_match': max_core,
+            'harmonic_core_match': harm_core,
             'career_name': str(career_item.get('career_name', 'Professional Specialist')),
             'career_domain': str(career_item.get('career_domain', 'General')),
             'career_subdomain': str(career_item.get('career_subdomain', 'General')),
@@ -230,6 +246,18 @@ class FeatureBuilder:
             interest_diffs.append(diff)
         interest_match_array = np.mean(interest_diffs, axis=0)
 
+        # 3. Vectorized Composite Features
+        comp_align_array = np.round(
+            0.17 * (0.4447 * ability_match_array + 0.3136 * interest_match_array + 0.0997 * academic_score + 0.1007 * learning_score + 3.784) +
+            0.83 * (0.45 * ability_match_array + 0.35 * interest_match_array + 0.10 * academic_score + 0.10 * learning_score),
+            2
+        )
+        ab_syn_array = np.round((ability_match_array * interest_match_array) / 100.0, 2)
+        ab_gap_array = np.round(np.abs(ability_match_array - interest_match_array), 2)
+        min_core_array = np.minimum(ability_match_array, interest_match_array)
+        max_core_array = np.maximum(ability_match_array, interest_match_array)
+        harm_core_array = np.round(2.0 * (ability_match_array * interest_match_array) / (ability_match_array + interest_match_array + 1e-5), 2)
+
         # Construct DataFrame
         df = pd.DataFrame({
             'age': np.full(n, age, dtype=int),
@@ -238,6 +266,12 @@ class FeatureBuilder:
             'interest_match_component': np.round(interest_match_array, 2),
             'academic_match_component': np.full(n, academic_score, dtype=float),
             'learning_match_component': np.full(n, learning_score, dtype=float),
+            'composite_alignment_index': comp_align_array,
+            'ability_interest_synergy': ab_syn_array,
+            'ability_interest_gap': ab_gap_array,
+            'min_core_match': min_core_array,
+            'max_core_match': max_core_array,
+            'harmonic_core_match': harm_core_array,
             'career_name': career_catalogue['career_name'].astype(str).values if 'career_name' in career_catalogue.columns else np.full(n, 'Professional Specialist', dtype=object),
             'career_domain': career_catalogue['career_domain'].astype(str).values if 'career_domain' in career_catalogue.columns else np.full(n, 'General', dtype=object),
             'career_subdomain': career_catalogue['career_subdomain'].astype(str).values if 'career_subdomain' in career_catalogue.columns else np.full(n, 'General', dtype=object),

@@ -36,7 +36,11 @@ instance/
 *.log
 logs/
 
-# IDE
+# IDE & Temp
 .vscode/
 .idea/
 *.swp
+.ipynb_checkpoints/
+unwanted files and folders/
+catboost_info/
+

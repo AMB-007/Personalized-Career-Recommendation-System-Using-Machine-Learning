@@ -193,8 +193,8 @@ class TestE2ERealStudentFlow(unittest.TestCase):
         res_rec_api = self.client.get(f'/api/recommendations/{session_id}')
         self.assertEqual(res_rec_api.status_code, 200)
         rec_data = res_rec_api.get_json()['data']
-        self.assertEqual(rec_data['model'], 'XGBoost')
-        self.assertEqual(rec_data['model_version'], 'V7.2')
+        self.assertIn(rec_data['model'], ['CatBoost', 'XGBoost', 'LightGBM', 'RandomForest'])
+        self.assertTrue(rec_data['model_version'].startswith('V8'))
 
         # Test student recommendations endpoint
         res_stu_rec = self.client.get(f'/api/recommendations/student/{student.student_code}')
@@ -206,11 +206,16 @@ class TestE2ERealStudentFlow(unittest.TestCase):
         page_html = res_page.get_data(as_text=True)
         self.assertIn("Cloud Software Architect", page_html)
         self.assertIn("Top #1 Primary Recommendation", page_html)
-        self.assertIn("V7.2", page_html)
+        self.assertIn("V8.0", page_html)
 
         # Step 10: Logout
         res_logout = self.client.get('/logout', follow_redirects=True)
         self.assertEqual(res_logout.status_code, 200)
+
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+        self.ctx.pop()
 
 
 if __name__ == '__main__':

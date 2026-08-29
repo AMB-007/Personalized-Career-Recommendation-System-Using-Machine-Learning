@@ -1,72 +1,82 @@
 {% extends "base.html" %}
 
-{% block title %}Student Dashboard{% endblock %}
+{% block title %}Student Dashboard & Assessment History{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <!-- Welcome Header -->
-    <div class="row align-items-center mb-4 g-3">
-        <div class="col-md-8">
-            <h1 class="h3 fw-bold mb-1" style="color: var(--text-main);">
-                Welcome back, {{ student.first_name if student else current_user.username }}!
-            </h1>
-            <p class="mb-0" style="color: var(--text-secondary);">
-                Class {{ student.class_level if student else '7–12' }} &bull; 
-                Stream: {{ student.stream if student and student.stream else 'General' }} &bull; 
-                Board: {{ student.board if student and student.board else 'CBSE' }}
-            </p>
+<div class="container py-4">
+    <!-- Clean Student Header -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 pb-3 border-bottom" style="border-color: var(--border-color) !important;">
+        <div class="d-flex align-items-center gap-3">
+            <div class="brand-icon-box" style="width: 46px; height: 46px; font-size: 1.25rem;">
+                <i class="bi bi-person-fill"></i>
+            </div>
+            <div>
+                <h2 class="h4 fw-bold mb-1" style="color: var(--text-main);">
+                    {{ student.first_name if student else current_user.username }}'s Dashboard
+                </h2>
+                <div class="d-flex flex-wrap align-items-center gap-2 small text-secondary">
+                    <span class="badge-custom badge-primary-custom">Class {{ student.class_level if student else '7–12' }}</span>
+                    <span>&bull;</span>
+                    <span>Stream: <strong>{{ student.stream if student and student.stream else 'General' }}</strong></span>
+                    <span>&bull;</span>
+                    <span>Board: {{ student.board if student and student.board else 'CBSE' }}</span>
+                </div>
+            </div>
         </div>
-        <div class="col-md-4 text-md-end">
+        <div class="d-flex gap-2">
             <a href="{{ url_for('student.profile_page') }}" class="btn btn-outline-custom">
-                <i class="bi bi-person-gear me-1"></i> Edit Profile
+                <i class="bi bi-person-gear me-1"></i> Profile
+            </a>
+            <a href="{{ url_for('career.explorer_page') }}" class="btn btn-outline-custom">
+                <i class="bi bi-compass me-1"></i> Explore Careers
             </a>
         </div>
     </div>
 
-    <!-- Status & Primary Action Banner -->
+    <!-- Active Assessment or Status Alert -->
     <div class="card-custom p-4 mb-4">
         <div class="row align-items-center g-3">
-            <div class="col-md-8">
+            <div class="col-lg-8">
                 <div class="d-flex align-items-center gap-2 mb-2">
-                    <span class="small fw-semibold" style="color: var(--text-secondary);">Assessment Status:</span>
+                    <span class="small fw-semibold text-secondary">Assessment Status:</span>
                     {% if latest_session and latest_session.status == 'completed' %}
-                        <span class="badge-custom badge-success-custom"><i class="bi bi-check-circle-fill me-1"></i> Completed</span>
+                        <span class="badge-custom badge-success-custom"><i class="bi bi-check-circle-fill"></i> Latest Attempt Completed</span>
                     {% elif latest_session and latest_session.status == 'in_progress' %}
-                        <span class="badge-custom badge-warning-custom"><i class="bi bi-hourglass-split me-1"></i> In Progress</span>
+                        <span class="badge-custom badge-warning-custom"><i class="bi bi-hourglass-split"></i> In Progress ({{ latest_session.completion_percentage|round|int }}%)</span>
                     {% else %}
-                        <span class="badge-custom badge-neutral-custom"><i class="bi bi-circle me-1"></i> Not Started</span>
+                        <span class="badge-custom badge-neutral-custom">Ready to Begin</span>
                     {% endif %}
                 </div>
-                <h4 class="fw-bold mb-1" style="color: var(--text-main);">
+                <h5 class="fw-bold mb-1" style="color: var(--text-main);">
                     {% if latest_session and latest_session.status == 'completed' %}
-                        Your Career Recommendations Are Ready
+                        Your Personalized Recommendations Are Ready
                     {% elif latest_session and latest_session.status == 'in_progress' %}
-                        Resume Your Career Assessment
+                        Resume Your Active Assessment Session
                     {% else %}
-                        Take Your First Career Assessment
+                        Start Your Comprehensive Career Assessment
                     {% endif %}
-                </h4>
-                <p class="small mb-0" style="color: var(--text-secondary);">
+                </h5>
+                <p class="small text-secondary mb-0">
                     {% if latest_session and latest_session.status == 'completed' %}
-                        Evaluated across 1,206 career knowledge requirements using the XGBoost compatibility model.
+                        Evaluated across cognitive aptitudes and interests against 1,206 career knowledge profiles with 95.97% ML accuracy.
                     {% elif latest_session and latest_session.status == 'in_progress' %}
-                        You have an active assessment session in progress. Complete it to view your Top 10 career matches.
+                        Complete the remaining questions to unlock your ranked career recommendations and milestone roadmap.
                     {% else %}
-                        Answer quick questions on your favorite subjects, interests, and problem-solving skills to discover matched careers.
+                        Discover your strengths through quick, age-appropriate questions tailored for Class {{ student.class_level if student else '7-12' }}.
                     {% endif %}
                 </p>
             </div>
-            <div class="col-md-4 text-md-end">
+            <div class="col-lg-4 text-lg-end">
                 {% if latest_session and latest_session.status == 'completed' %}
-                    <a href="{{ url_for('assessment.results_page', assessment_id=latest_session.id) }}" class="btn btn-primary-custom btn-lg-custom">
-                        <i class="bi bi-award-fill me-1"></i> View My Recommendations
+                    <a href="{{ url_for('assessment.results_page', assessment_id=latest_session.id) }}" class="btn btn-primary-custom">
+                        <i class="bi bi-award-fill me-1"></i> View Results & Roadmap
                     </a>
                 {% elif latest_session and latest_session.status == 'in_progress' %}
-                    <a href="{{ url_for('assessment.assessment_page', session_id=latest_session.id) }}" class="btn btn-primary-custom btn-lg-custom">
-                        <i class="bi bi-play-circle-fill me-1"></i> Resume Assessment
+                    <a href="{{ url_for('assessment.assessment_page', session_id=latest_session.id) }}" class="btn btn-primary-custom">
+                        <i class="bi bi-play-circle-fill me-1"></i> Resume Test
                     </a>
                 {% else %}
-                    <a href="{{ url_for('assessment.instructions_page') }}" class="btn btn-primary-custom btn-lg-custom">
+                    <a href="{{ url_for('assessment.instructions_page') }}" class="btn btn-primary-custom">
                         <i class="bi bi-play-circle-fill me-1"></i> Start Assessment
                     </a>
                 {% endif %}
@@ -74,34 +84,37 @@
         </div>
     </div>
 
-    <!-- Recommendations Overview if Completed -->
+    <!-- Recommendations Grid (if completed) -->
     {% if recent_recs and recent_recs|length > 0 %}
-    <div class="mb-4">
+    <div class="mb-5">
         <div class="d-flex align-items-center justify-content-between mb-3">
-            <h4 class="fw-bold mb-0" style="color: var(--text-main);">Top Career Matches</h4>
+            <div>
+                <h5 class="fw-bold mb-0" style="color: var(--text-main);">Top Career Matches (Latest Assessment)</h5>
+                <span class="small text-secondary">Ranked based on your cognitive ability and interest synergies</span>
+            </div>
             <a href="{{ url_for('assessment.results_page', assessment_id=latest_session.id) }}" class="btn btn-outline-custom btn-sm-custom">
-                Full Results & Breakdown <i class="bi bi-arrow-right ms-1"></i>
+                Full Breakdown <i class="bi bi-arrow-right ms-1"></i>
             </a>
         </div>
 
         <div class="row g-3">
             {% for rec in recent_recs[:3] %}
             <div class="col-md-4">
-                <div class="card-custom p-4 h-100 {% if loop.index == 1 %}card-top-pick{% endif %}">
+                <div class="card-custom p-3 h-100 card-hover-lift d-flex flex-column">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <span class="badge-custom {% if loop.index == 1 %}badge-primary-custom{% else %}badge-neutral-custom{% endif %}">
                             Rank #{{ rec.rank_position }}
                         </span>
-                        <span class="fw-bold {% if loop.index == 1 %}text-primary{% else %}text-secondary{% endif %}">
+                        <span class="badge-custom badge-success-custom fw-bold">
                             {{ rec.score }}% Match
                         </span>
                     </div>
-                    <h5 class="fw-bold mb-1" style="color: var(--text-main);">{{ rec.career.career_name if rec.career else 'Career Profile' }}</h5>
-                    <p class="small mb-3" style="color: var(--text-secondary);">
-                        {{ rec.career.domain.domain_name if rec.career and rec.career.domain else 'General' }}
+                    <h6 class="fw-bold mb-1" style="color: var(--text-main);">{{ rec.career.career_name if rec.career else 'Career Path' }}</h6>
+                    <p class="small text-secondary mb-3">
+                        {{ rec.career.domain.domain_name if rec.career and rec.career.domain else 'General Field' }}
                     </p>
                     <a href="{{ url_for('career.career_detail_page', career_id=rec.career_id) }}" class="btn btn-outline-custom btn-sm-custom mt-auto w-100">
-                        View Career Profile
+                        View Path & Outlook
                     </a>
                 </div>
             </div>
@@ -110,50 +123,142 @@
     </div>
     {% endif %}
 
-    <!-- Secondary Quick Actions -->
+    <!-- Assessment History Log Table -->
+    <div class="card-custom p-4 mb-5">
+        <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
+            <div>
+                <h5 class="fw-bold mb-1" style="color: var(--text-main);">
+                    <i class="bi bi-clock-history text-primary me-2"></i>Assessment History & Retake Log
+                </h5>
+                <p class="small text-secondary mb-0">
+                    Your previous assessment sessions and career recommendation reports.
+                </p>
+            </div>
+            {% if history_items and history_items|length > 0 %}
+            <a href="{{ url_for('assessment.instructions_page') }}" class="btn btn-outline-custom btn-sm-custom">
+                <i class="bi bi-arrow-clockwise me-1"></i> Retake Test
+            </a>
+            {% endif %}
+        </div>
+
+        {% if history_items and history_items|length > 0 %}
+        <div class="table-responsive">
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>Attempt</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Progress</th>
+                        <th>Top Recommended Career</th>
+                        <th>Match Score</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in history_items %}
+                    <tr>
+                        <td>
+                            <strong style="color: var(--text-main);">Attempt #{{ item.attempt_number }}</strong>
+                            {% if loop.first %}
+                                <span class="badge-custom badge-primary-custom ms-1" style="font-size: 0.65rem;">Latest</span>
+                            {% endif %}
+                        </td>
+                        <td class="small text-secondary">
+                            {{ item.session.created_at.strftime('%d %b %Y, %I:%M %p') if item.session.created_at else 'N/A' }}
+                        </td>
+                        <td>
+                            <span class="badge-custom {% if item.session.status == 'completed' %}badge-success-custom{% elif item.session.status == 'in_progress' %}badge-warning-custom{% else %}badge-neutral-custom{% endif %}">
+                                {{ item.session.status.replace('_', ' ').title() }}
+                            </span>
+                        </td>
+                        <td style="min-width: 110px;">
+                            <div class="progress-bar-custom-track" style="height: 6px;">
+                                <div class="progress-bar-custom-fill" data-progress="{{ (item.session.completion_percentage or 0)|round|int }}"></div>
+                            </div>
+                            <span class="text-secondary" style="font-size: 0.72rem;">{{ (item.session.completion_percentage or 0)|round|int }}% complete</span>
+                        </td>
+                        <td>
+                            {% if item.top_rec and item.top_rec.career %}
+                                <strong style="color: var(--text-main);">{{ item.top_rec.career.career_name }}</strong>
+                                <div class="small text-secondary">{{ item.top_rec.career.domain.domain_name if item.top_rec.career.domain else '' }}</div>
+                            {% elif item.session.status == 'in_progress' %}
+                                <span class="text-secondary small">In Progress</span>
+                            {% else %}
+                                <span class="text-secondary small">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.top_rec %}
+                                <span class="badge-custom badge-primary-custom">{{ item.top_rec.score }}%</span>
+                            {% else %}
+                                <span class="text-secondary">&mdash;</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.session.status == 'completed' %}
+                                <a href="{{ url_for('assessment.results_page', assessment_id=item.session.id) }}" class="btn btn-outline-custom btn-sm-custom">
+                                    <i class="bi bi-file-earmark-text me-1"></i> Report
+                                </a>
+                            {% elif item.session.status == 'in_progress' %}
+                                <a href="{{ url_for('assessment.assessment_page', session_id=item.session.id) }}" class="btn btn-primary-custom btn-sm-custom">
+                                    <i class="bi bi-play-fill me-1"></i> Resume
+                                </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <i class="bi bi-journal-text fs-2 text-secondary mb-2"></i>
+            <h6 class="fw-bold" style="color: var(--text-main);">No Test History Yet</h6>
+            <p class="small text-secondary mb-0">Your completed assessments, match scores, and recommendation reports will be logged here.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Quick Navigation Links -->
     <div class="row g-4">
         <div class="col-md-6">
-            <div class="card-custom p-4 h-100">
+            <div class="card-custom p-4 h-100 d-flex flex-column">
                 <div class="d-flex align-items-center gap-3 mb-3">
-                    <i class="bi bi-search fs-3 text-primary"></i>
+                    <div class="brand-icon-box" style="width: 38px; height: 38px;">
+                        <i class="bi bi-compass"></i>
+                    </div>
                     <div>
-                        <h5 class="fw-bold mb-0" style="color: var(--text-main);">Career Explorer</h5>
-                        <div class="small" style="color: var(--text-secondary);">Search and filter all 1,206 career paths</div>
+                        <h6 class="fw-bold mb-0" style="color: var(--text-main);">Explore 1,200+ Careers</h6>
+                        <span class="small text-secondary">Browse requirements, streams, and skills</span>
                     </div>
                 </div>
-                <p class="small mb-3" style="color: var(--text-secondary);">
-                    Explore minimum educational requirements, necessary skills, typical streams, and progression roadmaps.
+                <p class="small text-secondary mb-3">
+                    Search required education milestones, entrance exams, and industry expectations across 10 career domains.
                 </p>
-                <a href="{{ url_for('career.explorer_page') }}" class="btn btn-outline-custom mt-auto">
-                    Browse Careers <i class="bi bi-arrow-right ms-1"></i>
+                <a href="{{ url_for('career.explorer_page') }}" class="btn btn-outline-custom btn-sm-custom mt-auto">
+                    Open Career Explorer <i class="bi bi-arrow-right ms-1"></i>
                 </a>
             </div>
         </div>
 
         <div class="col-md-6">
-            <div class="card-custom p-4 h-100">
+            <div class="card-custom p-4 h-100 d-flex flex-column">
                 <div class="d-flex align-items-center gap-3 mb-3">
-                    <i class="bi bi-journal-text fs-3 text-success"></i>
+                    <div class="brand-icon-box" style="width: 38px; height: 38px; background: linear-gradient(135deg, #10B981, #059669);">
+                        <i class="bi bi-sliders"></i>
+                    </div>
                     <div>
-                        <h5 class="fw-bold mb-0" style="color: var(--text-main);">Assessment History</h5>
-                        <div class="small" style="color: var(--text-secondary);">Review past sessions and score progression</div>
+                        <h6 class="fw-bold mb-0" style="color: var(--text-main);">Academic Profile & Marks</h6>
+                        <span class="small text-secondary">Keep your scores and stream updated</span>
                     </div>
                 </div>
-                {% if all_sessions and all_sessions|length > 0 %}
-                    <p class="small mb-3" style="color: var(--text-secondary);">
-                        You have {{ all_sessions|length }} recorded career assessment session(s).
-                    </p>
-                    <a href="{{ url_for('assessment.instructions_page') }}" class="btn btn-outline-custom mt-auto">
-                        Retake Assessment <i class="bi bi-arrow-clockwise ms-1"></i>
-                    </a>
-                {% else %}
-                    <p class="small mb-3" style="color: var(--text-secondary);">
-                        No past assessment records. Complete your first questionnaire to generate recommendations.
-                    </p>
-                    <a href="{{ url_for('assessment.instructions_page') }}" class="btn btn-outline-custom mt-auto">
-                        Start First Assessment <i class="bi bi-play-fill ms-1"></i>
-                    </a>
-                {% endif %}
+                <p class="small text-secondary mb-3">
+                    Update your Mathematics, Science, and subject marks to refine academic stream alignment.
+                </p>
+                <a href="{{ url_for('student.profile_page') }}" class="btn btn-outline-custom btn-sm-custom mt-auto">
+                    Manage Profile <i class="bi bi-arrow-right ms-1"></i>
+                </a>
             </div>
         </div>
     </div>
