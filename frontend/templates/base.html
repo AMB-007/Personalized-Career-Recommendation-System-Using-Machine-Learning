@@ -8,7 +8,7 @@
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
-    <link rel="alternate icon" href="{{ url_for('static', filename='favicon.svg') }}">
+    <link rel="alternate icon" type="image/jpeg" href="{{ url_for('static', filename='icon.jpg') }}">
 
     <!-- Theme Initialization to prevent flash -->
     <script>
@@ -40,7 +40,7 @@
         <div class="container">
             <a class="navbar-brand navbar-brand-text" href="{{ url_for('admin.admin_dashboard') if current_user.is_authenticated and current_user.is_admin else (url_for('student.dashboard') if current_user.is_authenticated else url_for('main.index')) }}">
                 <div class="brand-icon-box">
-                    <i class="bi bi-compass-fill fs-5"></i>
+                    <img src="{{ url_for('static', filename='icon.jpg') }}" alt="PathFinder Logo" width="28" height="28" style="border-radius: 6px; object-fit: cover;">
                 </div>
                 <span>PathFinder</span>
                 {% if current_user.is_authenticated and current_user.is_admin %}

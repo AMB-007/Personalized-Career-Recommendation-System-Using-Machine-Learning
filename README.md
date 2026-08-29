@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="frontend/static/favicon.svg" alt="PathFinder Logo" width="88" height="88" />
+  <img src="frontend/static/logo.jpg" alt="PathFinder Logo" width="220" />
 </p>
 
 <h1 align="center">PathFinder</h1>
