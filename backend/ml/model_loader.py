@@ -110,8 +110,8 @@ class ModelLoader:
 
             self._is_loaded = True
             logger.info(
-                f"Successfully loaded XGBoost model {self._version.get('version', 'V7')} "
-                f"from {self.model_dir}"
+                f"Successfully loaded ML model {self._version.get('champion_model', 'CatBoost')} "
+                f"version {self._version.get('version', 'V9.5')} from {self.model_dir}"
             )
 
         except Exception as e:

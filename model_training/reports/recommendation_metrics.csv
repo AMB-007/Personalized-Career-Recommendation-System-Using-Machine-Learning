@@ -1,0 +1,7 @@
+metric,score,percentage
+Hit@1,0.9174,91.74%
+Hit@3,0.983,98.30%
+Hit@5,0.9855,98.55%
+Hit@10,0.9855,98.55%
+MRR (Mean Reciprocal Rank),0.9491,94.91%
+NDCG@5 (Ranking Quality),0.9475,94.75%

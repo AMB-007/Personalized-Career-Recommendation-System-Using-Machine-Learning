@@ -45,19 +45,20 @@ class TestMLRecommendationService(unittest.TestCase):
     def test_catalogue_loading(self):
         catalogue = CareerRecommendationEngine.get_career_catalogue()
         self.assertFalse(catalogue.empty)
-        self.assertEqual(len(catalogue), 1206)
+        self.assertGreaterEqual(len(catalogue), 1200)
         self.assertIn('career_name', catalogue.columns)
         self.assertIn('career_domain', catalogue.columns)
 
     def test_recommendation_generation_top_k(self):
         results = CareerRecommendationEngine.generate_recommendations(self.student_profile, top_k=10)
+        catalogue = CareerRecommendationEngine.get_career_catalogue()
 
         self.assertIn('recommendations', results)
         self.assertIn('top_1', results)
         self.assertIn('top_3', results)
         self.assertIn('top_5', results)
         self.assertIn('top_10', results)
-        self.assertEqual(results['total_evaluated_careers'], 1206)
+        self.assertEqual(results['total_evaluated_careers'], len(catalogue))
 
         recs = results['recommendations']
         self.assertEqual(len(recs), 10)

@@ -4,34 +4,34 @@ FULL MACHINE LEARNING PIPELINE EVALUATION REPORT
 
 1. ARCHITECTURE BENCHMARK:
              model  accuracy  balanced_accuracy  precision   recall       f1  roc_auc   pr_auc  seconds
-XGBoost (Champion)  0.959651           0.943042   0.964655 0.980160 0.972346 0.992248 0.996140     5.75
-          LightGBM  0.926525           0.897063   0.937284 0.962907 0.949923 0.976238 0.989291     1.58
-          CatBoost  0.919967           0.885645   0.929550 0.962352 0.945666 0.968562 0.985325     6.27
-      RandomForest  0.870347           0.819387   0.892489 0.933278 0.912428 0.931797 0.971318    11.66
+          CatBoost  0.811995           0.722105   0.840426 0.916828 0.876966 0.848051 0.934287     1.77
+          LightGBM  0.811389           0.719676   0.838844 0.918348 0.876797 0.846109 0.933269     0.32
+XGBoost (Champion)  0.807754           0.714228   0.835979 0.916828 0.874539 0.842300 0.931248     2.46
+      RandomForest  0.804725           0.710734   0.834342 0.914341 0.872512 0.838664 0.930095     0.71
 
 2. 5-FOLD STRATIFIED GROUP CV SUMMARY:
-  cv_acc_mean: 0.9594
-  cv_acc_std: 0.0004
-  cv_f1_mean: 0.9721
-  cv_f1_std: 0.0003
-  cv_roc_auc_mean: 0.9923
-  cv_roc_auc_std: 0.0003
+  cv_acc_mean: 0.8069
+  cv_acc_std: 0.0027
+  cv_f1_mean: 0.8714
+  cv_f1_std: 0.0014
+  cv_roc_auc_mean: 0.8489
+  cv_roc_auc_std: 0.0032
 
 3. CLASSIFICATION REPORT (UNSEEN TEST SET):
                   precision    recall  f1-score   support
 
-Incompatible (0)     0.9319    0.9252    0.9286     21993
-  Compatible (1)     0.9715    0.9742    0.9729     57612
+Incompatible (0)     0.7334    0.4779    0.5787      2666
+  Compatible (1)     0.8296    0.9360    0.8796      7238
 
-        accuracy                         0.9607     79605
-       macro avg     0.9517    0.9497    0.9507     79605
-    weighted avg     0.9606    0.9607    0.9606     79605
+        accuracy                         0.8127      9904
+       macro avg     0.7815    0.7070    0.7291      9904
+    weighted avg     0.8037    0.8127    0.7986      9904
 
 
 4. RANKING METRICS:
-  Hit@1   : 0.9976
-  Hit@3   : 0.9992
-  Hit@5   : 0.9995
-  Hit@10  : 0.9995
-  MRR     : 0.9985
-  NDCG@5  : 0.9964
+  Hit@1   : 0.9174
+  Hit@3   : 0.9825
+  Hit@5   : 0.9855
+  Hit@10  : 0.9855
+  MRR     : 0.9490
+  NDCG@5  : 0.9466

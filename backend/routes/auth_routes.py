@@ -111,21 +111,20 @@ def register_page():
             class_level=int(data['class_level']),
             board=data.get('board'),
             medium=data.get('medium'),
-            academic_year='2026-2027',
             stream=data.get('stream', 'General')
         )
         db.session.add(student)
         db.session.flush()
 
-        # Initialize academic score row
-        academic = AcademicScore(student_id=student.id, overall_percentage=75.0)
+        # Initialize academic score row for student
+        academic = AcademicScore(student_id=student.id, overall_percentage=None)
         db.session.add(academic)
         db.session.commit()
 
         login_user(user)
         logger.info(f"New student registration: {user.username} (Class {student.class_level})")
-        flash('Registration successful! Welcome to your Career Guidance Dashboard.', 'success')
-        return redirect(url_for('student.dashboard'))
+        flash('Registration successful! Please fill in your academic scores to prepare your career assessment.', 'success')
+        return redirect(url_for('student.profile_page', onboarding=1))
 
     return render_template('register.html')
 

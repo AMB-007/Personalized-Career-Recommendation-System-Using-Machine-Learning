@@ -3,12 +3,12 @@ MODEL ACCURACY & BENCHMARK PERFORMANCE REPORT
 ================================================================================
 
              model  accuracy  balanced_accuracy  precision   recall       f1  roc_auc   pr_auc  seconds
-XGBoost (Champion)  0.959651           0.943042   0.964655 0.980160 0.972346 0.992248 0.996140     5.75
-          LightGBM  0.926525           0.897063   0.937284 0.962907 0.949923 0.976238 0.989291     1.58
-          CatBoost  0.919967           0.885645   0.929550 0.962352 0.945666 0.968562 0.985325     6.27
-      RandomForest  0.870347           0.819387   0.892489 0.933278 0.912428 0.931797 0.971318    11.66
+          CatBoost  0.811995           0.722105   0.840426 0.916828 0.876966 0.848051 0.934287     1.77
+          LightGBM  0.811389           0.719676   0.838844 0.918348 0.876797 0.846109 0.933269     0.32
+XGBoost (Champion)  0.807754           0.714228   0.835979 0.916828 0.874539 0.842300 0.931248     2.46
+      RandomForest  0.804725           0.710734   0.834342 0.914341 0.872512 0.838664 0.930095     0.71
 
-Selected Champion Model: XGBoost (Champion)
-Champion Accuracy:       96.07%
-Champion F1-Score:       0.9729
-Champion ROC-AUC:        99.22%
+Selected Champion Model: CatBoost
+Champion Accuracy:       81.27%
+Champion F1-Score:       0.8796
+Champion ROC-AUC:        84.81%

@@ -11,6 +11,8 @@
   "min_core_match",
   "max_core_match",
   "harmonic_core_match",
+  "geometric_core_synergy",
+  "holistic_synergy",
   "career_name",
   "career_domain",
   "career_subdomain",

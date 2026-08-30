@@ -1,92 +1,449 @@
 {% extends 'base.html' %}
 
-{% block title %}My Profile - {{ student.full_name }}{% endblock %}
+{% block title %}My Profile & Academic Records - {{ student.full_name }}{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card-custom p-4 p-md-5">
-                <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom flex-wrap gap-2" style="border-color: var(--border-color) !important;">
-                    <div>
-                        <span class="badge-custom badge-primary-custom mb-1">Account & Academics</span>
-                        <h2 class="fw-bold mb-1" style="color: var(--text-main);">Student Profile</h2>
-                        <p class="small mb-0" style="color: var(--text-secondary);">Manage your demographic settings and self-reported subject marks</p>
-                    </div>
-                    <span class="badge-custom badge-neutral-custom" style="font-size: 0.95rem;">Class {{ student.class_level }}</span>
-                </div>
-
-                <form method="POST" action="{{ url_for('student.profile_page') }}">
-                    <h5 class="fw-bold mb-3" style="color: var(--text-main);"><i class="bi bi-person text-primary me-2"></i> Personal Details</h5>
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-6">
-                            <label for="first_name" class="form-label-custom">First Name</label>
-                            <input type="text" class="form-control-custom" id="first_name" name="first_name" value="{{ student.first_name }}" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="last_name" class="form-label-custom">Last Name</label>
-                            <input type="text" class="form-control-custom" id="last_name" name="last_name" value="{{ student.last_name }}" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="board" class="form-label-custom">School Board</label>
-                            <select class="form-select-custom" id="board" name="board">
-                                <option value="CBSE" {% if student.board == 'CBSE' %}selected{% endif %}>CBSE</option>
-                                <option value="ICSE" {% if student.board == 'ICSE' %}selected{% endif %}>ICSE / ISC</option>
-                                <option value="State Board" {% if student.board == 'State Board' %}selected{% endif %}>State Board</option>
-                                <option value="IB" {% if student.board == 'IB' %}selected{% endif %}>IB</option>
-                                <option value="Cambridge" {% if student.board == 'Cambridge' %}selected{% endif %}>Cambridge</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="medium" class="form-label-custom">Medium of Instruction</label>
-                            <input type="text" class="form-control-custom" id="medium" name="medium" value="{{ student.medium or 'English' }}">
-                        </div>
-
-                        {% if student.class_level >= 11 %}
-                        <div class="col-12">
-                            <label for="stream" class="form-label-custom text-primary">Stream (Class 11–12)</label>
-                            <select class="form-select-custom border-primary" id="stream" name="stream">
-                                <option value="Science-PCM" {% if student.stream == 'Science-PCM' %}selected{% endif %}>Science (Physics, Chemistry, Mathematics)</option>
-                                <option value="Science-PCB" {% if student.stream == 'Science-PCB' %}selected{% endif %}>Science (Physics, Chemistry, Biology)</option>
-                                <option value="Science-PCMB" {% if student.stream == 'Science-PCMB' %}selected{% endif %}>Science (PCMB)</option>
-                                <option value="Commerce" {% if student.stream == 'Commerce' %}selected{% endif %}>Commerce (Accountancy, Economics, Business)</option>
-                                <option value="Humanities" {% if student.stream == 'Humanities' %}selected{% endif %}>Humanities / Arts</option>
-                            </select>
-                        </div>
-                        {% endif %}
-                    </div>
-
-                    <h5 class="fw-bold mb-3" style="color: var(--text-main);"><i class="bi bi-journal-bookmark text-primary me-2"></i> Academic Scores (% or Marks / 100)</h5>
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-4 col-6">
-                            <label for="math_score" class="form-label-custom">Mathematics</label>
-                            <input type="number" step="0.1" min="0" max="100" class="form-control-custom" id="math_score" name="math_score" value="{{ academic.mathematics_score if academic and academic.mathematics_score is not none else '' }}" placeholder="e.g. 85">
-                        </div>
-                        <div class="col-md-4 col-6">
-                            <label for="science_score" class="form-label-custom">Science / Physics</label>
-                            <input type="number" step="0.1" min="0" max="100" class="form-control-custom" id="science_score" name="science_score" value="{{ academic.science_score if academic and academic.science_score is not none else '' }}" placeholder="e.g. 88">
-                        </div>
-                        <div class="col-md-4 col-6">
-                            <label for="cs_score" class="form-label-custom">Computer Science</label>
-                            <input type="number" step="0.1" min="0" max="100" class="form-control-custom" id="cs_score" name="cs_score" value="{{ academic.computer_science_score if academic and academic.computer_science_score is not none else '' }}" placeholder="e.g. 92">
-                        </div>
-                        <div class="col-md-4 col-6">
-                            <label for="english_score" class="form-label-custom">English</label>
-                            <input type="number" step="0.1" min="0" max="100" class="form-control-custom" id="english_score" name="english_score" value="{{ academic.english_score if academic and academic.english_score is not none else '' }}" placeholder="e.g. 80">
-                        </div>
-                    </div>
-
-                    <div class="d-flex justify-content-between align-items-center pt-3 border-top" style="border-color: var(--border-color) !important;">
-                        <a href="{{ url_for('student.dashboard') }}" class="btn btn-outline-custom">
-                            <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
-                        </a>
-                        <button type="submit" class="btn btn-primary-custom">
-                            Save Changes
-                        </button>
-                    </div>
-                </form>
+<div class="container py-5" style="max-width: 920px;">
+    <!-- Onboarding Welcome Banner -->
+    {% if is_onboarding %}
+    <div class="card-custom p-4 mb-4 border-primary shadow-sm" style="background: linear-gradient(135deg, rgba(79, 70, 229, 0.12) 0%, rgba(124, 58, 237, 0.08) 100%);">
+        <div class="d-flex align-items-center gap-3">
+            <div class="brand-icon-box" style="width: 52px; height: 52px; font-size: 1.5rem;">
+                <i class="bi bi-mortarboard-fill"></i>
+            </div>
+            <div>
+                <h4 class="fw-bold mb-1" style="color: var(--text-main);">Welcome to PathFinder, {{ student.first_name }}! 👋</h4>
+                <p class="small mb-0" style="color: var(--text-secondary);">
+                    Please fill in your current academic marks and school details below. Our CatBoost Machine Learning engine uses your academic foundation alongside psychometric testing to recommend personalized career paths.
+                </p>
             </div>
         </div>
     </div>
+    {% endif %}
+
+    <div class="card-custom p-4 p-md-5 shadow-sm">
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom flex-wrap gap-2" style="border-color: var(--border-color) !important;">
+            <div>
+                <span class="badge-custom badge-primary-custom mb-1">Student Profile & Academics</span>
+                <h2 class="fw-bold mb-1" style="color: var(--text-main);">Personal & Academic Profile</h2>
+                <p class="small mb-0" style="color: var(--text-secondary);">Manage your demographic settings and self-reported subject marks</p>
+            </div>
+            <div class="text-end">
+                <span class="badge-custom badge-neutral-custom mb-1" id="profile-class-badge" style="font-size: 0.95rem;">Class {{ student.class_level }}</span>
+                <div class="small text-muted" id="profile-stream-badge">Stream: {{ student.stream or 'General' }}</div>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('student.profile_page', onboarding='1' if is_onboarding else '0') }}" id="student-profile-form">
+            {% if is_onboarding %}
+            <input type="hidden" name="onboarding" value="1">
+            {% endif %}
+
+            <!-- SECTION 1: PERSONAL & DEMOGRAPHIC DETAILS -->
+            <h5 class="fw-bold mb-3" style="color: var(--text-main);">
+                <i class="bi bi-person-badge text-primary me-2"></i> Personal & Educational Details
+            </h5>
+            
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label for="first_name" class="form-label-custom">First Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control-custom" id="first_name" name="first_name" value="{{ student.first_name }}" required placeholder="e.g. Rahul">
+                </div>
+                <div class="col-md-6">
+                    <label for="last_name" class="form-label-custom">Last Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control-custom" id="last_name" name="last_name" value="{{ student.last_name or '' }}" required placeholder="e.g. Sharma">
+                </div>
+
+                <div class="col-md-4">
+                    <label for="age" class="form-label-custom">Age (Years)</label>
+                    <input type="number" class="form-control-custom" id="age" name="age" min="10" max="25" value="{{ student.age or '' }}" placeholder="e.g. 15">
+                </div>
+                <div class="col-md-4">
+                    <label for="gender" class="form-label-custom">Gender</label>
+                    <select class="form-select-custom" id="gender" name="gender">
+                        <option value="Prefer not to say" {% if not student.gender or student.gender == 'Prefer not to say' %}selected{% endif %}>Prefer not to say</option>
+                        <option value="Male" {% if student.gender == 'Male' %}selected{% endif %}>Male</option>
+                        <option value="Female" {% if student.gender == 'Female' %}selected{% endif %}>Female</option>
+                        <option value="Other" {% if student.gender == 'Other' %}selected{% endif %}>Other</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="class_level" class="form-label-custom">Current Class / Grade <span class="text-danger">*</span></label>
+                    <select class="form-select-custom" id="class_level" name="class_level" required onchange="updateSubjectFormLayout()">
+                        <option value="7" {% if student.class_level == 7 %}selected{% endif %}>Class 7</option>
+                        <option value="8" {% if student.class_level == 8 %}selected{% endif %}>Class 8</option>
+                        <option value="9" {% if student.class_level == 9 %}selected{% endif %}>Class 9</option>
+                        <option value="10" {% if student.class_level == 10 %}selected{% endif %}>Class 10</option>
+                        <option value="11" {% if student.class_level == 11 %}selected{% endif %}>Class 11</option>
+                        <option value="12" {% if student.class_level == 12 %}selected{% endif %}>Class 12</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="board" class="form-label-custom">Educational Board</label>
+                    <select class="form-select-custom" id="board" name="board" onchange="updateSubjectFormLayout()">
+                        <option value="CBSE" {% if student.board == 'CBSE' or not student.board %}selected{% endif %}>CBSE (Central Board of Secondary Education)</option>
+                        <option value="Kerala State Board" {% if student.board == 'Kerala State Board' or student.board == 'State Board' %}selected{% endif %}>Kerala State Board (SCERT / DHSE)</option>
+                        <option value="ICSE" {% if student.board == 'ICSE' or student.board == 'ICSE / ISC' %}selected{% endif %}>ICSE / ISC (CISCE)</option>
+                        <option value="Cambridge" {% if student.board == 'Cambridge' or student.board == 'Cambridge / IGCSE' %}selected{% endif %}>Cambridge / IGCSE</option>
+                        <option value="IB" {% if student.board == 'IB' %}selected{% endif %}>IB (International Baccalaureate)</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="medium" class="form-label-custom">Medium of Instruction</label>
+                    <input type="text" class="form-control-custom" id="medium" name="medium" value="{{ student.medium or 'English' }}" placeholder="e.g. English, Malayalam, Hindi">
+                </div>
+
+                <!-- Dynamic Stream Selector (Visible for Class 11 & 12) -->
+                <div class="col-12" id="stream_selection_container" style="display: none;">
+                    <div class="p-3 rounded card-subtle border-primary">
+                        <label for="stream" class="form-label-custom text-primary fw-bold">
+                            <i class="bi bi-diagram-3 me-1"></i> Higher Secondary Stream (Class 11–12)
+                        </label>
+                        <select class="form-select-custom border-primary" id="stream" name="stream" onchange="updateSubjectFormLayout()">
+                            <option value="Science-PCM" {% if student.stream == 'Science-PCM' %}selected{% endif %}>Science - PCM (Physics, Chemistry, Mathematics, CS/Elective)</option>
+                            <option value="Science-PCB" {% if student.stream == 'Science-PCB' %}selected{% endif %}>Science - PCB (Physics, Chemistry, Biology, CS/Elective)</option>
+                            <option value="Science-PCMB" {% if student.stream == 'Science-PCMB' %}selected{% endif %}>Science - PCMB (Physics, Chemistry, Math, Biology)</option>
+                            <option value="Commerce" {% if student.stream == 'Commerce' %}selected{% endif %}>Commerce (Accountancy, Business Studies, Economics, Math/IP)</option>
+                            <option value="Humanities" {% if student.stream == 'Humanities' %}selected{% endif %}>Humanities / Arts (History, Pol Science, Geography, Economics, Psychology)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: ACADEMIC SCORES & MARKS (DYNAMIC) -->
+            <div class="d-flex justify-content-between align-items-center mb-3 pt-2">
+                <div>
+                    <h5 class="fw-bold mb-0" style="color: var(--text-main);">
+                        <i class="bi bi-journal-check text-primary me-2"></i> Academic Subject Scores (% or Marks out of 100)
+                    </h5>
+                    <p class="small text-secondary mb-0">Self-reported recent exam marks or predicted percentages</p>
+                </div>
+                <div class="card-subtle px-3 py-2 rounded text-end border-primary">
+                    <span class="small text-secondary">Computed Overall:</span>
+                    <strong class="text-primary ms-1 fs-5" id="live-overall-display">
+                        {{ "%.1f"|format(academic.overall_percentage) if academic and academic.overall_percentage is not none else '—' }}%
+                    </strong>
+                </div>
+            </div>
+
+            <!-- Primary Curriculum Subject Grid -->
+            <div class="card-subtle p-3 p-md-4 mb-4 rounded border">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                    <span class="fw-semibold small text-primary" id="curriculum-badge-title">Core Curriculum Subjects</span>
+                    <span class="small text-muted">Enter percentage (0–100)</span>
+                </div>
+
+                <div class="row g-3" id="primary-subjects-grid">
+                    <!-- Dynamic inputs rendered/controlled via JavaScript based on Board, Grade, and Stream -->
+                    
+                    <!-- Mathematics -->
+                    <div class="col-md-4 col-sm-6 subject-input-col" id="col-math">
+                        <label for="math_score" class="form-label-custom small">Mathematics <span class="text-muted">(Applied Math)</span></label>
+                        <input type="number" step="0.1" min="0" max="100" class="form-control-custom score-input" id="math_score" name="math_score" value="{{ academic.mathematics_score if academic and academic.mathematics_score is not none else '' }}" placeholder="e.g. 85">
+                    </div>
+
+                    <!-- General Science -->
+                    <div class="col-md-4 col-sm-6 subject-input-col" id="col-science">
+                        <label for="science_score" class="form-label-custom small">General Science / Basic Science</label>
+                        <input type="number" step="0.1" min="0" max="100" class="form-control-custom score-input" id="science_score" name="science_score" value="{{ academic.science_score if academic and academic.science_score is not none else '' }}" placeholder="e.g. 88">
+                    </div>
+
+                    <!-- Physics -->
+                    <div class="col-md-4 col-sm-6 subject-input-col" id="col-physics">
+                        <label for="physics_score" class="form-label-custom small">Physics</label>
+                        <input type="number" step="0.1" min="0" max="100" class="form-control-custom score-input" id="physics_score" name="physics_score" value="{{ academic.physics_score if academic and academic.physics_score is not none else '' }}" placeholder="e.g. 82">
+                    </div>
+
+                    <!-- Chemistry -->
+                    <div class="col-md-4 col-sm-6 subject-input-col" id="col-chemistry">
+                        <label for="chemistry_score" class="form-label-custom small">Chemistry</label>
+                        <input type="number" step="0.1" min="0" max="100" class="form-control-custom score-input" id="chemistry_score" name="chemistry_score" value="{{ academic.chemistry_score if academic and academic.chemistry_score is not none else '' }}" placeholder="e.g. 80">
+                    </div>
+
+                    <!-- Biology -->
+                    <div class="col-md-4 col-sm-6 subject-input-col" id="col-biology">
+                        <label for="biology_score" class="form-label-custom small">Biology / Life Sciences</label>
+                        <input type="number" step="0.1" min="0" max="100" class="form-control-custom score-input" id="biology_score" name="biology_score" value="{{ academic.biology_score if academic and academic.biology_score is not none else '' }}" placeholder="e.g. 86">
+                    </div>
+
+                    <!-- Computer Science / IT -->
+                    <div class="col-md-4 col-sm-6 subject-input-col" id="col-cs">
+                        <label for="cs_score" class="form-label-custom small">Computer Science / IT / IP</label>
+                        <input type="number" step="0.1" min="0" max="100" class="form-control-custom score-input" id="cs_score" name="cs_score" value="{{ academic.computer_science_score if academic and academic.computer_science_score is not none else '' }}" placeholder="e.g. 92">
+                    </div>
+
+                    <!-- English -->
+                    <div class="col-md-4 col-sm-6 subject-input-col" id="col-english">
+                        <label for="english_score" class="form-label-custom small">English Language & Literature</label>
+                        <input type="number" step="0.1" min="0" max="100" class="form-control-custom score-input" id="english_score" name="english_score" value="{{ academic.english_score if academic and academic.english_score is not none else '' }}" placeholder="e.g. 78">
+                    </div>
+
+                    <!-- Malayalam -->
+                    <div class="col-md-4 col-sm-6 subject-input-col" id="col-malayalam">
+                        <label for="malayalam_score" class="form-label-custom small">Malayalam / Regional Language</label>
+                        <input type="number" step="0.1" min="0" max="100" class="form-control-custom score-input" id="malayalam_score" name="malayalam_score" value="{{ academic.malayalam_score if academic and academic.malayalam_score is not none else '' }}" placeholder="e.g. 84">
+                    </div>
+
+                    <!-- Hindi -->
+                    <div class="col-md-4 col-sm-6 subject-input-col" id="col-hindi">
+                        <label for="hindi_score" class="form-label-custom small">Hindi / Second Language</label>
+                        <input type="number" step="0.1" min="0" max="100" class="form-control-custom score-input" id="hindi_score" name="hindi_score" value="{{ academic.hindi_score if academic and academic.hindi_score is not none else '' }}" placeholder="e.g. 75">
+                    </div>
+
+                    <!-- Social Science -->
+                    <div class="col-md-4 col-sm-6 subject-input-col" id="col-social-science">
+                        <label for="social_science_score" class="form-label-custom small">Social Science</label>
+                        <input type="number" step="0.1" min="0" max="100" class="form-control-custom score-input" id="social_science_score" name="social_science_score" value="{{ academic.social_science_score if academic and academic.social_science_score is not none else '' }}" placeholder="e.g. 80">
+                    </div>
+
+                    <!-- History / Civics -->
+                    <div class="col-md-4 col-sm-6 subject-input-col" id="col-history">
+                        <label for="history_score" class="form-label-custom small">History & Civics</label>
+                        <input type="number" step="0.1" min="0" max="100" class="form-control-custom score-input" id="history_score" name="history_score" value="{{ academic.history_score if academic and academic.history_score is not none else '' }}" placeholder="e.g. 82">
+                    </div>
+
+                    <!-- Geography -->
+                    <div class="col-md-4 col-sm-6 subject-input-col" id="col-geography">
+                        <label for="geography_score" class="form-label-custom small">Geography</label>
+                        <input type="number" step="0.1" min="0" max="100" class="form-control-custom score-input" id="geography_score" name="geography_score" value="{{ academic.geography_score if academic and academic.geography_score is not none else '' }}" placeholder="e.g. 85">
+                    </div>
+
+                    <!-- Political Science -->
+                    <div class="col-md-4 col-sm-6 subject-input-col" id="col-polscience">
+                        <label for="polscience_score" class="form-label-custom small">Political Science</label>
+                        <input type="number" step="0.1" min="0" max="100" class="form-control-custom score-input" id="polscience_score" name="polscience_score" value="{{ academic.political_science_score if academic and academic.political_science_score is not none else '' }}" placeholder="e.g. 88">
+                    </div>
+
+                    <!-- Economics -->
+                    <div class="col-md-4 col-sm-6 subject-input-col" id="col-economics">
+                        <label for="economics_score" class="form-label-custom small">Economics</label>
+                        <input type="number" step="0.1" min="0" max="100" class="form-control-custom score-input" id="economics_score" name="economics_score" value="{{ academic.economics_score if academic and academic.economics_score is not none else '' }}" placeholder="e.g. 86">
+                    </div>
+
+                    <!-- Accountancy -->
+                    <div class="col-md-4 col-sm-6 subject-input-col" id="col-accountancy">
+                        <label for="accountancy_score" class="form-label-custom small">Accountancy</label>
+                        <input type="number" step="0.1" min="0" max="100" class="form-control-custom score-input" id="accountancy_score" name="accountancy_score" value="{{ academic.accountancy_score if academic and academic.accountancy_score is not none else '' }}" placeholder="e.g. 90">
+                    </div>
+
+                    <!-- Business Studies -->
+                    <div class="col-md-4 col-sm-6 subject-input-col" id="col-business">
+                        <label for="business_score" class="form-label-custom small">Business Studies / Commerce</label>
+                        <input type="number" step="0.1" min="0" max="100" class="form-control-custom score-input" id="business_score" name="business_score" value="{{ academic.business_studies_score if academic and academic.business_studies_score is not none else '' }}" placeholder="e.g. 88">
+                    </div>
+
+                    <!-- Psychology -->
+                    <div class="col-md-4 col-sm-6 subject-input-col" id="col-psychology">
+                        <label for="psychology_score" class="form-label-custom small">Psychology</label>
+                        <input type="number" step="0.1" min="0" max="100" class="form-control-custom score-input" id="psychology_score" name="psychology_score" value="{{ academic.psychology_score if academic and academic.psychology_score is not none else '' }}" placeholder="e.g. 85">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Optional / Additional Elective Toggle Accordion -->
+            <div class="accordion mb-4" id="electiveAccordion">
+                <div class="accordion-item card-custom border-0 shadow-none">
+                    <h2 class="accordion-header" id="headingElectives">
+                        <button class="accordion-button collapsed card-subtle py-2 px-3 fw-semibold small text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseElectives" aria-expanded="false" aria-controls="collapseElectives">
+                            <i class="bi bi-plus-circle text-primary me-2"></i> View / Enter Additional Elective Subjects
+                        </button>
+                    </h2>
+                    <div id="collapseElectives" class="accordion-collapse collapse" aria-labelledby="headingElectives" data-bs-parent="#electiveAccordion">
+                        <div class="accordion-body p-3 card-subtle border-top">
+                            <p class="small text-muted mb-2">
+                                If you take additional elective or vocational subjects (e.g. Computer Applications with Commerce, Psychology with Science, or extra languages), enter their scores above or unhide them here.
+                            </p>
+                            <button type="button" class="btn btn-outline-custom btn-sm-custom" onclick="showAllSubjects()">
+                                Show All 17 Subject Inputs
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-between align-items-center pt-3 border-top gap-2 flex-wrap" style="border-color: var(--border-color) !important;">
+                {% if is_onboarding %}
+                <span class="small text-muted"><i class="bi bi-info-circle me-1"></i> You can update these marks anytime from your dashboard.</span>
+                <button type="submit" class="btn btn-primary-custom btn-lg-custom">
+                    Save Profile & Start Assessment <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+                {% else %}
+                <a href="{{ url_for('student.dashboard') }}" class="btn btn-outline-custom">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                </a>
+                <button type="submit" class="btn btn-primary-custom">
+                    <i class="bi bi-check2-circle me-1"></i> Save Changes
+                </button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Dynamic Subject & Stream Manager tailored for CBSE, Kerala State, ICSE/ISC (Classes 7 to 12)
+    function updateSubjectFormLayout() {
+        const classLevel = parseInt(document.getElementById('class_level').value || '10');
+        const board = document.getElementById('board').value || 'CBSE';
+        const streamContainer = document.getElementById('stream_selection_container');
+        const stream = document.getElementById('stream') ? document.getElementById('stream').value : 'General';
+
+        // Update Header Badges
+        const classBadge = document.getElementById('profile-class-badge');
+        const streamBadge = document.getElementById('profile-stream-badge');
+        if (classBadge) classBadge.textContent = `Class ${classLevel}`;
+
+        // Stream Container visibility for Grade 11-12
+        if (classLevel >= 11) {
+            if (streamContainer) streamContainer.style.display = 'block';
+            if (streamBadge) streamBadge.textContent = `Stream: ${stream}`;
+        } else {
+            if (streamContainer) streamContainer.style.display = 'none';
+            if (streamBadge) streamBadge.textContent = 'Stream: General Foundation';
+        }
+
+        // All subject columns map
+        const allCols = {
+            math: document.getElementById('col-math'),
+            science: document.getElementById('col-science'),
+            physics: document.getElementById('col-physics'),
+            chemistry: document.getElementById('col-chemistry'),
+            biology: document.getElementById('col-biology'),
+            cs: document.getElementById('col-cs'),
+            english: document.getElementById('col-english'),
+            malayalam: document.getElementById('col-malayalam'),
+            hindi: document.getElementById('col-hindi'),
+            social_science: document.getElementById('col-social-science'),
+            history: document.getElementById('col-history'),
+            geography: document.getElementById('col-geography'),
+            polscience: document.getElementById('col-polscience'),
+            economics: document.getElementById('col-economics'),
+            accountancy: document.getElementById('col-accountancy'),
+            business: document.getElementById('col-business'),
+            psychology: document.getElementById('col-psychology')
+        };
+
+        // Determine active primary subject keys
+        let activeKeys = new Set();
+        const curriculumTitle = document.getElementById('curriculum-badge-title');
+
+        if (classLevel <= 8) {
+            // Class 7-8
+            if (board.includes('Kerala')) {
+                activeKeys = new Set(['malayalam', 'english', 'hindi', 'math', 'science', 'social_science', 'cs']);
+                if (curriculumTitle) curriculumTitle.textContent = `Kerala State Board (Class ${classLevel} Foundation)`;
+            } else if (board.includes('ICSE')) {
+                activeKeys = new Set(['english', 'hindi', 'math', 'physics', 'chemistry', 'biology', 'history', 'geography', 'cs']);
+                if (curriculumTitle) curriculumTitle.textContent = `ICSE (Class ${classLevel} Detailed Science & Humanities)`;
+            } else {
+                // CBSE / Standard
+                activeKeys = new Set(['english', 'hindi', 'math', 'science', 'social_science', 'cs']);
+                if (curriculumTitle) curriculumTitle.textContent = `CBSE / Standard (Class ${classLevel} Core Subjects)`;
+            }
+        } else if (classLevel <= 10) {
+            // Class 9-10
+            if (board.includes('Kerala')) {
+                activeKeys = new Set(['malayalam', 'english', 'hindi', 'math', 'physics', 'chemistry', 'biology', 'social_science', 'cs']);
+                if (curriculumTitle) curriculumTitle.textContent = `Kerala State Board (Class ${classLevel} Secondary)`;
+            } else if (board.includes('ICSE')) {
+                activeKeys = new Set(['english', 'hindi', 'math', 'physics', 'chemistry', 'biology', 'history', 'geography', 'cs', 'economics']);
+                if (curriculumTitle) curriculumTitle.textContent = `ICSE (Class ${classLevel} Board Exam Curriculum)`;
+            } else {
+                // CBSE
+                activeKeys = new Set(['english', 'hindi', 'math', 'science', 'social_science', 'cs']);
+                if (curriculumTitle) curriculumTitle.textContent = `CBSE (Class ${classLevel} Secondary Curriculum)`;
+            }
+        } else {
+            // Class 11-12 (Stream Specific)
+            if (stream.includes('PCM') && !stream.includes('PCMB')) {
+                activeKeys = new Set(['english', 'physics', 'chemistry', 'math', 'cs']);
+                if (curriculumTitle) curriculumTitle.textContent = `Science - PCM Stream (Class ${classLevel})`;
+            } else if (stream.includes('PCB')) {
+                activeKeys = new Set(['english', 'physics', 'chemistry', 'biology', 'cs']);
+                if (curriculumTitle) curriculumTitle.textContent = `Science - PCB Stream (Class ${classLevel})`;
+            } else if (stream.includes('PCMB')) {
+                activeKeys = new Set(['english', 'physics', 'chemistry', 'math', 'biology', 'cs']);
+                if (curriculumTitle) curriculumTitle.textContent = `Science - PCMB Stream (Class ${classLevel})`;
+            } else if (stream.includes('Commerce')) {
+                activeKeys = new Set(['english', 'accountancy', 'business', 'economics', 'math', 'cs']);
+                if (curriculumTitle) curriculumTitle.textContent = `Commerce Stream (Class ${classLevel})`;
+            } else if (stream.includes('Humanities')) {
+                activeKeys = new Set(['english', 'history', 'polscience', 'geography', 'economics', 'psychology']);
+                if (curriculumTitle) curriculumTitle.textContent = `Humanities / Arts Stream (Class ${classLevel})`;
+            } else {
+                activeKeys = new Set(['english', 'physics', 'chemistry', 'math', 'biology', 'accountancy', 'economics']);
+                if (curriculumTitle) curriculumTitle.textContent = `Higher Secondary (Class ${classLevel})`;
+            }
+        }
+
+        // Apply visibility
+        Object.keys(allCols).forEach(key => {
+            const colEl = allCols[key];
+            if (colEl) {
+                if (activeKeys.has(key)) {
+                    colEl.style.display = 'block';
+                } else {
+                    // If subject has a filled score, keep it visible so student does not lose view of their mark
+                    const input = colEl.querySelector('input');
+                    if (input && input.value.trim() !== '') {
+                        colEl.style.display = 'block';
+                    } else {
+                        colEl.style.display = 'none';
+                    }
+                }
+            }
+        });
+
+        calculateLiveOverallPercentage();
+    }
+
+    function showAllSubjects() {
+        document.querySelectorAll('.subject-input-col').forEach(el => {
+            el.style.display = 'block';
+        });
+        const curriculumTitle = document.getElementById('curriculum-badge-title');
+        if (curriculumTitle) curriculumTitle.textContent = 'All Available Subjects (17 Disciplines)';
+    }
+
+    // Live calculation of overall academic percentage
+    function calculateLiveOverallPercentage() {
+        const inputs = document.querySelectorAll('.score-input');
+        let total = 0;
+        let count = 0;
+
+        inputs.forEach(input => {
+            // Calculate for all visible or non-empty inputs
+            const val = parseFloat(input.value);
+            if (!isNaN(val) && val >= 0 && val <= 100 && input.closest('.subject-input-col').style.display !== 'none') {
+                total += val;
+                count += 1;
+            }
+        });
+
+        const display = document.getElementById('live-overall-display');
+        if (display) {
+            if (count > 0) {
+                const avg = (total / count).toFixed(1);
+                display.textContent = `${avg}%`;
+                display.title = `Average of ${count} entered subject(s)`;
+            } else {
+                display.textContent = '—%';
+            }
+        }
+    }
+
+    // Attach listeners on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        updateSubjectFormLayout();
+
+        document.querySelectorAll('.score-input').forEach(input => {
+            input.addEventListener('input', calculateLiveOverallPercentage);
+        });
+    });
+</script>
 {% endblock %}

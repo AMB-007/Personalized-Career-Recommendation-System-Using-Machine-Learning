@@ -16,7 +16,6 @@ class Student(db.Model):
     class_level = db.Column(db.SmallInteger, nullable=False, index=True)  # 7 to 12
     board = db.Column(db.String(100), nullable=True, index=True)  # CBSE, ICSE, State Board, IB, Cambridge
     medium = db.Column(db.String(50), nullable=True)  # English, Malayalam, Hindi, etc.
-    academic_year = db.Column(db.String(20), nullable=True)
     stream = db.Column(db.String(100), nullable=True, default='General', index=True)  # General (7-10), Science-PCM, Science-PCB, Commerce, Humanities
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
@@ -42,7 +41,6 @@ class Student(db.Model):
             'class_level': self.class_level,
             'board': self.board,
             'medium': self.medium,
-            'academic_year': self.academic_year,
             'stream': self.stream,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }

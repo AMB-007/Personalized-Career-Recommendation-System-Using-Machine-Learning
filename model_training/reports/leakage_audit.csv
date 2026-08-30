@@ -1,0 +1,20 @@
+Feature,Source,Derived?,Uses compatibility_score?,Uses target?,Safe?
+age,Raw Dataset,No,No,No,SAFE
+class,Raw Dataset,No,No,No,SAFE
+ability_match_component,Raw Dataset,No,No,No,SAFE
+interest_match_component,Raw Dataset,No,No,No,SAFE
+academic_match_component,Raw Dataset,No,No,No,SAFE
+learning_match_component,Raw Dataset,No,No,No,SAFE
+composite_alignment_index,Engineered Domain Formula,Yes,No,No,SAFE
+ability_interest_synergy,Engineered Domain Formula,Yes,No,No,SAFE
+ability_interest_gap,Engineered Domain Formula,Yes,No,No,SAFE
+min_core_match,Engineered Domain Formula,Yes,No,No,SAFE
+max_core_match,Engineered Domain Formula,Yes,No,No,SAFE
+harmonic_core_match,Engineered Domain Formula,Yes,No,No,SAFE
+geometric_core_synergy,Engineered Domain Formula,Yes,No,No,SAFE
+holistic_synergy,Engineered Domain Formula,Yes,No,No,SAFE
+career_name,Raw Dataset,No,No,No,SAFE
+career_domain,Raw Dataset,No,No,No,SAFE
+career_subdomain,Raw Dataset,No,No,No,SAFE
+career_cluster,Raw Dataset,No,No,No,SAFE
+stream,Raw Dataset,No,No,No,SAFE

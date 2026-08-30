@@ -388,10 +388,10 @@ def run_career_import_pipeline():
                 """
                 INSERT INTO careers (
                     career_code, career_name, domain_id, subdomain_id, cluster_id,
-                    description, minimum_education, typical_education, preferred_subjects,
-                    work_environment, work_style, career_pathway, entry_level_role,
+                    description, minimum_education, typical_education,
+                    work_environment, work_style, entry_level_role,
                     advanced_role, related_careers, is_active
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, TRUE)
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, TRUE)
                 ON DUPLICATE KEY UPDATE
                     domain_id=VALUES(domain_id),
                     subdomain_id=VALUES(subdomain_id),
@@ -399,18 +399,16 @@ def run_career_import_pipeline():
                     description=VALUES(description),
                     minimum_education=VALUES(minimum_education),
                     typical_education=VALUES(typical_education),
-                    preferred_subjects=VALUES(preferred_subjects),
                     work_environment=VALUES(work_environment),
                     work_style=VALUES(work_style),
-                    career_pathway=VALUES(career_pathway),
                     entry_level_role=VALUES(entry_level_role),
                     advanced_role=VALUES(advanced_role),
                     related_careers=VALUES(related_careers);
                 """,
                 (
                     code, c_name, dom_id, sub_id, clu_id,
-                    desc, min_edu, typ_edu, preferred_subj_str,
-                    work_env, work_style, pathway_text, entry_role,
+                    desc, min_edu, typ_edu,
+                    work_env, work_style, entry_role,
                     adv_role, related_careers_str
                 )
             )

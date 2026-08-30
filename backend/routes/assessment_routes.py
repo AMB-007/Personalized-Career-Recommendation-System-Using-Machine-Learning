@@ -23,11 +23,31 @@ assessment_bp = Blueprint('assessment', __name__)
 # HTML View Routes
 # ------------------------------------------------------------
 
+def is_academic_profile_complete(student) -> bool:
+    """Returns True if the student has provided academic subject marks or overall percentage."""
+    if not student or not student.academic_scores:
+        return False
+    ac = student.academic_scores
+    if ac.overall_percentage is not None:
+        return True
+    subject_scores = [
+        ac.mathematics_score, ac.science_score, ac.physics_score, ac.chemistry_score,
+        ac.biology_score, ac.computer_science_score, ac.english_score, ac.malayalam_score,
+        ac.hindi_score, ac.social_science_score, ac.history_score, ac.geography_score,
+        ac.political_science_score, ac.economics_score, ac.accountancy_score,
+        ac.business_studies_score, ac.psychology_score
+    ]
+    return any(s is not None for s in subject_scores)
+
+
 @assessment_bp.route('/assessment/instructions')
 @login_required
 @student_required
 def instructions_page():
     student = current_user.student
+    if not is_academic_profile_complete(student):
+        flash('Please complete your academic scores and profile details before starting the assessment.', 'info')
+        return redirect(url_for('student.profile_page', onboarding=1))
     return render_template('instructions.html', student=student)
 
 
@@ -36,6 +56,10 @@ def instructions_page():
 @student_required
 def start_assessment_action():
     student = current_user.student
+    if not is_academic_profile_complete(student):
+        flash('Please complete your academic scores and profile details before starting the assessment.', 'info')
+        return redirect(url_for('student.profile_page', onboarding=1))
+
     # Check if there is already an in-progress session
     active_session = AssessmentSession.query.filter_by(student_id=student.id, status='in_progress').first()
     if not active_session:
@@ -89,9 +113,13 @@ def assessment_page():
 @student_required
 def review_page():
     student = current_user.student
-    session = AssessmentSession.query.filter_by(student_id=student.id, status='in_progress').first()
+    session = AssessmentSession.query.filter_by(student_id=student.id, status='in_progress').order_by(AssessmentSession.id.desc()).first()
 
     if not session:
+        # Check if the student has a completed session, redirect directly to results
+        last_completed = AssessmentSession.query.filter_by(student_id=student.id, status='completed').order_by(AssessmentSession.id.desc()).first()
+        if last_completed:
+            return redirect(url_for('assessment.results_page', assessment_id=last_completed.id))
         flash('No active assessment session to review.', 'info')
         return redirect(url_for('student.dashboard'))
 
@@ -213,10 +241,15 @@ def api_submit_assessment():
         return api_error("Unauthorized access to assessment session.", status_code=403)
 
     if session.status == 'completed':
-        return api_error("Assessment has already been submitted.", status_code=400)
+        return api_response({
+            'status': 'completed',
+            'session_id': session.id,
+            'redirect_url': url_for('assessment.results_page', assessment_id=session.id)
+        }, message="Assessment already evaluated.")
 
     try:
         result_payload = AssessmentService.complete_and_evaluate_assessment(session.id)
+        result_payload['redirect_url'] = url_for('assessment.results_page', assessment_id=session.id)
         logger.info(f"Assessment {session.id} submitted and scored successfully for student {session.student_id}")
         return api_response(result_payload, message="Assessment submitted and evaluated successfully.")
     except ValueError as ve:

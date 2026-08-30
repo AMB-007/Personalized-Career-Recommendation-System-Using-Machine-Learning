@@ -80,7 +80,6 @@ class CareerImportTestCase(unittest.TestCase):
             description="Designs autonomous robotics systems.",
             minimum_education="Bachelor's Degree",
             typical_education="M.Tech Robotics",
-            preferred_subjects="Mathematics, Physics, Computer Science",
             work_environment="Robotics Lab",
             is_active=True
         )
@@ -123,7 +122,6 @@ class CareerImportTestCase(unittest.TestCase):
             description="Investigates hereditary conditions.",
             minimum_education="MBBS",
             typical_education="MD Medical Genetics",
-            preferred_subjects="Biology, Chemistry",
             work_environment="Hospital / Diagnostic Lab",
             entry_level_role="Junior Resident Geneticist",
             advanced_role="Chief Medical Geneticist",

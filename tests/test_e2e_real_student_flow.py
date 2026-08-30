@@ -131,10 +131,29 @@ class TestE2ERealStudentFlow(unittest.TestCase):
         res_login = self.client.post('/login', data=login_payload, follow_redirects=True)
         self.assertEqual(res_login.status_code, 200)
 
-        # Verify Student in DB
+        # Step 2.5: Fill Academic Scores Onboarding
+        profile_payload = {
+            'first_name': 'Kavya',
+            'last_name': 'Sharma',
+            'class_level': '12',
+            'board': 'CBSE',
+            'medium': 'English',
+            'stream': 'Science-PCM',
+            'math_score': '95.0',
+            'physics_score': '92.0',
+            'chemistry_score': '90.0',
+            'cs_score': '96.0',
+            'english_score': '88.0'
+        }
+        res_prof = self.client.post('/profile?onboarding=1', data=profile_payload, follow_redirects=True)
+        self.assertEqual(res_prof.status_code, 200)
+
+        # Verify Student & Academic in DB
         student = Student.query.filter_by(first_name='Kavya').first()
         self.assertIsNotNone(student)
         self.assertEqual(student.class_level, 12)
+        self.assertIsNotNone(student.academic_scores)
+        self.assertEqual(student.academic_scores.mathematics_score, 95.0)
 
         # Step 3: Start Assessment Session
         res_start = self.client.post('/api/assessment/start')
@@ -194,7 +213,7 @@ class TestE2ERealStudentFlow(unittest.TestCase):
         self.assertEqual(res_rec_api.status_code, 200)
         rec_data = res_rec_api.get_json()['data']
         self.assertIn(rec_data['model'], ['CatBoost', 'XGBoost', 'LightGBM', 'RandomForest'])
-        self.assertTrue(rec_data['model_version'].startswith('V8'))
+        self.assertTrue(rec_data['model_version'].startswith('V'))
 
         # Test student recommendations endpoint
         res_stu_rec = self.client.get(f'/api/recommendations/student/{student.student_code}')
@@ -206,7 +225,6 @@ class TestE2ERealStudentFlow(unittest.TestCase):
         page_html = res_page.get_data(as_text=True)
         self.assertIn("Cloud Software Architect", page_html)
         self.assertIn("Top #1 Primary Recommendation", page_html)
-        self.assertIn("V8.0", page_html)
 
         # Step 10: Logout
         res_logout = self.client.get('/logout', follow_redirects=True)

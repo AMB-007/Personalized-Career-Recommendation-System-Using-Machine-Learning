@@ -55,8 +55,9 @@ class CareerService:
             query = query.filter(
                 (Career.career_name.ilike(sq)) |
                 (Career.description.ilike(sq)) |
-                (Career.preferred_subjects.ilike(sq)) |
-                (Career.related_careers.ilike(sq))
+                (Career.related_careers.ilike(sq)) |
+                (Career.subjects.any(CareerSubject.subject_name.ilike(sq))) |
+                (Career.skills.any(CareerSkill.skill_name.ilike(sq)))
             )
 
         if domain_id:

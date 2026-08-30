@@ -1,40 +1,25 @@
 {
-  "model_version": "V8.0-Champion",
+  "model_version": "V9.5-Champion",
   "algorithm": "CatBoost",
   "files": {
     "model.joblib": {
-      "sha256": "29f1bc43797a215b85350d547b7cfb0abf33db61645ac3dc81070e405827673b",
-      "size_bytes": 2204808,
+      "sha256": "2a3507bb34afa99a3534bae7d475df933849d1026b9455a0bab639479aa14462",
+      "size_bytes": 1126530,
       "status": "verified"
     },
     "preprocessor.joblib": {
-      "sha256": "f8749def05f9359cafe9f28afcde6d1033a03a6cb3fe6bb28711716d2859354c",
-      "size_bytes": 44791,
+      "sha256": "7aabb1f3a48ec1469c225d468e48c672390e81802a15d62650cf3713ef04682e",
+      "size_bytes": 64812,
       "status": "verified"
     },
     "feature_columns.json": {
-      "sha256": "d3bdd10bd963ac6809e812c24ba5867f487290ac7ba3cc6d54a8d769594b3616",
-      "size_bytes": 401,
-      "status": "verified"
-    },
-    "classes.json": {
-      "sha256": "8ccaa106ef6636dd52e1d93fd072b8e55e8e061202cb23c4a67138690481252a",
-      "size_bytes": 93,
-      "status": "verified"
-    },
-    "model_config.json": {
-      "sha256": "64a1ff49d211e9c5d0372bf6811e9165efcec423af11fd1d81599153269e154b",
-      "size_bytes": 1313,
-      "status": "verified"
-    },
-    "version.json": {
-      "sha256": "e61247855ec2c5401fdcb29217b5155ac04743ac62aad1931a74260b28644e0d",
-      "size_bytes": 142,
+      "sha256": "098cda74a5e299550a1d5308fad51a698dcb9e96f555f4b58501ca371fa560a6",
+      "size_bytes": 453,
       "status": "verified"
     },
     "career_knowledge_requirements.csv": {
-      "sha256": "663bae8c0e7274b1aa0d4f411ab8a29b4793bafa97db4d9742c4e0daaf19c5ae",
-      "size_bytes": 231440,
+      "sha256": "f116b73cfd3d82967c632a46ea7ca7d1c17c18222d5a804fa1cd929750883228",
+      "size_bytes": 230917,
       "status": "verified"
     }
   }

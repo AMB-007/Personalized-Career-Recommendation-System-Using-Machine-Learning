@@ -1,6 +1,6 @@
 """
 Production ML Prediction Service Module.
-Executes preprocessing and XGBoost compatibility model inference.
+Executes preprocessing and CatBoost champion compatibility model inference.
 Strictly decoupled from database operations.
 """
 
@@ -40,21 +40,28 @@ class PredictionService:
             raise ValueError("Feature input must be a non-empty DataFrame or list of dicts.")
 
         # Graceful auto-computation of engineered alignment features if base features provided
-        if 'composite_alignment_index' not in feature_df.columns and 'ability_match_component' in feature_df.columns:
+        if 'ability_match_component' in feature_df.columns:
             a_val = feature_df['ability_match_component'].fillna(50.0).astype(float)
-            i_val = feature_df['interest_match_component'].fillna(50.0).astype(float)
-            ac_val = feature_df['academic_match_component'].fillna(80.0).astype(float)
-            l_val = feature_df['learning_match_component'].fillna(50.0).astype(float)
-            feature_df['composite_alignment_index'] = np.round(
-                0.17 * (0.4447 * a_val + 0.3136 * i_val + 0.0997 * ac_val + 0.1007 * l_val + 3.784) +
-                0.83 * (0.45 * a_val + 0.35 * i_val + 0.10 * ac_val + 0.10 * l_val),
-                2
-            )
-            feature_df['ability_interest_synergy'] = np.round((a_val * i_val) / 100.0, 2)
-            feature_df['ability_interest_gap'] = np.round(np.abs(a_val - i_val), 2)
-            feature_df['min_core_match'] = np.minimum(a_val, i_val)
-            feature_df['max_core_match'] = np.maximum(a_val, i_val)
-            feature_df['harmonic_core_match'] = np.round(2.0 * (a_val * i_val) / (a_val + i_val + 1e-5), 2)
+            i_val = feature_df.get('interest_match_component', pd.Series(50.0, index=feature_df.index)).fillna(50.0).astype(float)
+            ac_val = feature_df.get('academic_match_component', pd.Series(80.0, index=feature_df.index)).fillna(80.0).astype(float)
+            l_val = feature_df.get('learning_match_component', pd.Series(50.0, index=feature_df.index)).fillna(50.0).astype(float)
+
+            if 'composite_alignment_index' not in feature_df.columns:
+                feature_df['composite_alignment_index'] = np.round(0.45 * a_val + 0.35 * i_val + 0.10 * ac_val + 0.10 * l_val, 2)
+            if 'ability_interest_synergy' not in feature_df.columns:
+                feature_df['ability_interest_synergy'] = np.round((a_val * i_val) / 100.0, 2)
+            if 'ability_interest_gap' not in feature_df.columns:
+                feature_df['ability_interest_gap'] = np.round(np.abs(a_val - i_val), 2)
+            if 'min_core_match' not in feature_df.columns:
+                feature_df['min_core_match'] = np.minimum(a_val, i_val)
+            if 'max_core_match' not in feature_df.columns:
+                feature_df['max_core_match'] = np.maximum(a_val, i_val)
+            if 'harmonic_core_match' not in feature_df.columns:
+                feature_df['harmonic_core_match'] = np.round(2.0 * (a_val * i_val) / (a_val + i_val + 1e-5), 2)
+            if 'geometric_core_synergy' not in feature_df.columns:
+                feature_df['geometric_core_synergy'] = np.round(np.sqrt(np.maximum(0.0, a_val * i_val)), 2)
+            if 'holistic_synergy' not in feature_df.columns:
+                feature_df['holistic_synergy'] = np.round((a_val * i_val * ac_val * l_val) ** 0.25, 2)
 
         required_features = get_feature_columns()
         missing_cols = [c for c in required_features if c not in feature_df.columns]
@@ -71,11 +78,11 @@ class PredictionService:
         except Exception as e:
             raise RuntimeError(f"Preprocessing transformation failed: {str(e)}") from e
 
-        # 2. Score with trained XGBoost model
+        # 2. Score with trained Champion ML model
         model = get_model()
         config = get_model_config()
         version_info = get_model_version()
-        threshold = float(config.get('threshold', 0.495))
+        threshold = float(config.get('threshold', 0.50))
 
         try:
             if hasattr(model, "predict_proba"):
@@ -88,8 +95,8 @@ class PredictionService:
             pred_list = [int(p >= threshold) for p in proba]
 
             return {
-                "model": config.get("model", "XGBoost"),
-                "version": version_info.get("version", "V7.2"),
+                "model": config.get("model", "CatBoost"),
+                "version": version_info.get("version", "V9.5"),
                 "threshold": threshold,
                 "count": len(proba_list),
                 "probabilities": proba_list,
@@ -97,4 +104,4 @@ class PredictionService:
             }
 
         except Exception as e:
-            raise RuntimeError(f"XGBoost inference execution failed: {str(e)}") from e
+            raise RuntimeError(f"ML model inference execution failed: {str(e)}") from e

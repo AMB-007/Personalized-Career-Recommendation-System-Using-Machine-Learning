@@ -392,7 +392,6 @@ def manage_careers():
             description=desc,
             minimum_education=min_edu,
             typical_education=typ_edu,
-            career_pathway=pathway,
             is_active=True
         )
         db.session.add(career)

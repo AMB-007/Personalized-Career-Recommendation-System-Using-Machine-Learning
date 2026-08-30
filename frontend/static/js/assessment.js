@@ -539,30 +539,87 @@ class AssessmentEngine {
 
 // Function to trigger progressive loading overlay on final assessment submission
 function showSubmissionLoadingOverlay() {
+    // Remove any existing overlay
+    const existing = document.getElementById('submission-loading-overlay');
+    if (existing) existing.remove();
+
     const overlay = document.createElement('div');
-    overlay.className = 'loading-overlay';
+    overlay.className = 'submission-loading-overlay';
     overlay.id = 'submission-loading-overlay';
     overlay.innerHTML = `
-        <div class="loading-card">
-            <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
-                <span class="visually-hidden">Loading...</span>
+        <div class="submission-loading-card">
+            <div class="loading-ai-core">
+                <div class="loading-pulse-ring"></div>
+                <div class="loading-ai-icon">
+                    <i class="bi bi-cpu-fill"></i>
+                </div>
             </div>
-            <h4 class="fw-bold mb-2">Generating Recommendations</h4>
-            <p id="loading-status-msg" class="text-secondary mb-0">Analyzing your profile...</p>
+            <h4 class="fw-bold mb-1" style="color: #FFFFFF;">Evaluating Assessment</h4>
+            <p id="loading-status-msg" class="text-secondary small mb-3">Initializing AI recommendation engine...</p>
+            
+            <div class="loading-progress-track">
+                <div id="loading-progress-fill" class="loading-progress-fill"></div>
+            </div>
+
+            <div class="loading-step-list">
+                <div class="loading-step-item active" id="step-1">
+                    <i class="bi bi-circle-fill text-primary" style="font-size: 0.5rem;"></i>
+                    <span>Computing 15 Cognitive Ability Dimensions</span>
+                </div>
+                <div class="loading-step-item" id="step-2">
+                    <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i>
+                    <span>Analyzing RIASEC Vocational Interests</span>
+                </div>
+                <div class="loading-step-item" id="step-3">
+                    <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i>
+                    <span>Scoring 2,259 Careers with CatBoost AI</span>
+                </div>
+                <div class="loading-step-item" id="step-4">
+                    <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i>
+                    <span>Synthesizing Personalized Career Roadmaps</span>
+                </div>
+            </div>
         </div>
     `;
     document.body.appendChild(overlay);
 
+    const fillEl = document.getElementById('loading-progress-fill');
     const statusMsg = document.getElementById('loading-status-msg');
+
+    // Progressive step transitions
     setTimeout(() => {
-        if (statusMsg) statusMsg.textContent = 'Comparing your profile with 1,206 career paths...';
-    }, 1200);
+        if (fillEl) fillEl.style.width = '25%';
+        const s1 = document.getElementById('step-1');
+        if (s1) { s1.classList.add('completed'); s1.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i> <span>Cognitive Abilities Evaluated</span>'; }
+        const s2 = document.getElementById('step-2');
+        if (s2) s2.classList.add('active');
+        if (statusMsg) statusMsg.textContent = 'Mapping vocational interest vectors...';
+    }, 600);
+
     setTimeout(() => {
-        if (statusMsg) statusMsg.textContent = 'Evaluating compatibility with XGBoost model...';
-    }, 2400);
+        if (fillEl) fillEl.style.width = '60%';
+        const s2 = document.getElementById('step-2');
+        if (s2) { s2.classList.add('completed'); s2.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i> <span>Vocational Interests Analyzed</span>'; }
+        const s3 = document.getElementById('step-3');
+        if (s3) s3.classList.add('active');
+        if (statusMsg) statusMsg.textContent = 'Executing CatBoost Machine Learning inference...';
+    }, 1400);
+
     setTimeout(() => {
-        if (statusMsg) statusMsg.textContent = 'Preparing your personalized roadmap...';
-    }, 3600);
+        if (fillEl) fillEl.style.width = '85%';
+        const s3 = document.getElementById('step-3');
+        if (s3) { s3.classList.add('completed'); s3.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i> <span>Career Compatibility Scored</span>'; }
+        const s4 = document.getElementById('step-4');
+        if (s4) s4.classList.add('active');
+        if (statusMsg) statusMsg.textContent = 'Generating Top-5 career recommendations...';
+    }, 2200);
+
+    setTimeout(() => {
+        if (fillEl) fillEl.style.width = '100%';
+        const s4 = document.getElementById('step-4');
+        if (s4) { s4.classList.add('completed'); s4.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i> <span>Recommendations Ready</span>'; }
+        if (statusMsg) statusMsg.textContent = 'Redirecting to your results dashboard...';
+    }, 3000);
 }
 
 window.AssessmentEngine = AssessmentEngine;

@@ -103,10 +103,8 @@ class Career(db.Model):
     description = db.Column(db.Text, nullable=True)
     minimum_education = db.Column(db.String(150), nullable=True)
     typical_education = db.Column(db.String(150), nullable=True)
-    preferred_subjects = db.Column(db.Text, nullable=True)
     work_environment = db.Column(db.String(200), nullable=True)
     work_style = db.Column(db.String(200), nullable=True)
-    career_pathway = db.Column(db.Text, nullable=True)
     entry_level_role = db.Column(db.String(200), nullable=True)
     advanced_role = db.Column(db.String(200), nullable=True)
     related_careers = db.Column(db.Text, nullable=True)
@@ -119,7 +117,6 @@ class Career(db.Model):
     subjects = db.relationship('CareerSubject', backref='career', cascade='all, delete-orphan', lazy='joined')
     education_pathways = db.relationship('CareerEducation', backref='career', cascade='all, delete-orphan', order_by='CareerEducation.sequence_order', lazy='joined')
     pathways = db.relationship('CareerPathway', backref='career', cascade='all, delete-orphan', order_by='CareerPathway.stage_number', lazy='joined')
-    learning_resources = db.relationship('LearningResource', backref='career', lazy='dynamic')
 
     def to_dict(self):
         return {
@@ -134,10 +131,8 @@ class Career(db.Model):
             'description': self.description,
             'minimum_education': self.minimum_education,
             'typical_education': self.typical_education,
-            'preferred_subjects': self.preferred_subjects,
             'work_environment': self.work_environment,
             'work_style': self.work_style,
-            'career_pathway': self.career_pathway,
             'entry_level_role': self.entry_level_role,
             'advanced_role': self.advanced_role,
             'related_careers': [rc.strip() for rc in (self.related_careers or '').split(',') if rc.strip()],
@@ -234,34 +229,4 @@ class CareerPathway(db.Model):
             'stage_number': self.stage_number,
             'stage_name': self.stage_name,
             'description': self.description
-        }
-
-
-class LearningResource(db.Model):
-    """Curated learning resources linked to career profiles."""
-    __tablename__ = 'learning_resources'
-
-    id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), primary_key=True, autoincrement=True)
-    career_id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), db.ForeignKey('careers.id', ondelete='SET NULL'), nullable=True)
-    title = db.Column(db.String(255), nullable=False)
-    description = db.Column(db.Text, nullable=True)
-    resource_type = db.Column(db.String(100), nullable=True)
-    url = db.Column(db.String(1000), nullable=True)
-    difficulty = db.Column(db.String(50), default='Beginner')
-    class_min = db.Column(db.SmallInteger, nullable=True)
-    class_max = db.Column(db.SmallInteger, nullable=True)
-    is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'career_id': self.career_id,
-            'title': self.title,
-            'description': self.description,
-            'resource_type': self.resource_type,
-            'url': self.url,
-            'difficulty': self.difficulty,
-            'class_min': self.class_min,
-            'class_max': self.class_max
         }

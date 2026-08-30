@@ -89,7 +89,7 @@
                     <i class="bi bi-cloud-arrow-up-fill fs-1 text-primary"></i>
                 </div>
                 <p class="text-center mb-0 small" style="color: var(--text-secondary);">
-                    Are you ready to submit? Once submitted, the XGBoost engine will score your profile and evaluate all 1,206 career candidates to generate your personalized recommendations.
+                    Are you ready to submit? Once submitted, the CatBoost AI engine will score your cognitive profile and evaluate all career candidates to generate your personalized recommendations.
                 </p>
             </div>
             <div class="modal-footer border-0 pt-0 justify-content-center gap-2">
@@ -134,15 +134,24 @@
     });
 
     async function submitAssessmentNow(sessionId) {
-        // Close modal first
+        // Disable button to prevent double-click
+        const btnSubmit = document.getElementById('btn-final-submit');
+        if (btnSubmit) {
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Processing...';
+        }
+
+        // Close confirmation modal
         const modalEl = document.getElementById('confirmSubmitModal');
         if (modalEl && window.bootstrap) {
             const bsModal = bootstrap.Modal.getInstance(modalEl);
             if (bsModal) bsModal.hide();
         }
 
-        // Show progressive loading overlay
-        showSubmissionLoadingOverlay();
+        // Show progressive AI loading overlay
+        if (typeof showSubmissionLoadingOverlay === 'function') {
+            showSubmissionLoadingOverlay();
+        }
 
         try {
             const res = await fetch('/api/assessment/submit', {
@@ -152,19 +161,30 @@
             });
 
             const data = await res.json();
-            if (data.success) {
-                // Clear flags for this session upon submission
+            
+            // If submission succeeded OR if already completed, redirect to results page
+            if (data.success || (data.data && data.data.redirect_url) || (data.error && data.error.includes('already'))) {
                 localStorage.removeItem(`assessment_flags_${sessionId}`);
-                window.location.href = `/assessment/results/${sessionId}`;
+                const targetUrl = (data.data && data.data.redirect_url) ? data.data.redirect_url : `/assessment/results/${sessionId}`;
+                
+                // Allow user to see smooth loading sequence before transition
+                setTimeout(() => {
+                    window.location.href = targetUrl;
+                }, 1200);
             } else {
                 const overlay = document.getElementById('submission-loading-overlay');
                 if (overlay) overlay.remove();
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = 'Yes, Submit and Process';
+                }
                 alert('Error submitting assessment: ' + (data.error || 'Please try again.'));
             }
         } catch (err) {
-            const overlay = document.getElementById('submission-loading-overlay');
-            if (overlay) overlay.remove();
-            alert('Failed to connect to server. Please check your internet connection and try again.');
+            // In case of network timeout after processing, attempt to redirect to results
+            setTimeout(() => {
+                window.location.href = `/assessment/results/${sessionId}`;
+            }, 1500);
         }
     }
 </script>

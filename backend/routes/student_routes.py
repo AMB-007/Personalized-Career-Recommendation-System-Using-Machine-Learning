@@ -70,31 +70,104 @@ def profile_page():
     if not student:
         return redirect(url_for('main.index'))
 
+    is_onboarding = request.args.get('onboarding') == '1' or request.form.get('onboarding') == '1'
+
     if request.method == 'POST':
         student.first_name = request.form.get('first_name', student.first_name).strip()
         student.last_name = request.form.get('last_name', student.last_name).strip()
-        student.board = request.form.get('board', student.board).strip()
-        student.medium = request.form.get('medium', student.medium).strip()
+        student.board = request.form.get('board', student.board or 'CBSE').strip()
+        student.medium = request.form.get('medium', student.medium or 'English').strip()
+        
+        if request.form.get('age'):
+            try:
+                student.age = int(request.form.get('age'))
+            except (ValueError, TypeError):
+                pass
+                
+        if request.form.get('gender'):
+            student.gender = request.form.get('gender').strip()
+
+        if request.form.get('class_level'):
+            try:
+                new_class = int(request.form.get('class_level'))
+                if 7 <= new_class <= 12:
+                    student.class_level = new_class
+            except (ValueError, TypeError):
+                pass
 
         # Update stream if Grade 11/12
         if student.class_level in [11, 12]:
-            student.stream = request.form.get('stream', student.stream).strip()
+            student.stream = request.form.get('stream', student.stream or 'Science-PCM').strip()
+        else:
+            student.stream = 'General'
 
-        # Update academic scores
+        # Helper to parse float or None
+        def parse_score(val):
+            if val is not None and str(val).strip() != '':
+                try:
+                    score = float(val)
+                    return max(0.0, min(100.0, score))
+                except (ValueError, TypeError):
+                    return None
+            return None
+
+        # Update all 17 academic subject scores
         ac = student.academic_scores or AcademicScore(student_id=student.id)
-        ac.mathematics_score = float(request.form.get('math_score', ac.mathematics_score or 0)) if request.form.get('math_score') else ac.mathematics_score
-        ac.science_score = float(request.form.get('science_score', ac.science_score or 0)) if request.form.get('science_score') else ac.science_score
-        ac.computer_science_score = float(request.form.get('cs_score', ac.computer_science_score or 0)) if request.form.get('cs_score') else ac.computer_science_score
-        ac.english_score = float(request.form.get('english_score', ac.english_score or 0)) if request.form.get('english_score') else ac.english_score
+        
+        ac.mathematics_score = parse_score(request.form.get('math_score'))
+        ac.science_score = parse_score(request.form.get('science_score'))
+        ac.physics_score = parse_score(request.form.get('physics_score'))
+        ac.chemistry_score = parse_score(request.form.get('chemistry_score'))
+        ac.biology_score = parse_score(request.form.get('biology_score'))
+        ac.computer_science_score = parse_score(request.form.get('cs_score'))
+        ac.english_score = parse_score(request.form.get('english_score'))
+        ac.malayalam_score = parse_score(request.form.get('malayalam_score'))
+        ac.hindi_score = parse_score(request.form.get('hindi_score'))
+        ac.social_science_score = parse_score(request.form.get('social_science_score'))
+        ac.history_score = parse_score(request.form.get('history_score'))
+        ac.geography_score = parse_score(request.form.get('geography_score'))
+        ac.political_science_score = parse_score(request.form.get('polscience_score'))
+        ac.economics_score = parse_score(request.form.get('economics_score'))
+        ac.accountancy_score = parse_score(request.form.get('accountancy_score'))
+        ac.business_studies_score = parse_score(request.form.get('business_score'))
+        ac.psychology_score = parse_score(request.form.get('psychology_score'))
+
+        # Calculate Overall Percentage across all entered subjects
+        entered_scores = [
+            s for s in [
+                ac.mathematics_score, ac.science_score, ac.physics_score, ac.chemistry_score,
+                ac.biology_score, ac.computer_science_score, ac.english_score, ac.malayalam_score,
+                ac.hindi_score, ac.social_science_score, ac.history_score, ac.geography_score,
+                ac.political_science_score, ac.economics_score, ac.accountancy_score,
+                ac.business_studies_score, ac.psychology_score
+            ] if s is not None
+        ]
+
+        if entered_scores:
+            ac.overall_percentage = round(sum(entered_scores) / len(entered_scores), 2)
+        elif request.form.get('overall_percentage'):
+            ac.overall_percentage = parse_score(request.form.get('overall_percentage'))
+        else:
+            ac.overall_percentage = 75.0
 
         if not student.academic_scores:
             db.session.add(ac)
 
         db.session.commit()
+        
+        if is_onboarding:
+            flash('Profile and academic marks saved successfully! You are now ready to begin your career assessment.', 'success')
+            return redirect(url_for('assessment.instructions_page'))
+            
         flash('Profile and academic records updated successfully!', 'success')
         return redirect(url_for('student.profile_page'))
 
-    return render_template('profile.html', student=student, academic=student.academic_scores)
+    return render_template(
+        'profile.html',
+        student=student,
+        academic=student.academic_scores,
+        is_onboarding=is_onboarding
+    )
 
 
 # ------------------------------------------------------------
@@ -106,7 +179,10 @@ def profile_page():
 def api_get_profile():
     if not current_user.student:
         return api_error("Student profile not found.", status_code=404)
-    return api_response(current_user.student.to_dict())
+    data = current_user.student.to_dict()
+    if current_user.student.academic_scores:
+        data['academic_scores'] = current_user.student.academic_scores.to_dict()
+    return api_response(data)
 
 
 @student_bp.route('/api/student/profile', methods=['PUT'])
@@ -127,6 +203,27 @@ def api_update_profile():
         student.stream = data['stream']
     if 'board' in data:
         student.board = data['board']
+    if 'medium' in data:
+        student.medium = data['medium']
+    if 'age' in data:
+        student.age = int(data['age'])
+    if 'gender' in data:
+        student.gender = data['gender']
+
+    if 'academic_scores' in data and isinstance(data['academic_scores'], dict):
+        ac_data = data['academic_scores']
+        ac = student.academic_scores or AcademicScore(student_id=student.id)
+        for field in [
+            'mathematics_score', 'science_score', 'physics_score', 'chemistry_score',
+            'biology_score', 'computer_science_score', 'english_score', 'malayalam_score',
+            'hindi_score', 'social_science_score', 'history_score', 'geography_score',
+            'political_science_score', 'economics_score', 'accountancy_score',
+            'business_studies_score', 'psychology_score', 'overall_percentage'
+        ]:
+            if field in ac_data:
+                setattr(ac, field, float(ac_data[field]) if ac_data[field] is not None else None)
+        if not student.academic_scores:
+            db.session.add(ac)
 
     db.session.commit()
     return api_response(student.to_dict())

@@ -1,0 +1,4 @@
+dataset,total_rows,duplicate_rows,duplicate_percentage
+Student_Assessment_RAW,10000,10,0.1
+Career_Knowledge_RAW,1206,3,0.25
+Student_Career_Compatibility_RAW,50000,150,0.3

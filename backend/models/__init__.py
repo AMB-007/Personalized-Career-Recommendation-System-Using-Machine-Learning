@@ -5,7 +5,7 @@ from backend.models.assessment import AssessmentSession, StudentAnswer, Assessme
 from backend.models.career import (
     CareerDomain, CareerSubdomain, CareerCluster,
     Career, CareerSkill, CareerSubject, CareerEducation,
-    CareerPathway, LearningResource
+    CareerPathway
 )
 from backend.models.recommendation import CareerRecommendation
 
@@ -28,6 +28,5 @@ __all__ = [
     'CareerSubject',
     'CareerEducation',
     'CareerPathway',
-    'CareerRecommendation',
-    'LearningResource'
+    'CareerRecommendation'
 ]

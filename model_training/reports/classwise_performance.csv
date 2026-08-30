@@ -1,0 +1,3 @@
+class,precision,recall,f1_score,support
+Incompatible (0),79.01,52.23,0.6289,1794
+Compatible (1),87.47,96.01,0.9154,6234

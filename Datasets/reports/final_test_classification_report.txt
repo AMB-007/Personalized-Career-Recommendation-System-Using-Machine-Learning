@@ -1,16 +1,16 @@
 ================================================================================
-CLASSIFICATION REPORT: XGBoost (Champion)
+CLASSIFICATION REPORT: CatBoost
 ================================================================================
 
                   precision    recall  f1-score   support
 
-Incompatible (0)     0.9319    0.9252    0.9286     21993
-  Compatible (1)     0.9715    0.9742    0.9729     57612
+Incompatible (0)     0.7334    0.4779    0.5787      2666
+  Compatible (1)     0.8296    0.9360    0.8796      7238
 
-        accuracy                         0.9607     79605
-       macro avg     0.9517    0.9497    0.9507     79605
-    weighted avg     0.9606    0.9607    0.9606     79605
+        accuracy                         0.8127      9904
+       macro avg     0.7815    0.7070    0.7291      9904
+    weighted avg     0.8037    0.8127    0.7986      9904
 
-Accuracy:  96.07%
-ROC-AUC:   99.22%
-PR-AUC:    99.61%
+Accuracy:  81.27%
+ROC-AUC:   84.81%
+PR-AUC:    93.43%
