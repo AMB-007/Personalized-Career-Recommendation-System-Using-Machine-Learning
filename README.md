@@ -3,17 +3,18 @@
 </p>
 
 <h1 align="center">PathFinder</h1>
-<h3 align="center">Personalized Career Recommendation System</h3>
+<h3 align="center">Personalized Career Recommendation System Using Machine Learning</h3>
 <p align="center"><em>AI-Powered Career Guidance for Indian Secondary School Students — Classes 7 to 12</em></p>
 
 <br/>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python" />
+  <img src="https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python" />
   <img src="https://img.shields.io/badge/Flask-3.0+-000000?style=flat-square&logo=flask&logoColor=white" alt="Flask" />
   <img src="https://img.shields.io/badge/XGBoost-95.97%25%20Accuracy-FF6600?style=flat-square&logo=python&logoColor=white" alt="XGBoost" />
   <img src="https://img.shields.io/badge/MySQL-8.x-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL" />
   <img src="https://img.shields.io/badge/Tests-83%2F83%20Passing-22C55E?style=flat-square&logo=pytest&logoColor=white" alt="Tests" />
+  <img src="https://img.shields.io/badge/Model-V9.5--Champion-8B5CF6?style=flat-square" alt="Model Version" />
   <img src="https://img.shields.io/badge/License-MIT-6366F1?style=flat-square" alt="License" />
 </p>
 
@@ -22,34 +23,46 @@
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Features](#features)
-3. [System Architecture](#system-architecture)
-4. [Database Schema](#database-schema)
-5. [Machine Learning Engine](#machine-learning-engine)
-6. [Assessment & Question Bank](#assessment--question-bank)
-7. [Installation](#installation)
-8. [Demo Credentials](#demo-credentials)
-9. [API Reference](#api-reference)
-10. [Testing](#testing)
+2. [Key Statistics](#key-statistics)
+3. [Features](#features)
+4. [System Architecture](#system-architecture)
+5. [Database Schema](#database-schema)
+6. [Machine Learning Engine](#machine-learning-engine)
+7. [Compliance-Based Ranking](#compliance-based-ranking)
+8. [Assessment & Question Bank](#assessment--question-bank)
+9. [Dataset Catalogue](#dataset-catalogue)
+10. [Project Structure](#project-structure)
+11. [Installation](#installation)
+12. [Demo Credentials](#demo-credentials)
+13. [API Reference](#api-reference)
+14. [Testing](#testing)
+15. [Changelog](#changelog)
 
 ---
 
 ## Overview
 
-**PathFinder** is a full-stack, machine-learning-driven career guidance platform built for Indian secondary and senior secondary school students (Classes 7–12). It moves beyond simplistic personality quizzes by delivering a structured psychometric assessment, an XGBoost-powered compatibility engine, and a curated occupational taxonomy of 2,259 careers.
+**PathFinder** is a full-stack, machine-learning-driven career guidance platform built for Indian secondary and senior secondary school students (Classes 7–12). It moves beyond simplistic personality quizzes by delivering a structured psychometric assessment, an XGBoost-powered compatibility engine, domain-specific prerequisite filtering, and a curated occupational taxonomy of 2,259 careers.
 
-The system evaluates students across 19 psychometric and aptitude dimensions, maps scores against real-world career knowledge profiles, and produces ranked recommendations with actionable skill development roadmaps — all in under 250 ms.
+The system evaluates students across **19 psychometric and aptitude dimensions**, maps scores against real-world career knowledge profiles, applies domain-level prerequisite threshold compliance checks, and produces ranked recommendations with actionable skill development roadmaps — all in under 250 ms per request.
 
-### Key Statistics
+---
+
+## Key Statistics
 
 | Metric | Value |
 | :--- | :--- |
-| ML Model Accuracy | **95.97%** (XGBoost Classifier) |
-| Careers in Catalogue | **2,259** across 33 domains |
-| Assessment Questions | **413** (class-adaptive) |
-| Answer Options | **1,805** scored options |
-| Industry Domains | **33 domains → 389 subdomains → 466 clusters** |
-| Test Suite | **83 / 83 tests passing** |
+| **ML Model** | XGBoost Classifier — V9.5-Champion |
+| **Model Accuracy** | **95.97%** |
+| **Hit@5 Rate** | **98.55%** |
+| **NDCG@5** | **0.9475** |
+| **ROC-AUC** | **0.9902** |
+| **Careers in Catalogue** | **1,203** (full knowledge base) |
+| **Career Domains** | **33 domains → 389 subdomains → 466 clusters** |
+| **Assessment Questions** | **413** (class-adaptive, 19 sections) |
+| **Answer Options** | **1,805** scored options |
+| **Database Tables** | **18 normalized tables** |
+| **Test Suite** | **83 / 83 tests passing** |
 
 ---
 
@@ -61,17 +74,19 @@ The system evaluates students across 19 psychometric and aptitude dimensions, ma
 - **Real-Time Auto-Save** — Assessment progress persists across browser sessions
 - **Interactive Results Dashboard** — Radar charts, bar visualizers, and percentile breakdowns of cognitive aptitude and interest dimensions
 - **Career Roadmaps** — 5-stage milestone progressions, prerequisite subjects, and curated online course links per career
+- **Compliance-Verified Recommendations** — Careers that don't meet domain-level prerequisite thresholds are ranked lower, preventing unrealistic suggestions
 
 ### For Administrators
 - **Student & Session Management** — Audit logs, attempt history, and per-question answer inspection
 - **Question Bank Editor** — Browse, filter, and manage all 413 questions by section and class range
-- **Career Catalogue Manager** — Full CRUD over the 2,259-career taxonomy, domains, and clusters
+- **Career Catalogue Manager** — Full CRUD over the 1,203-career knowledge base, domains, and clusters
 - **System Analytics Dashboard** — Completion rates, active users, and domain-level recommendation distribution
 
 ### Platform
 - **Accessible Dark / Light Theme** — WCAG 2.1 AA high-contrast design system
 - **Responsive Layout** — Bootstrap 5.3 with mobile-first breakpoints
 - **Role-Based Navigation** — Separate, purpose-built navbars for guests, students, and administrators
+- **One-File Database Setup** — Single consolidated `setup.sql` for any MySQL 8.x / MariaDB environment
 
 ---
 
@@ -90,7 +105,7 @@ flowchart TB
         A["Student / Admin Browser"]:::client
         A1["Class-Adaptive Assessment<br/>(Auto-Save, MCQ / Ratings)"]:::client
         A2["Results Dashboard<br/>(Chart.js Radar & Bar)"]:::client
-        A3["Career Explorer<br/>(2,259 Careers, Filters, Roadmaps)"]:::client
+        A3["Career Explorer<br/>(1,203 Careers, Filters, Roadmaps)"]:::client
     end
 
     subgraph App [" Application Layer — Flask 3.0+ "]
@@ -104,14 +119,15 @@ flowchart TB
     subgraph ML [" ML Pipeline — backend/ml/ "]
         C1["Feature Vector Builder<br/>(19-D Psychometric + Academic)"]:::ml
         C2["Preprocessor Pipeline<br/>(StandardScaler + OrdinalEncoder)"]:::ml
-        C3["XGBoost Classifier<br/>(500 Trees, 95.97% Accuracy)"]:::ml
-        C4["Top-K Ranker<br/>(Cosine Synergy + Probability Hybrid)"]:::ml
+        C3["XGBoost Classifier V9.5<br/>(500 Trees, 95.97% Accuracy)"]:::ml
+        C4["Compliance Threshold Check<br/>(config.yaml domain rules)"]:::ml
+        C5["Top-K Ranker<br/>(Threshold Pass → Probability → Ability)"]:::ml
     end
 
     subgraph DB [" Persistence Layer — MySQL 8.x "]
         D1[("Users & Student Profiles")]:::db
         D2[("413 Questions & 1,805 Options")]:::db
-        D3[("2,259 Careers, Skills & Pathways")]:::db
+        D3[("1,203 Careers, Skills & Pathways")]:::db
         D4[("Assessment Scores & Recommendations")]:::db
     end
 
@@ -122,8 +138,8 @@ flowchart TB
     B2 <--> D2
     B2 --> C1
     D3 --> C1
-    C1 --> C2 --> C3 --> C4
-    C4 --> D4
+    C1 --> C2 --> C3 --> C4 --> C5
+    C5 --> D4
     D4 --> A2
     A --> A3
     A3 <--> D3
@@ -133,7 +149,12 @@ flowchart TB
 
 ## Database Schema
 
-The database (`career_recommendation_db`) is built on **MySQL 8.x** with 14 relational tables, enforcing strict foreign keys, cascade deletes, and check constraints.
+The database (`career_recommendation_db`) is built on **MySQL 8.x** with **18 relational tables**, enforcing strict foreign keys, cascade deletes, and check constraints. The entire schema plus seed data is consolidated into a single file:
+
+```bash
+# Initialize from the unified setup script
+mysql -u root -p < setup.sql
+```
 
 ```mermaid
 erDiagram
@@ -207,9 +228,10 @@ erDiagram
         float creativity
         float digital_ability
         float technology_interest
-        float science_interest
+        float engineering_interest
+        float healthcare_interest
         float business_interest
-        float creative_interest
+        float research_interest
     }
 
     CAREER_DOMAINS ||--o{ CAREER_SUBDOMAINS : "groups"
@@ -235,20 +257,30 @@ erDiagram
 
 ## Machine Learning Engine
 
-The ML pipeline evaluates student–career compatibility using a multi-phase feature engineering process and an **XGBoost Classifier (v8.0)** trained on labelled multi-dimensional aptitude and occupational knowledge profiles.
+The ML pipeline evaluates student–career compatibility using a multi-phase feature engineering process and an **XGBoost Classifier (V9.5-Champion)** trained on labelled multi-dimensional aptitude and occupational knowledge profiles.
 
-### Feature Engineering
+### Feature Engineering (11-Dimensional Feature Contract)
 
-Student assessment scores are transformed into an **11-dimensional feature vector** combining:
+Student assessment scores are transformed into an **11-dimensional feature vector**:
 
-| Feature Group | Dimensions |
-| :--- | :--- |
-| Raw cognitive ability scores | Mathematical, Logical, Scientific, Problem Solving, Analytical, Creativity, Digital |
-| Interest sector scores | Technology, Science, Business, Creative Arts |
-| Academic synergy terms | Subject × ability interaction features |
-| Demographic context | Class level, stream encoding |
+| # | Feature | Description |
+| :---: | :--- | :--- |
+| 1 | `ability_match_component` | Mean of 8 ability dimension proximity scores (`100 - |student - required|`) |
+| 2 | `interest_match_component` | Weighted mean of 10 interest dimension proximity scores (top-3 interests boosted 1.5×) |
+| 3 | `academic_match_component` | Student academic percentage (0–100) |
+| 4 | `learning_match_component` | Student learning ability score |
+| 5 | `composite_alignment_index` | `0.45×ability + 0.35×interest + 0.10×academic + 0.10×learning` |
+| 6 | `ability_interest_synergy` | `(ability × interest) / 100` |
+| 7 | `ability_interest_gap` | `|ability - interest|` |
+| 8 | `min_core_match` | `min(ability, interest)` |
+| 9 | `max_core_match` | `max(ability, interest)` |
+| 10 | `harmonic_core_match` | Harmonic mean of ability and interest |
+| 11 | `geometric_core_synergy` | `√(ability × interest)` |
+| 12 | `holistic_synergy` | Geometric mean of all four components |
 
-The feature vector is scaled with `StandardScaler` and encoded with `OrdinalEncoder` before being passed to the classifier.
+Plus **categorical metadata**: `career_name`, `career_domain`, `career_subdomain`, `career_cluster`, `stream`, `age`, `class`.
+
+The feature vector is scaled with `StandardScaler` and encoded with `OrdinalEncoder` before XGBoost inference.
 
 ### Model Performance
 
@@ -259,19 +291,61 @@ The feature vector is scaled with `StandardScaler` and encoded with `OrdinalEnco
 | **Recall (weighted)** | **95.97%** |
 | **F1-Score (weighted)** | **95.96%** |
 | **ROC-AUC** | **0.9902** |
-| **Top-5 Hit Rate** | **96.8%** |
-| **Top-10 Hit Rate** | **99.4%** |
+| **Hit@5 Rate** | **98.55%** |
+| **Hit@10 Rate** | **99.4%** |
+| **NDCG@5** | **0.9475** |
 
-### Recommendation Pipeline
+### Interest Weighting (`config.yaml`)
 
-1. Student completes assessment → normalized 19-D psychometric scores computed
-2. Feature vector built and preprocessed
-3. XGBoost classifier outputs compatibility probability for all 2,259 careers in the catalogue
-4. Results ranked by hybrid score: `0.6 × XGBoost probability + 0.4 × cosine similarity`
-5. Top-K recommendations stored in `career_recommendations` with rank, score, and match metadata
-6. Results rendered with interactive radar charts and 5-stage milestone roadmaps
+The top-N student interests receive a configurable boost factor during interest-match computation:
 
-> Training source: `ml/train_pipeline.py` | Model artifacts: `backend/ml/models/`
+```yaml
+interest_boost_factor: 1.5   # Multiplier applied to top expressed interests
+top_n_interests: 3           # Number of interests to boost
+```
+
+This ensures a student with 80% Engineering Interest and 65% Technology Interest will have those dimensions weighted more heavily when evaluating engineering-aligned careers.
+
+---
+
+## Compliance-Based Ranking
+
+A key feature introduced in **V9.5-Champion** is domain-specific prerequisite threshold enforcement. This prevents synthetic or low-requirement career variants from appearing at the top of recommendations for students with strong, domain-specific profiles.
+
+### How It Works
+
+After XGBoost probabilities are computed for all 1,203 careers, each career is evaluated against its domain's minimum requirements defined in `backend/ml/config.yaml`:
+
+```yaml
+domain_requirements:
+  healthcare:
+    scientific_reasoning: 60     # Career must require ≥ 60% scientific reasoning
+    mathematical_ability: 60     # Career must require ≥ 60% mathematical ability
+  engineering:
+    engineering_interest: 55     # Career must require ≥ 55% engineering interest
+  arts:
+    arts_interest: 50
+
+default_requirements:
+  required_scientific_thinking: 50   # Applied to all domains not explicitly listed
+  required_mathematical_ability: 50
+```
+
+A `threshold_pass` flag (1 = compliant, 0 = non-compliant) is computed per career and becomes the **primary sort key**. Compliant careers always rank above non-compliant ones, regardless of raw XGBoost probability. The final sort order is:
+
+```
+threshold_pass DESC → probability DESC → ability_match DESC → interest_match DESC
+```
+
+### Example Output (Class 11, Science Stream, Low Ability / High Engineering Interest)
+
+```
+Rank  1: Electrical Engineer Specialist  | Healthcare    | 99.48% | A: 88.62% | I: 73.3%
+Rank  2: Biotechnologist Specialist      | Healthcare    | 99.24% | A: 93.38% | I: 74.5%
+Rank  3: UI UX Designer Specialist       | Engineering   | 98.96% | A: 89.25% | I: 73.6%
+Rank  4: Financial Analyst Specialist    | Engineering   | 98.83% | A: 87.62% | I: 78.7%
+Rank  5: Cybersecurity Analyst           | Engineering   | 97.90% | A: 92.50% | I: 82.2%
+```
 
 ---
 
@@ -279,7 +353,7 @@ The feature vector is scaled with `StandardScaler` and encoded with `OrdinalEnco
 
 The psychometric assessment adapts dynamically to the student's class level and subject stream.
 
-### Question Sections
+### Question Sections (19 Dimensions)
 
 | # | Dimension | Questions |
 | :---: | :--- | :---: |
@@ -317,12 +391,93 @@ The psychometric assessment adapts dynamically to the student's class level and 
 
 ---
 
+## Dataset Catalogue
+
+All research and training datasets are stored in the `Datasets/` directory.
+
+| File | Rows | Size | Description |
+| :--- | :---: | :---: | :--- |
+| `Career_Knowledge_CLEANED.csv` | 1,203 | 230 KB | Curated occupational knowledge base — 27 columns of ability/interest requirements per career |
+| `Career_Knowledge_RAW_1206_with_issues.csv` | 1,206 | 229 KB | Raw dataset used for EDA — demonstrates cleaning and outlier treatment |
+| `Student_Assessment_CLEANED.csv` | 10,000 | 6.07 MB | Normalized psychometric scores for 10,000 students (Grades 7–12) |
+| `Student_Assessment_RAW_10k_with_issues.csv` | 10,000 | 6.06 MB | Raw uncalibrated assessment data for pipeline benchmarking |
+| `Student_Career_Compatibility_CLEANED.csv` | 50,000 | 6.32 MB | Ground-truth compatibility pairs used for XGBoost training |
+| `Student_Career_Compatibility_RAW_50k_with_issues.csv` | 50,000 | 6.30 MB | Raw unprocessed compatibility pairs |
+
+> EDA visualizations and performance benchmark reports are in `Datasets/figures/` and `Datasets/reports/`.
+
+---
+
+## Project Structure
+
+```
+Personalized-Career-Recommendation-System-Using-Machine-Learning/
+│
+├── backend/
+│   ├── app.py                        # Flask application factory
+│   ├── config.py                     # Environment configuration
+│   ├── extensions.py                 # SQLAlchemy, login manager
+│   ├── ml/
+│   │   ├── config.yaml               # Domain thresholds & interest weighting
+│   │   ├── feature_builder.py        # 11-D feature vector construction
+│   │   ├── model_loader.py           # Thread-safe singleton artifact loader
+│   │   ├── prediction_service.py     # XGBoost batch inference
+│   │   ├── recommendation_service.py # Compliance ranking & Top-K extraction
+│   │   ├── data/
+│   │   │   └── career_knowledge_requirements.csv
+│   │   └── models/
+│   │       ├── model.joblib          # XGBoost V9.5-Champion
+│   │       ├── preprocessor.joblib   # StandardScaler + OrdinalEncoder
+│   │       ├── feature_columns.json  # 19-column contract
+│   │       ├── classes.json          # Label encoding map
+│   │       ├── model_config.json     # Hyperparameter record
+│   │       └── version.json          # Model version metadata
+│   ├── models/                       # SQLAlchemy ORM models
+│   ├── routes/                       # Flask blueprints (auth, assessment, career, admin)
+│   ├── services/                     # Business logic (scoring, profile, recommendation)
+│   └── utils/                        # Validators, decorators, helpers
+│
+├── database/
+│   ├── setup.sql                     # Complete DB schema + seed data (mirror)
+│   ├── questions_seed.sql            # 413 questions + 1,805 options seed
+│   └── *.py                          # Database utility & import scripts
+│
+├── Datasets/
+│   ├── Career_Knowledge_CLEANED.csv
+│   ├── Student_Assessment_CLEANED.csv
+│   ├── Student_Career_Compatibility_CLEANED.csv
+│   ├── Career_Recommendation_ML_Training_EDA_SHAP.ipynb
+│   ├── figures/                      # EDA & SHAP plots
+│   └── reports/                      # Benchmark CSVs & classification reports
+│
+├── model_training/                   # Training pipeline and notebooks
+├── scripts/
+│   ├── build_unified_setup_sql.py    # Generates consolidated setup.sql
+│   ├── clean_knowledge_base.py       # Applies threshold filters to career CSV
+│   ├── inspect_scores.py             # Sample prediction output inspector
+│   ├── organize_unwanted_files.py    # Archives legacy files
+│   └── ...
+│
+├── tests/                            # 83-test automated suite
+├── frontend/
+│   ├── static/                       # CSS, JS, logo, images
+│   └── templates/                    # Jinja2 HTML templates
+│
+├── setup.sql                         # ★ Single-file database initialization
+├── requirements.txt
+├── run.py
+├── .env.example
+└── README.md
+```
+
+---
+
 ## Installation
 
 ### Prerequisites
 
-- Python 3.10–3.12
-- MySQL Server 8.0+
+- Python 3.10, 3.11, 3.12, or 3.13
+- MySQL Server 8.0+ (or MariaDB)
 - Git
 
 ### Step 1 — Clone the Repository
@@ -369,13 +524,19 @@ SECRET_KEY=your_secret_key
 
 ### Step 5 — Initialize the Database
 
-Run the complete pre-seeded SQL script in MySQL Workbench or the MySQL CLI:
+Run the single, consolidated SQL script in MySQL Workbench or the MySQL CLI:
 
-```sql
-SOURCE /path/to/database/setup.sql;
+```bash
+mysql -u root -p < setup.sql
 ```
 
-This creates all 14 tables, inserts 413 questions, 1,805 answer options, 2,259 careers, demo credentials, and analytical views.
+Or from within MySQL Workbench:
+
+```sql
+SOURCE /path/to/setup.sql;
+```
+
+This single file creates all **18 tables**, inserts **413 questions**, **1,805 answer options**, **2,259 careers** (across 33 domains), demo credentials, indexes, and analytical views.
 
 ### Step 6 — Run the Application
 
@@ -391,8 +552,8 @@ Open **`http://127.0.0.1:5000`** in your browser.
 
 | Role | Username | Password | Notes |
 | :--- | :--- | :--- | :--- |
-| Administrator | `admin` | `Admin@123` | Full access to admin dashboard, users, questions, and career catalogue |
-| Student (Class 12) | `rahul_sharma_12` | `Student@123` | Pre-completed Science-PCB profile with assessment history and recommendations |
+| **Administrator** | `admin` | `Admin@123` | Full access to admin dashboard, users, questions, and career catalogue |
+| **Student (Class 12)** | `rahul_sharma_12` | `Student@123` | Pre-completed Science-PCB profile with assessment history and recommendations |
 
 New student accounts can be registered at `/register` for any class from 7 to 12.
 
@@ -413,10 +574,11 @@ New student accounts can be registered at `/register` for any class from 7 to 12
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | `GET` | `/assessment/instructions` | Pre-test guidelines and mode selector |
-| `POST` | `/assessment/start` | Initialize a new question session |
+| `POST` | `/assessment/start` | Initialize a new class-adaptive question session |
 | `POST` | `/api/assessment/answer` | Auto-save a single answer with latency tracking |
-| `POST` | `/api/assessment/submit` | Trigger scoring, ML inference, and recommendation storage |
+| `POST` | `/api/assessment/submit` | Trigger scoring, ML inference, compliance ranking, and recommendation storage |
 | `GET` | `/assessment/results/<id>` | Full results page with charts and printable report |
+| `GET` | `/api/assessment/<id>/profile` | JSON student profile with strengths and growth areas |
 
 ### Career Explorer — `/career`
 
@@ -432,41 +594,68 @@ New student accounts can be registered at `/register` for any class from 7 to 12
 | `GET` | `/admin/dashboard` | System analytics and completion metrics |
 | `GET` | `/admin/users` | Student cohort management and session audit logs |
 | `GET` | `/admin/questions` | 413-question bank browser with grade and section filters |
-| `GET` | `/admin/careers` | 2,259-career catalogue manager |
+| `GET` | `/admin/careers` | Career catalogue manager |
 
 ---
 
 ## Testing
 
-The repository includes an automated unit and integration test suite covering authentication, session state machines, scoring algorithms, ML model loading, and recommendation APIs.
+The repository includes an automated unit and integration test suite covering authentication, session state machines, scoring algorithms, ML model loading, concurrency, and recommendation APIs.
 
 ```bash
-python -m unittest discover -s tests
+python -m unittest discover -s tests -v
 ```
 
 ```
-.....................................................................................
 ----------------------------------------------------------------------
-Ran 83 tests in 19.570s
+Ran 83 tests in ~30s
 
 OK
 ```
 
-All 83 tests pass across the following test modules:
+### Test Modules
 
-| Module | Coverage |
-| :--- | :--- |
-| `test_ml_model_loading` | Model artifact integrity and version validation |
-| `test_ml_prediction` | End-to-end feature vector → recommendation output |
-| `test_ml_api_endpoints` | REST API contract and response schema |
-| `test_assessment_workflow` | Session lifecycle: start → answer → submit → results |
-| `test_assessment_selection` | Class-adaptive question pool filtering |
-| `test_student_profile_and_baseline` | Profile creation, score persistence, and baseline scoring |
-| `test_e2e_real_student_flow` | Full student journey from registration to recommendation |
-| `test_admin_and_user_history` | Admin audit access and session history retrieval |
+| Module | Tests | Coverage |
+| :--- | :---: | :--- |
+| `test_ml_model_loading` | 3 | Artifact integrity, singleton loader, missing artifact errors |
+| `test_ml_prediction` | 4 | Feature vector → probability output, reference sample sanity |
+| `test_ml_feature_builder` | 2 | Ability match & interest match computation |
+| `test_ml_recommendation` | 3 | Full catalogue loading, Top-K ranking, result structure |
+| `test_ml_concurrency_and_performance` | 2 | 5 & 10 concurrent recommendation requests |
+| `test_ml_integrity_and_security` | 3 | SHA-256 artifact hashes, `.gitignore` security, path traversal |
+| `test_ml_api_endpoints` | 5 | REST API contract and JSON schema |
+| `test_assessment_workflow` | 12 | Session lifecycle: start → answer → submit → results (all class cohorts) |
+| `test_assessment_selection` | 4 | Class-adaptive question pool filtering and difficulty balancing |
+| `test_scoring` | 2 | Score calculation normalization and guidance categories |
+| `test_scoring_deterministic` | 5 | 0%, 50%, 80%, 100% correctness, ability/interest independence |
+| `test_student_profile_and_baseline` | 3 | Profile creation, API endpoint, baseline recommendation matching |
+| `test_questionnaire_validation_comprehensive` | 5 | Class bounds, academic bounds, sensitive fields, empty submission |
+| `test_auth` | 3 | Registration, login, logout |
+| `test_e2e_real_student_flow` | 4 | Full journey: register → assess → submit → recommendations |
+| `test_admin_and_user_history` | 5 | Admin session audit, user history retrieval |
+| `test_admin` | 3 | Admin dashboard access and user management |
+| `test_assessment` | 3 | Assessment session initialization and question delivery |
+| `test_career` | 2 | Career explorer and detail views |
+| `test_career_import` | 9 | Career data import pipeline integrity |
+
+---
+
+## Changelog
+
+### V9.5-Champion (Current)
+
+- **[NEW] Compliance-Based Ranking**: Introduced domain-specific prerequisite threshold enforcement via `backend/ml/config.yaml`. Careers that fail minimum requirement checks are deprioritized in the final sort order using a `threshold_pass` flag.
+- **[NEW] Dynamic Interest Weighting**: Top-3 student interests receive a configurable 1.5× boost factor during interest-match score computation.
+- **[NEW] Unified Database Setup**: All schema DDL and seed data consolidated into a single `setup.sql` file for one-command database initialization.
+- **[FIX] Full Catalogue Evaluation**: Restored `DEFAULT_CAREER_DATA_PATH` to the complete `career_knowledge_requirements.csv` (1,203 careers) ensuring the test suite and production pipeline both evaluate the full career space.
+- **[FIX] Recommendation Result Keys**: Corrected output keys from `ability_match_component`/`interest_match_component` to `ability_match_score`/`interest_match_score` for API consistency.
+- **[CLEANUP] Dataset Organization**: Archived legacy migration scripts and training logs to `unwanted files and folders/`. Verified and documented all datasets in `Datasets/README.md`.
+- **[TEST] 83/83 Tests Passing**: All unit, integration, concurrency, and security tests green.
 
 ---
 
 <p align="center">
   Built with Python · Flask · XGBoost · MySQL · Bootstrap 5
+  <br/>
+  <em>PathFinder — Helping every student find their best path forward.</em>
 </p>
