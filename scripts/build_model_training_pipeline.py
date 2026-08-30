@@ -106,20 +106,23 @@ def apply_leak_free_features(df: pd.DataFrame) -> pd.DataFrame:
 
 def run_full_24_stage_pipeline():
     print("=" * 80)
-    print("STARTING COMPLETE 24-STAGE MACHINE LEARNING PIPELINE (2-DATASET ARCHITECTURE)")
+    print("STARTING COMPLETE 24-STAGE MACHINE LEARNING PIPELINE")
     print("=" * 80)
 
     # 1. RAW DATA LOADING
     print("\n[Stage 1] Loading Raw Datasets...")
+    path_stu = DATA_DIR / "Student_Assessment_RAW_10k_with_issues.csv"
     path_car = DATA_DIR / "Career_Knowledge_RAW_1206_with_issues.csv"
     path_compat = DATA_DIR / "Student_Career_Compatibility_RAW_50k_with_issues.csv"
 
+    df_stu_raw = pd.read_csv(path_stu)
     df_car_raw = pd.read_csv(path_car)
     df_compat_raw = pd.read_csv(path_compat)
 
     # 2. DATASET OVERVIEW
     print("[Stage 2] Generating Dataset Overview...")
     overview_records = [
+        {"dataset": "Student_Assessment_RAW", "rows": len(df_stu_raw), "columns": len(df_stu_raw.columns), "memory_mb": round(df_stu_raw.memory_usage().sum() / (1024**2), 2)},
         {"dataset": "Career_Knowledge_RAW", "rows": len(df_car_raw), "columns": len(df_car_raw.columns), "memory_mb": round(df_car_raw.memory_usage().sum() / (1024**2), 2)},
         {"dataset": "Student_Career_Compatibility_RAW", "rows": len(df_compat_raw), "columns": len(df_compat_raw.columns), "memory_mb": round(df_compat_raw.memory_usage().sum() / (1024**2), 2)},
     ]
@@ -156,7 +159,7 @@ def run_full_24_stage_pipeline():
     # 4. DATA QUALITY PROBLEMS: MISSING & DUPLICATES
     print("[Stage 4] Analyzing Missing Values & Duplicates...")
     missing_records = []
-    for dname, df in [("Career_Knowledge_RAW", df_car_raw), ("Student_Career_Compatibility_RAW", df_compat_raw)]:
+    for dname, df in [("Student_Assessment_RAW", df_stu_raw), ("Career_Knowledge_RAW", df_car_raw), ("Student_Career_Compatibility_RAW", df_compat_raw)]:
         nulls = df.isnull().sum()
         for col, cnt in nulls[nulls > 0].items():
             missing_records.append({"dataset": dname, "column": col, "missing_count": cnt, "missing_percentage": round((cnt / len(df)) * 100, 2)})
@@ -164,6 +167,7 @@ def run_full_24_stage_pipeline():
     df_missing.to_csv(REPORTS_DIR / "missing_values_raw.csv", index=False)
 
     dup_records = [
+        {"dataset": "Student_Assessment_RAW", "total_rows": len(df_stu_raw), "duplicate_rows": int(df_stu_raw.duplicated().sum()), "duplicate_percentage": round(df_stu_raw.duplicated().sum() / len(df_stu_raw) * 100, 2)},
         {"dataset": "Career_Knowledge_RAW", "total_rows": len(df_car_raw), "duplicate_rows": int(df_car_raw.duplicated().sum()), "duplicate_percentage": round(df_car_raw.duplicated().sum() / len(df_car_raw) * 100, 2)},
         {"dataset": "Student_Career_Compatibility_RAW", "total_rows": len(df_compat_raw), "duplicate_rows": int(df_compat_raw.duplicated().sum()), "duplicate_percentage": round(df_compat_raw.duplicated().sum() / len(df_compat_raw) * 100, 2)},
     ]
@@ -219,11 +223,19 @@ def run_full_24_stage_pipeline():
     for c in df_car_clean.select_dtypes(include=['object', 'string']).columns:
         df_car_clean[c] = df_car_clean[c].fillna('Unknown').astype(str).str.strip()
 
+    df_stu_clean = df_stu_raw.drop_duplicates().reset_index(drop=True)
+    for c in df_stu_clean.select_dtypes(include=[np.number]).columns:
+        df_stu_clean[c] = df_stu_clean[c].fillna(df_stu_clean[c].median()).clip(0.0, 100.0)
+    for c in df_stu_clean.select_dtypes(include=['object', 'string']).columns:
+        df_stu_clean[c] = df_stu_clean[c].fillna('Unknown').astype(str).str.strip()
+
+    df_stu_clean.to_csv(CLEAN_DIR / "Student_Assessment_CLEANED.csv", index=False)
     df_car_clean.to_csv(CLEAN_DIR / "Career_Knowledge_CLEANED.csv", index=False)
     df_compat_clean.to_csv(CLEAN_DIR / "Student_Career_Compatibility_CLEANED.csv", index=False)
     shutil.copy2(CLEAN_DIR / "Career_Knowledge_CLEANED.csv", BACKEND_DATA_DIR / "career_knowledge_requirements.csv")
 
     cleaning_records = [
+        {"dataset": "Student_Assessment", "raw_rows": len(df_stu_raw), "cleaned_rows": len(df_stu_clean), "duplicates_removed": len(df_stu_raw) - len(df_stu_clean), "status": "Cleaned & Imputed"},
         {"dataset": "Career_Knowledge", "raw_rows": len(df_car_raw), "cleaned_rows": len(df_car_clean), "duplicates_removed": len(df_car_raw) - len(df_car_clean), "status": "Cleaned & Imputed"},
         {"dataset": "Student_Career_Compatibility", "raw_rows": len(df_compat_raw), "cleaned_rows": len(df_compat_clean), "duplicates_removed": len(df_compat_raw) - len(df_compat_clean), "status": "Cleaned & Imputed"},
     ]
