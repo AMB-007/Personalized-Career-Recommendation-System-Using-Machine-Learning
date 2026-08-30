@@ -6,7 +6,7 @@
 
 ![Python](https://img.shields.io/badge/Python-3.10%20|%203.11%20|%203.12%20|%203.13-FFD43B?style=for-the-badge&logo=python&logoColor=306998)
 ![Flask](https://img.shields.io/badge/Flask-3.0+-black?style=for-the-badge&logo=flask&logoColor=white)
-![XGBoost](https://img.shields.io/badge/XGBoost-Classifier-FF6600?style=for-the-badge&logo=python&logoColor=white)
+![CatBoost](https://img.shields.io/badge/CatBoost-Classifier-00ADD8?style=for-the-badge&logo=python&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-8.x-00758F?style=for-the-badge&logo=mysql&logoColor=white)
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-1.4+-F7931E?style=for-the-badge&logo=scikitlearn&logoColor=white)
 
@@ -24,14 +24,14 @@
 
 ## 🌟 What This Project Does
 
-PathFinder is a full-stack web application that takes an Indian school student (Class 7–12) through a structured **psychometric and aptitude assessment**, then uses a trained **XGBoost machine learning model** to rank all 1,203 careers in its knowledge base by compatibility with that student's unique cognitive profile.
+PathFinder is a full-stack web application that takes an Indian school student (Class 7–12) through a structured **psychometric and aptitude assessment**, then uses a trained **CatBoost machine learning model** (V9.5-Champion) to rank all 1,203 careers in its knowledge base by compatibility with that student's unique cognitive profile.
 
 The system does **not** recommend careers based on a simple personality quiz. It:
 
 1. 📝 Administers a **class-adaptive assessment** (50–55 questions selected from a bank of 413, tailored to the student's class and stream)
 2. 🧮 Computes **22 normalized dimension scores** (abilities, interests, work preferences) from the student's answers
-3. 🔢 Constructs an **11-feature engineering vector** per career candidate using those scores
-4. 🤖 Runs the feature matrix through a **trained XGBoost Classifier** to get a compatibility probability for every career in the catalogue
+3. 🔢 Constructs an **19-feature engineering vector** per career candidate using those scores
+4. 🤖 Runs the feature matrix through a **trained CatBoost Classifier** to get a compatibility probability for every career in the catalogue
 5. 🛡️ Applies **domain-level prerequisite compliance checks** from `config.yaml` to ensure realistic recommendations
 6. 🏆 Produces a **ranked Top-K recommendation list** with compatibility scores, ability match, interest match, and skill gap explanations
 
@@ -43,14 +43,15 @@ The system does **not** recommend careers based on a simple personality quiz. It
 
 | 🏷️ Metric | 📈 Value |
 | :--- | :--- |
-| 🤖 **ML Model** | XGBoost Classifier with scikit-learn ColumnTransformer Preprocessor |
+| 🤖 **Champion ML Model** | **CatBoost Classifier** (V9.5-Champion) with ColumnTransformer Preprocessor |
 | 🎯 **Hit@1** | **96.03%** |
 | 🔥 **Hit@3** | **99.64%** |
 | 💯 **Hit@5** | **99.89%** |
 | 📊 **MRR** | **0.9781** |
 | 📐 **NDCG@5** | **0.9211** |
-| 🎓 **Classification Accuracy** | **81.07%** |
-| 📈 **ROC-AUC** | **0.8537** |
+| 🎓 **Classification Accuracy** | **86.22%** |
+| 🏆 **F1-Score** | **0.9154 (91.54%)** |
+| 📈 **ROC-AUC** | **86.04% / 92.14%** |
 | 💼 **Career Catalogue** | **1,203 careers** across 33 domains |
 | ❓ **Question Bank** | **413 questions**, 1,805 scored answer options |
 | 🏫 **Supported Classes** | Class 7 to Class 12 (Middle, Secondary, Higher Secondary) |
@@ -77,8 +78,8 @@ flowchart LR
     D["📋 Adaptive Assessment\n(50–55 questions, auto-saved)"]:::step
     E["✅ Review & Submit"]:::step
     F["🧮 ScoringService\n22-dimension normalization"]:::ml
-    G["🔢 FeatureBuilder\n11-feature vector × 1,203 careers"]:::ml
-    H["🤖 XGBoost Inference\nCompatibility probabilities"]:::ml
+    G["🔢 FeatureBuilder\n19-feature vector × 1,203 careers"]:::ml
+    H["🤖 CatBoost Inference\nCompatibility probabilities"]:::ml
     I["🛡️ Compliance Check\nDomain threshold config.yaml"]:::ml
     J["🏆 Top-K Ranking\nSorted by compliance → score → ability → interest"]:::ml
     K["📊 Results Dashboard\nRadar charts + career explanations"]:::out
@@ -226,7 +227,7 @@ top_n_interests: 3           # Number of interests to boost
 
 ### 🛡️ Domain Prerequisite Compliance Check
 
-After XGBoost predicts probabilities for all 1,203 careers, each career is checked against minimum prerequisite requirements for its domain:
+After CatBoost predicts probabilities for all 1,203 careers, each career is checked against minimum prerequisite requirements for its domain:
 
 ```yaml
 domain_requirements:
@@ -255,19 +256,16 @@ threshold_pass DESC  →  probability DESC  →  ability_match DESC  →  intere
 
 | 📊 Metric | 🎯 Score |
 | :---: | :---: |
-| **Classification Accuracy** | **81.07%** |
-| **Balanced Accuracy** | 72.49% |
-| **Precision (weighted)** | 83.72% |
-| **Recall (weighted)** | 91.66% |
-| **F1-Score** | 87.51% |
-| **ROC-AUC** | **0.8537** |
-| **PR-AUC** | 0.9349 |
-| **Hit@1** | **96.03%** |
-| **Hit@3** | **99.64%** |
-| **Hit@5** | **99.89%** |
-| **Hit@10** | **99.95%** |
-| **MRR** | **0.9781** |
-| **NDCG@5** | **0.9211** |
+| **Champion Model** | **CatBoost Classifier** (`V9.5-Champion`) |
+| **Classification Accuracy** | **86.22%** |
+| **F1-Score** | **0.9154 (91.54%)** |
+| **ROC-AUC** | **86.04% / 92.14%** |
+| **Hit@1 (Top 1 Accuracy)** | **96.03%** |
+| **Hit@3 (Top 3 Recall)** | **99.64%** |
+| **Hit@5 (Top 5 Recall)** | **99.89%** |
+| **Hit@10 (Top 10 Recall)** | **99.95%** |
+| **Mean Reciprocal Rank (MRR)** | **0.9781** |
+| **NDCG@5 (Normalized DCG)** | **0.9211** |
 
 </div>
 
@@ -355,7 +353,7 @@ The **Career Explorer** page at `/careers` supports:
 | ![POST](https://img.shields.io/badge/POST-49CC90?style=flat-square) | `/api/recommendations` | ❌ | Generate recommendations from session_id or raw student profile payload |
 | ![GET](https://img.shields.io/badge/GET-61AFFE?style=flat-square) | `/api/recommendations/<assessment_id>` | ✅ | Retrieve saved recommendations for a session |
 | ![GET](https://img.shields.io/badge/GET-61AFFE?style=flat-square) | `/api/recommendations/student/<student_id>` | ✅ | Recommendations for latest completed session of a student |
-| ![POST](https://img.shields.io/badge/POST-49CC90?style=flat-square) | `/api/predictions` | ❌ | Raw ML prediction from feature vector (direct XGBoost call) |
+| ![POST](https://img.shields.io/badge/POST-49CC90?style=flat-square) | `/api/predictions` | ❌ | Raw ML prediction from feature vector (direct CatBoost call) |
 | ![GET](https://img.shields.io/badge/GET-61AFFE?style=flat-square) | `/api/health` | ❌ | System health — model, preprocessor, catalogue, DB status |
 | ![GET](https://img.shields.io/badge/GET-61AFFE?style=flat-square) | `/api/model/info` | ❌ | Model version, features, classification metrics, ranking metrics |
 
@@ -452,7 +450,7 @@ python -m unittest discover -s tests -v
 
 ```
 ----------------------------------------------------------------------
-Ran 83 tests in ~30s
+Ran 83 tests in ~18s
 
 OK  (83 passed, 0 failures)
 ```
@@ -498,8 +496,8 @@ OK  (83 passed, 0 failures)
 | :---: | :--- |
 | 🐍 **Backend** | Python 3.10+, Flask 3.0+, Flask-Login, Flask-Bcrypt, Flask-SQLAlchemy |
 | 🗄️ **Database** | MySQL 8.x via `mysql-connector-python` / `PyMySQL` |
-| 🤖 **ML** | XGBoost 2.0+, scikit-learn 1.4+, pandas 2.1+, numpy 1.24+, joblib |
-| 📊 **Analysis** | SHAP 0.45+, matplotlib 3.8+, seaborn 0.13+, LightGBM, CatBoost |
+| 🤖 **ML Champion** | **CatBoost 1.2+**, scikit-learn 1.4+, pandas 2.1+, numpy 1.24+, joblib |
+| 📊 **Analysis & Ensembles** | XGBoost 2.0+, LightGBM 4.3+, SHAP 0.45+, matplotlib 3.8+, seaborn 0.13+ |
 | 🎨 **Frontend** | Jinja2 templates, Bootstrap 5.3, Chart.js (Radar + Bar charts) |
 | 🔐 **Security** | bcrypt password hashing, Flask-Login session management, CSRF |
 | 🧪 **Testing** | Python `unittest`, isolated SQLite in-memory test database |
@@ -512,7 +510,7 @@ OK  (83 passed, 0 failures)
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white)
-![XGBoost](https://img.shields.io/badge/XGBoost-FF6600?style=for-the-badge)
+![CatBoost](https://img.shields.io/badge/CatBoost-00ADD8?style=for-the-badge&logo=python&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap%205-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)
 

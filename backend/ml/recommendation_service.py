@@ -141,10 +141,10 @@ class CareerRecommendationEngine:
             c_dom = str(row.get('career_domain', 'General'))
             c_sub = str(row.get('career_subdomain', 'General'))
             c_clu = str(row.get('career_cluster', 'General'))
-            score = float(row['compatibility_score'])
-
+            config = cls._load_config()
+            model_name = config.get('model', 'CatBoost')
             reason = (
-                f"XGBoost Compatibility Score: {score}% alignment across {c_dom} "
+                f"{model_name} Compatibility Score: {score}% alignment across {c_dom} "
                 f"aptitude benchmarks ({row['ability_match']}%) and disciplinary interests ({row['interest_match']}%)."
             )
             strengths_desc = (
