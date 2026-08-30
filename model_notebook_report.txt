@@ -1,0 +1,343 @@
+====================================================================================================
+PATHFINDER: PERSONALIZED CAREER RECOMMENDATION SYSTEM USING MACHINE LEARNING
+COMPREHENSIVE MACHINE LEARNING MODEL & NOTEBOOK TRAINING REPORT
+====================================================================================================
+Report Generation Date : August 30, 2026
+Author / Team          : PathFinder Machine Learning & Psychometrics Team
+Target Students        : Indian Secondary & Higher Secondary Education (Classes 7 to 12)
+Champion Model         : CatBoost Classifier (V9.5-Champion / V9.5-LeakFree-HighAccuracy)
+Primary Objective      : Multi-Dimensional Cognitive & Psychometric Career Compatibility Prediction
+====================================================================================================
+
+TABLE OF CONTENTS
+----------------------------------------------------------------------------------------------------
+1. EXECUTIVE SUMMARY & NOTEBOOK OVERVIEW
+2. DATASET INGESTION, PROFILING & EXPLORATORY DATA ANALYSIS (EDA)
+3. DATA PREPROCESSING, IMPUTATION & CLEANING PIPELINE
+4. STRICT TARGET LEAKAGE AUDIT & FEATURE INTEGRITY VERIFICATION
+5. HIGH-DIMENSIONAL FEATURE ENGINEERING PIPELINE (19 FEATURES)
+6. MULTI-MODEL BENCHMARKING & ALGORITHM SELECTION
+7. 5-FOLD STRATIFIED GROUP CROSS-VALIDATION RESULTS
+8. CHAMPION MODEL (CATBOOST) DETAILED TEST SET EVALUATION
+9. RANKING & RECOMMENDATION QUALITY EVALUATION (HIT@K, MRR, NDCG@K)
+10. FEATURE IMPORTANCE & SHAP INTERPRETABILITY ANALYSIS
+11. HYPERPARAMETER CONFIGURATION & INFERENCE PIPELINE INTEGRATION
+12. SUMMARY OF KEY FINDINGS & PRODUCTION READINESS VERIFICATION
+====================================================================================================
+
+
+====================================================================================================
+1. EXECUTIVE SUMMARY & NOTEBOOK OVERVIEW
+====================================================================================================
+The model training notebook ('notebook.ipynb' / 'Career_Recommendation_ML_Training_EDA_SHAP.ipynb')
+implements an end-to-end, scientifically validated machine learning workflow designed to predict 
+career compatibility for Indian school students across 1,203 professional occupations.
+
+Traditional career guidance relies heavily on subjective intuition or simplistic heuristic rules. 
+This notebook addresses these shortcomings by formulating career recommendation as a supervised,
+gradient-boosted classification and ranking task. The training pipeline processes 10,000 student 
+assessment profiles, 1,206 career knowledge profiles, and 50,000 historical compatibility interaction
+records.
+
+KEY HIGHLIGHTS:
+* Champion Algorithm        : CatBoost Classifier (with scikit-learn ColumnTransformer)
+* Test Set Classification   : 86.22% Accuracy, 0.9154 F1-Score, 86.04% ROC-AUC, 94.97% PR-AUC
+* 5-Fold Cross-Validation   : 86.06% (+/- 0.39%) Accuracy, 0.9129 (+/- 0.0021) F1-Score
+* Recommendation Ranking    : Hit@1 = 91.74%, Hit@3 = 98.30%, Hit@5 = 98.55%, Hit@10 = 98.55%
+* Ranking Quality Indices   : Mean Reciprocal Rank (MRR) = 0.9491, NDCG@5 = 0.9475
+* Feature Contract          : 19 Engineered Features (14 Numerical & Derived Synergies + 5 Categorical)
+* Leakage Audit Status      : 100% Passed (Zero Target, Identity, or Composite Score Leakage)
+
+
+====================================================================================================
+2. DATASET INGESTION, PROFILING & EXPLORATORY DATA ANALYSIS (EDA)
+====================================================================================================
+The model development utilizes three distinct relational datasets representing the complete student,
+career knowledge, and interaction ecosystem:
+
+----------------------------------------------------------------------------------------------------
+Dataset Name                      | Raw Rows | Raw Cols | Memory Size | Description
+----------------------------------------------------------------------------------------------------
+Student_Assessment_RAW            |   10,000 |      122 |     9.92 MB | Student psychometric responses,
+                                  |          |          |             | cognitive aptitude & academic marks.
+Career_Knowledge_RAW              |    1,206 |       27 |     0.34 MB | Occupational profiles, required
+                                  |          |          |             | abilities, interests & prerequisites.
+Student_Career_Compatibility_RAW  |   50,000 |       15 |     9.73 MB | Pairwise student-career interactions
+                                  |          |          |             | with ground-truth compatibility labels.
+----------------------------------------------------------------------------------------------------
+
+KEY DISTRIBUTIONS & DEMOGRAPHICS:
+* Target Cohorts Covered: Class 7, 8 (Middle School); Class 9, 10 (Secondary); Class 11, 12 (Higher Secondary).
+* Academic Streams: General (Classes 7-10), Science-PCM, Science-PCB, Commerce, Humanities / Arts (Classes 11-12).
+* Career Domains: 33 High-Level Domains (IT, Medicine, Engineering, Finance, Arts, Law, Defense, Aviation, etc.).
+* Class Balance (Target Variable): ~77.6% Compatible (Class 1) vs. ~22.4% Incompatible (Class 0), reflecting 
+  natural candidate selection dynamics.
+
+
+====================================================================================================
+3. DATA PREPROCESSING, IMPUTATION & CLEANING PIPELINE
+====================================================================================================
+Data hygiene protocols were systematically applied across all three raw datasets to resolve duplicates,
+missing values, boundary outliers, and inconsistent categorical labeling:
+
+DUPLICATE REMOVAL AUDIT:
+* Student_Assessment_RAW           : 10,000 raw -> 9,990 cleaned (10 duplicates removed, 0.10%)
+* Career_Knowledge_RAW             :  1,206 raw -> 1,203 cleaned (3 duplicates removed, 0.25%)
+* Student_Career_Compatibility_RAW : 50,000 raw -> 49,850 cleaned (150 duplicates removed, 0.30%)
+
+MISSING VALUE RESOLUTION & IMPUTATION:
+* Numerical Cognitive & Interest Columns: Imputed using median values within grade cohort clusters.
+* Categorical Columns (stream, subdomain, cluster): Imputed using mode values; stream defaulted to 'General'
+  for Classes 7 to 10.
+* Boundary Enforcement: Age clamped to [10, 30]; Class clamped to [7, 12]; Subject marks & abilities
+  clamped to [0.0, 100.0].
+
+SUMMARY TABLE OF CLEANED ARTIFACTS:
+----------------------------------------------------------------------------------------------------
+Dataset                         | Raw Rows | Cleaned Rows | Duplicates Removed | Cleaning Status
+----------------------------------------------------------------------------------------------------
+Student_Assessment              |   10,000 |        9,990 |                 10 | Cleaned & Imputed
+Career_Knowledge                |    1,206 |        1,203 |                  3 | Cleaned & Imputed
+Student_Career_Compatibility    |   50,000 |       49,850 |                150 | Cleaned & Imputed
+----------------------------------------------------------------------------------------------------
+
+
+====================================================================================================
+4. STRICT TARGET LEAKAGE AUDIT & FEATURE INTEGRITY VERIFICATION
+====================================================================================================
+A critical requirement during model development was the absolute prevention of data leakage. In legacy
+iterations, features directly derived from target labels or raw composite evaluation scores caused
+artificial inflation of training metrics. The notebook implements an automated audit verifying that
+every feature is strictly independent of target variables and student/career identifiers.
+
+LEAKAGE AUDIT MATRIX (19 / 19 FEATURES VERIFIED SAFE):
+----------------------------------------------------------------------------------------------------
+Feature Column               | Source                    | Derived? | Uses Score? | Uses Target? | Status
+----------------------------------------------------------------------------------------------------
+age                          | Raw Student Demographics  | No       | No          | No           | SAFE
+class                        | Raw Student Demographics  | No       | No          | No           | SAFE
+ability_match_component      | Computed Cognitive Pair   | No       | No          | No           | SAFE
+interest_match_component     | Weighted Interest Pair    | No       | No          | No           | SAFE
+academic_match_component     | Raw Academic Marks Avg    | No       | No          | No           | SAFE
+learning_match_component     | Normalized Learning Trait | No       | No          | No           | SAFE
+composite_alignment_index    | Domain Composite Formula  | Yes      | No          | No           | SAFE
+ability_interest_synergy     | Non-linear Interaction   | Yes      | No          | No           | SAFE
+ability_interest_gap         | Absolute Difference       | Yes      | No          | No           | SAFE
+min_core_match               | Bottleneck Detector       | Yes      | No          | No           | SAFE
+max_core_match               | Peak Potential Detector   | Yes      | No          | No           | SAFE
+harmonic_core_match          | Harmonic Balance Formula  | Yes      | No          | No           | SAFE
+geometric_core_synergy       | Geometric Mean Formula    | Yes      | No          | No           | SAFE
+holistic_synergy             | 4-Factor Synergy Index    | Yes      | No          | No           | SAFE
+career_name                  | Career Knowledge Metadata | No       | No          | No           | SAFE
+career_domain                | Career Domain Metadata    | No       | No          | No           | SAFE
+career_subdomain             | Career Subdomain Metadata | No       | No          | No           | SAFE
+career_cluster               | Career Cluster Metadata   | No       | No          | No           | SAFE
+stream                       | Academic Stream Metadata  | No       | No          | No           | SAFE
+----------------------------------------------------------------------------------------------------
+
+CRITICAL PRIVACY & ANTI-LEAKAGE ENFORCEMENT:
+* 'student_id' and 'career_id' are EXCLUDED from the feature matrix via strict runtime assertions:
+  assert 'student_id' not in df.columns
+  assert 'career_id' not in df.columns
+* 'compatibility_score' (continuous target) is strictly quarantined from input features.
+
+
+====================================================================================================
+5. HIGH-DIMENSIONAL FEATURE ENGINEERING PIPELINE (19 FEATURES)
+====================================================================================================
+The feature pipeline constructs a rich, non-linear representation of student-career alignment:
+
+1. COGNITIVE ABILITY MATCHING COMPONENT (8 PAIRS):
+   Computes mean absolute divergence between student demonstrated aptitude and career required benchmark:
+   ability_match_component = mean( 100.0 - | student_ability_i - career_required_ability_i | )
+   Evaluated across: Mathematical, Logical, Scientific, Problem Solving, Analytical, Communication,
+   Creativity, and Digital Ability.
+
+2. DYNAMIC INTEREST MATCHING COMPONENT (10 PAIRS WITH 1.5x BOOST):
+   Computes weighted divergence across disciplinary interests (Technology, Engineering, Healthcare,
+   Business, Finance, Arts, Design, Research, Environment, Agriculture). The top 3 student interests
+   receive a 1.5x boost multiplier to elevate alignment with declared student passion:
+   interest_match_component = ( sum( weight_j * (100 - |student_int_j - career_int_j|) ) / sum(weights) )
+
+3. COMPOSITE & SYNERGY FORMULATIONS:
+   * composite_alignment_index = 0.45 * Ability + 0.35 * Interest + 0.10 * Academic + 0.10 * Learning
+   * ability_interest_synergy   = (Ability * Interest) / 100.0
+   * ability_interest_gap       = | Ability - Interest |
+   * min_core_match             = min( Ability, Interest )
+   * max_core_match             = max( Ability, Interest )
+   * harmonic_core_match        = 2.0 * (Ability * Interest) / (Ability + Interest + 1e-5)
+   * geometric_core_synergy     = sqrt( max(0.0, Ability * Interest) )
+   * holistic_synergy           = ( Ability * Interest * Academic * Learning ) ^ 0.25
+
+4. DEMOGRAPHIC & CATEGORICAL ENCODING:
+   * Numerical : age, class, academic_match_component, learning_match_component.
+   * Categorical: career_name, career_domain, career_subdomain, career_cluster, stream.
+   Processed via scikit-learn 'ColumnTransformer' utilizing 'OrdinalEncoder' with handle_unknown='use_encoded_value'.
+
+
+====================================================================================================
+6. MULTI-MODEL BENCHMARKING & ALGORITHM SELECTION
+====================================================================================================
+Four state-of-the-art supervised learning algorithms were benchmarked under identical train-test splits
+(80% Train, 20% Test, Stratified by Student Groups):
+
+------------------------------------------------------------------------------------------------------------------------
+Model Algorithm   | Accuracy (%) | Balanced Acc | Precision (%) | Recall (%) | F1-Score | ROC-AUC (%) | PR-AUC (%) | Train Time
+------------------------------------------------------------------------------------------------------------------------
+CatBoost          |    86.22%    |    74.12%    |    87.47%     |   96.01%   |  0.9154  |   86.04%    |   94.97%   |  11.63 sec
+Random Forest     |    86.17%    |    73.02%    |    87.17%     |   96.47%   |  0.9158  |   85.21%    |   94.76%   |   4.12 sec
+LightGBM          |    86.11%    |    74.03%    |    87.32%     |   96.02%   |  0.9146  |   85.90%    |   94.83%   |   4.98 sec
+XGBoost           |    86.05%    |    74.12%    |    87.39%     |   95.83%   |  0.9142  |   85.86%    |   94.79%   |   8.91 sec
+------------------------------------------------------------------------------------------------------------------------
+
+SELECTION RATIONALE FOR CATBOOST AS CHAMPION:
+1. Highest Overall Classification Accuracy (86.22%) and superior ROC-AUC (86.04%) and PR-AUC (94.97%).
+2. Native, superior handling of high-cardinality categorical features (career_name, career_cluster, domain).
+3. Highly robust against overfitting on complex multi-dimensional synergy interaction terms.
+4. Smooth probability calibration suitable for downstream Top-K recommendation ranking.
+
+
+====================================================================================================
+7. 5-FOLD STRATIFIED GROUP CROSS-VALIDATION RESULTS
+====================================================================================================
+To guarantee generalizability across unseen students, 5-Fold Stratified Group Cross-Validation was
+executed for the CatBoost champion model:
+
+----------------------------------------------------------------------------------------------------
+CV Fold Number | Accuracy (%) | F1-Score | ROC-AUC Score (%) | PR-AUC Score (%)
+----------------------------------------------------------------------------------------------------
+Fold 1         |    86.35%    |  0.9147  |      87.05%       |      94.91%
+Fold 2         |    85.59%    |  0.9103  |      86.55%       |      94.99%
+Fold 3         |    85.68%    |  0.9110  |      86.60%       |      95.02%
+Fold 4         |    86.33%    |  0.9145  |      87.47%       |      95.31%
+Fold 5         |    86.34%    |  0.9139  |      87.15%       |      94.95%
+----------------------------------------------------------------------------------------------------
+Mean (+/- Std) | 86.06% (+/-0.39%) | 0.9129 (+/-0.0021) | 86.96% (+/-0.39%) | 95.04% (+/-0.16%)
+----------------------------------------------------------------------------------------------------
+Observation: Extremely low standard deviation (+/- 0.39% accuracy, +/- 0.0021 F1) confirms high stability 
+and resilience against sample variance across diverse student populations.
+
+
+====================================================================================================
+8. CHAMPION MODEL (CATBOOST) DETAILED TEST SET EVALUATION
+====================================================================================================
+Evaluated on the independent test dataset (8,028 total candidate pairs):
+
+DETAILED CLASSIFICATION REPORT:
+----------------------------------------------------------------------------------------------------
+Class Category     | Precision (%) | Recall (%) | F1-Score | Support (Samples)
+----------------------------------------------------------------------------------------------------
+Incompatible (0)   |     79.01%    |   52.23%   |  0.6289  |     1,794 pairs
+Compatible (1)     |     87.47%    |   96.01%   |  0.9154  |     6,234 pairs
+----------------------------------------------------------------------------------------------------
+Accuracy           |               |            |  0.8622  |     8,028 pairs
+Macro Average      |     83.24%    |   74.12%   |  0.7721  |     8,028 pairs
+Weighted Average   |     85.58%    |   86.22%   |  0.8514  |     8,028 pairs
+----------------------------------------------------------------------------------------------------
+
+DIAGNOSTIC ANALYSIS:
+* High Positive Recall (96.01%): Guarantees that viable, compatible careers are rarely excluded 
+  erroneously by the model.
+* High Positive Precision (87.47%): Ensures students receive recommendations in which they can place 
+  high academic confidence.
+
+
+====================================================================================================
+9. RANKING & RECOMMENDATION QUALITY EVALUATION (HIT@K, MRR, NDCG@K)
+====================================================================================================
+Because career guidance is fundamentally an information retrieval & ranking task, the model predictions
+were evaluated across full student profiles against the entire 1,203-career catalogue:
+
+----------------------------------------------------------------------------------------------------
+Ranking Metric               | Score Value | Percentage | Meaning & Impact
+----------------------------------------------------------------------------------------------------
+Hit@1 (Top-1 Accuracy)       |   0.9174    |   91.74%   | 91.74% chance the top recommended career is fully compatible.
+Hit@3 (Top-3 Recall)         |   0.9830    |   98.30%   | 98.30% chance a compatible career is in the top 3 shortlist.
+Hit@5 (Top-5 Recall)         |   0.9855    |   98.55%   | 98.55% chance a compatible career is in the top 5 shortlist.
+Hit@10 (Top-10 Recall)       |   0.9855    |   98.55%   | 98.55% comprehensive recall across the top 10 positions.
+MRR (Mean Reciprocal Rank)   |   0.9491    |   94.91%   | Exceptional reciprocal rank positioning of relevant careers.
+NDCG@5 (Ranking Quality)     |   0.9475    |   94.75%   | High top-heavy relevance gain in top-5 presentation order.
+----------------------------------------------------------------------------------------------------
+
+
+====================================================================================================
+10. FEATURE IMPORTANCE & SHAP INTERPRETABILITY ANALYSIS
+====================================================================================================
+Global feature importances extracted from the CatBoost model reflect intuitive, human-aligned counseling
+logic:
+
+----------------------------------------------------------------------------------------------------
+Rank | Feature Name                | Importance (%) | Role & Contribution Description
+----------------------------------------------------------------------------------------------------
+ 1   | composite_alignment_index   |    23.29%      | Dominant holistic driver uniting all 4 core facets.
+ 2   | career_domain               |    13.06%      | Broad disciplinary landscape orientation.
+ 3   | holistic_synergy            |     9.03%      | Non-linear 4-factor synergistic multiplier.
+ 4   | academic_match_component    |     5.61%      | Baseline academic rigor compatibility.
+ 5   | career_name                 |     5.02%      | Fine-grained occupational specification bias.
+ 6   | learning_match_component    |     4.95%      | Cognitive agility & self-learning adaptability.
+ 7   | ability_interest_gap        |     4.67%      | Detects divergence between aptitude and desire.
+ 8   | max_core_match              |     4.52%      | Peak aptitude strength indicator.
+ 9   | ability_match_component     |     3.78%      | Direct 8-dimensional cognitive aptitude match.
+ 10  | min_core_match              |     3.77%      | Bottleneck constraint identification.
+ 11  | interest_match_component    |     3.65%      | Direct 10-dimensional interest alignment.
+ 12  | career_cluster              |     3.50%      | Functional occupational sub-cluster.
+ 13  | career_subdomain            |     2.94%      | Disciplinary specialization pathway.
+ 14  | harmonic_core_match         |     2.92%      | Penalizes severe asymmetry between ability and interest.
+ 15  | geometric_core_synergy      |     2.59%      | Geometric progression of core capabilities.
+ 16  | ability_interest_synergy    |     2.04%      | Direct multiplicative interaction.
+ 17  | age                         |     1.85%      | Age demographic calibration.
+ 18  | stream                      |     1.64%      | Academic stream eligibility (PCM/PCB/Comm/Hum).
+ 19  | class                       |     1.17%      | Grade-level scaling (7 to 12).
+----------------------------------------------------------------------------------------------------
+
+
+====================================================================================================
+11. HYPERPARAMETER CONFIGURATION & INFERENCE PIPELINE INTEGRATION
+====================================================================================================
+The model artifacts were serialized and exported into 'backend/ml/models/' for zero-retraining,
+thread-safe production inference:
+
+SERIALIZED PRODUCTION ARTIFACTS:
+1. model.joblib             : Trained CatBoostClassifier object.
+2. preprocessor.joblib      : scikit-learn ColumnTransformer (OrdinalEncoder pipeline).
+3. feature_columns.json     : Ordered list of exact 19 feature names.
+4. classes.json             : Target mapping ({0: "Incompatible", 1: "Compatible"}).
+5. model_config.json        : Hyperparameters, threshold (0.50), confidence margin (0.15).
+6. model_metadata.json      : Accuracy (86.22%), F1 (0.9154), ROC-AUC (86.04%), timestamp.
+7. version.json             : Version string ("V9.5-Champion").
+
+CATBOOST HYPERPARAMETERS:
+* iterations        : 1000
+* depth             : 6
+* learning_rate     : 0.04
+* random_seed       : 42
+* eval_metric       : "Logloss"
+* loss_function     : "Logloss"
+* decision_threshold: 0.50
+* confidence_margin : 0.15
+
+
+====================================================================================================
+12. SUMMARY OF KEY FINDINGS & PRODUCTION READINESS VERIFICATION
+====================================================================================================
+1. LEAKAGE-FREE ARCHITECTURE:
+   The model eliminates all target and identifier leakage. High accuracy (86.22%) is driven entirely
+   by rich, engineered psychometric interaction terms rather than artifact memorization.
+
+2. HIGH-ACCURACY TOP-K RETRIEVAL:
+   With Hit@1 at 91.74% and Hit@3 at 98.30%, the system reliably positions optimal career pathways
+   at the immediate top of student dashboards.
+
+3. DOMAIN COMPLIANCE COUPLING:
+   In production, CatBoost compatibility probabilities are combined with domain prerequisite rules
+   from 'backend/ml/config.yaml' (e.g. Healthcare requires >=60% Science and Math benchmarks),
+   ensuring that recommendations are both statistically compatible and educationally feasible.
+
+4. COMPLETE TEST SUITE VERIFICATION:
+   The model and inference services pass 100% of the 83 automated unit tests in 'tests/', confirming
+   thread safety, deterministic scoring, input validation, and zero performance degradation under
+   concurrent load.
+
+====================================================================================================
+END OF MODEL NOTEBOOK TRAINING REPORT — PATHFINDER V9.5-CHAMPION
+====================================================================================================
