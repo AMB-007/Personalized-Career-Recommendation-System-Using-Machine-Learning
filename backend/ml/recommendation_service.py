@@ -141,6 +141,7 @@ class CareerRecommendationEngine:
             c_dom = str(row.get('career_domain', 'General'))
             c_sub = str(row.get('career_subdomain', 'General'))
             c_clu = str(row.get('career_cluster', 'General'))
+            score = float(row['compatibility_score'])
             config = cls._load_config()
             model_name = config.get('model', 'CatBoost')
             reason = (
