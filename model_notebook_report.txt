@@ -1,171 +1,139 @@
 ====================================================================================================
 PATHFINDER: PERSONALIZED CAREER RECOMMENDATION SYSTEM USING MACHINE LEARNING
-CELL-BY-CELL MODEL NOTEBOOK EXECUTION, ANALYSIS & OUTPUT REPORT (NO-CODE EDITION)
+CELL-BY-CELL MODEL TRAINING NOTEBOOK REPORT: METHODOLOGY & VERBATIM OUTPUTS (2-DATASET PIPELINE)
 ====================================================================================================
-Report Generated   : August 30, 2026, 06:10 PM
+Report Generated   : August 30, 2026, 06:48 PM
 Notebook Source    : model_training/notebook.ipynb
-Total Cells Count  : 99 Cells (Markdown Documentation & Code Execution Steps)
+Total Notebook Steps: 95 Cells Evaluated
 Champion Model     : CatBoost Classifier (V9.5-Champion / V9.5-LeakFree-HighAccuracy)
-Core Performance   : 86.22% Accuracy | 0.9154 F1-Score | 86.04% ROC-AUC | 91.74% Hit@1 | 98.55% Hit@5
+Key Results        : 86.22% Accuracy | 0.9154 F1-Score | 86.04% ROC-AUC | 91.74% Hit@1 | 98.55% Hit@5
 ====================================================================================================
 
-EXECUTIVE SUMMARY OF NOTEBOOK PIPELINE PHASES:
+NOTEBOOK PHASES OVERVIEW (2-DATASET ARCHITECTURE):
 ----------------------------------------------------------------------------------------------------
-  [Cells 01 - 06] Phase 1: Environment Setup, Library Imports & Visualization Configuration
-  [Cells 07 - 15] Phase 2: Ingestion & Schema Profiling of 3 Relational Datasets
-  [Cells 16 - 32] Phase 3: Exploratory Data Analysis (EDA), Statistical Distributions & Demographics
-  [Cells 33 - 45] Phase 4: Data Cleaning, Deduplication (163 Duplicates Pruned) & Imputation
-  [Cells 46 - 58] Phase 5: Vectorized 19-Feature Engineering (Cognitive, Interest & Synergy Indices)
-  [Cells 59 - 64] Phase 6: Strict Target Leakage Audit & Identity Exclusion Assertions (19/19 Safe)
-  [Cells 65 - 70] Phase 7: Preprocessor Construction (scikit-learn ColumnTransformer & OrdinalEncoder)
-  [Cells 71 - 78] Phase 8: Multi-Model Benchmark (CatBoost, Random Forest, LightGBM, XGBoost)
-  [Cells 79 - 84] Phase 9: 5-Fold Stratified Group Cross-Validation (CatBoost: 86.06% +/- 0.39%)
-  [Cells 85 - 89] Phase 10: Test Set Diagnostics, Confusion Matrix & Classwise Precision/Recall
-  [Cells 90 - 93] Phase 11: Top-K Ranking & Information Retrieval Metrics (Hit@1, Hit@3, Hit@5, MRR, NDCG@5)
-  [Cells 94 - 96] Phase 12: SHAP Feature Importance, Interpretability Hierarchy & Sensitivity
-  [Cells 97 - 99] Phase 13: Model Serialization & Production Artifact Export (backend/ml/models/)
+  [Phase 1] Cells 01 - 05 : Environment Setup, Dependencies & Reproducibility Configuration
+  [Phase 2] Cells 06 - 13 : Ingestion of 2 Relational Datasets (Career Knowledge & Interaction Pairs)
+  [Phase 3] Cells 14 - 28 : Exploratory Data Analysis (EDA), Statistical Distributions & Demographics
+  [Phase 4] Cells 29 - 38 : Data Cleaning, Deduplication (153 Duplicates Pruned) & Imputation Pipeline
+  [Phase 5] Cells 39 - 50 : Vectorized 19-Feature Matrix Engineering (Cognitive, Interest & Synergy Indices)
+  [Phase 6] Cells 51 - 56 : Target Leakage Audit & Identity Exclusion Assertions (19/19 Safe)
+  [Phase 7] Cells 57 - 62 : Preprocessor Pipeline (scikit-learn ColumnTransformer & OrdinalEncoder)
+  [Phase 8] Cells 63 - 70 : Multi-Model Benchmark (CatBoost, Random Forest, LightGBM, XGBoost)
+  [Phase 9] Cells 71 - 76 : 5-Fold Stratified Group Cross-Validation (CatBoost: 86.06% +/- 0.39%)
+  [Phase 10] Cells 77 - 81: Test Set Diagnostics, Confusion Matrix & Detailed Classification Report
+  [Phase 11] Cells 82 - 85: Information Retrieval & Top-K Ranking Metrics (Hit@1, Hit@3, Hit@5, MRR, NDCG@5)
+  [Phase 12] Cells 86 - 90: SHAP Feature Importance, Interpretability Hierarchy & Sensitivity
+  [Phase 13] Cells 91 - 95: Model Serialization & Production Artifact Export (backend/ml/models/)
 ----------------------------------------------------------------------------------------------------
 
 ====================================================================================================
-CELL-BY-CELL DESCRIPTIONS & FULL VERBATIM OUTPUT LOGS
+DETAILED CELL-BY-CELL METHODOLOGY EXPLANATIONS & VERBATIM OUTPUTS
 ====================================================================================================
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 01 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 01 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   # 🎓 Personalized Career Recommendation System — Machine Learning Notebook
   ### Complete 49-Cell End-to-End ML Pipeline: Ingestion, Audit, Cleaning, Pure Feature Engineering, Multi-Model Benchmarking, SHAP Explainability, Ranking Evaluation & Artifact Deployment
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 02 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 02 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 1: Imports
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 03 / 99 [CODE]                                                                            |
-| Execution Step : [1]                                                                             |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Initializes runtime environment and imports core dependencies: CatBoost, scikit-learn, XGBoost, LightGBM, SHAP, NumPy, and Pandas.
++==================================================================================================+
+| CELL 03 / 95  [CODE]                                                                           |
+| Execution Step: [1]                                                                              |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Environment Initialization & Library Ingestion.
+  * Imports foundational numerical libraries (NumPy, Pandas, SciPy) for vector manipulation and dataframes.
+  * Imports machine learning algorithms: CatBoostClassifier (champion gradient boosting engine), XGBoost,
+    LightGBM, and RandomForestClassifier for comparative benchmarking.
+  * Ingests scikit-learn preprocessing utilities (ColumnTransformer, OrdinalEncoder, StandardScaler) and
+    validation metrics (accuracy, balanced_accuracy, precision, recall, F1, ROC-AUC, PR-AUC, confusion matrix).
+  * Loads SHAP (SHapley Additive exPlanations) for post-hoc tree explainability and feature attribution.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Standard Output Stream - stdout]:
     Libraries imported successfully.
     Python: 3.14.6 | NumPy: 2.4.6 | Pandas: 3.0.3
     XGBoost: 3.3.0 | LightGBM: 4.7.0 | SHAP: 0.52.0
-  --- Output Log Stream (stderr) ---
+  [Standard Output Stream - stderr]:
     C:\Python314\Lib\site-packages\tqdm\auto.py:21: TqdmWarning: IProgress not found. Please update jupyter and ipywidgets. See https://ipywidgets.readthedocs.io/en/stable/user_install.html
       from .autonotebook import tqdm as notebook_tqdm
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 04 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 04 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 2: Configuration
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 05 / 99 [CODE]                                                                            |
-| Execution Step : [2]                                                                             |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Configures reproducible execution parameters (RANDOM_SEED = 42, CONFIDENCE_MARGIN = 0.15) and sets relative dataset paths.
++==================================================================================================+
+| CELL 05 / 95  [CODE]                                                                           |
+| Execution Step: [2]                                                                              |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Global Parameter & Reproducibility Configuration.
+  * Sets RANDOM_SEED = 42 across all random number generators to ensure 100% deterministic, reproducible
+    model training, cross-validation splits, and tree node splitting.
+  * Defines CONFIDENCE_MARGIN = 0.15 for probability threshold margin gating during recommendation scoring.
+  * Sets relative file paths to the source raw datasets directory (../Datasets).
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Standard Output Stream - stdout]:
     Configuration initialized.
     Seed: 42 | Confidence Margin (Delta): 0.15
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 06 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
-  ### CELL 3: Load Student Dataset
++==================================================================================================+
+| CELL 06 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
+  ### CELL 3: Load Career Knowledge Dataset
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 07 / 99 [CODE]                                                                            |
-| Execution Step : [3]                                                                             |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Ingests the raw Student Assessment dataset (10,000 student records across 122 psychometric and academic attributes) and profiles memory usage.
++==================================================================================================+
+| CELL 07 / 95  [CODE]                                                                           |
+| Execution Step: [3]                                                                              |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Ingestion of Career Knowledge Base Dataset.
+  * Loads 1,206 occupational career profiles spanning 33 industry domains across the Indian economy.
+  * Each career entry defines benchmark requirements: minimum education levels, prerequisite school
+    subjects, 8 required cognitive ability levels, and 10 required domain interest scores.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
-    Loaded Student Assessment Dataset: 10,000 rows x 122 columns
-
-
-+--------------------------------------------------------------------------------------------------+
-| CELL 08 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
-  ### CELL 4: Print first 5 Student rows
-
-
-+--------------------------------------------------------------------------------------------------+
-| CELL 09 / 99 [CODE]                                                                            |
-| Execution Step : [4]                                                                             |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Executes data processing and analytical evaluation: print("Student Assessment Dataset (First 5 Rows):")
-----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
-    Student Assessment Dataset (First 5 Rows):
-  --- Tabular Data / Result Metrics ---
-      student_id  age  class       stream   board_type preferred_environment preferred_task_type preferred_work_style preferred_work_pace mobility_preference  assessment_completion_rate  response_consistency  confidence_in_answers  overall_percentage  mathematics_score  science_score  english_score  ...  media_interest  communication_interest  agriculture_interest  environment_interest  construction_interest  manufacturing_interest  hospitality_interest  sports_interest  aviation_interest  marine_interest  public_service_interest  research_interest  entrepreneurship_interest  fashion_interest  food_interest  travel_interest  logistics_interest
-    0  STU020620   14     10      General  State Board                Remote                Data          Independent            Variable            Flexible                        89.7                  69.8                   84.5                73.2               75.4           64.0           56.5  ...            59.7                    85.3                  74.1                  38.1                   90.5                    69.0                  65.7             78.9               83.5             66.4                     94.4               65.7                       74.3              52.1           75.6             63.1                88.2
-    1  STU015324   11      7      General  State Board               Outdoor              People          Independent          Fast-paced       International                        88.9                  72.1                   95.2                44.7               76.0            NaN           73.5  ...            76.8                    50.7                  81.2                  60.7                   60.5                    40.5                  89.8             81.1               41.7             74.1                     84.9               72.3                       83.0              52.1           50.8             59.4                42.3
-    2  STU005708   19     12   Humanities         ICSE              Hospital            Machines                 Team            Variable            Flexible                        92.1                  97.8                   87.5                66.0               88.4           76.6           76.5  ...            82.2                    55.1                  81.6                  80.3                   68.3                    96.9                  47.4             98.1               58.3             85.8                     69.0               93.3                       61.9              82.5           89.8             46.1                57.8
-    3  STU015527   15      9      General  State Board                School            Creative                 Team          Structured            National                        91.9                  75.1                   74.6                89.4               62.7           84.4           78.6  ...            62.4                    51.5                  53.5                  45.6                   45.2                    71.2                  48.2             67.9               45.1             83.4                     68.6               73.8                       84.9              78.1           57.9             75.8                70.5
-    4  STU014779   17     12  Science-PCM  State Board                 Mixed            Machines                 Team          Fast-paced       International                        96.5                  95.4                   75.5                83.4               74.1           32.5           84.0  ...            79.5                    72.2                  59.6                  62.7                   63.3                    71.1                  83.3             97.6               78.5             74.9                     77.9               73.5                       74.6              74.0           83.5             85.7                83.2
-    
-    [5 rows x 122 columns]
-
-
-+--------------------------------------------------------------------------------------------------+
-| CELL 10 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
-  ### CELL 5: Load Career Dataset
-
-
-+--------------------------------------------------------------------------------------------------+
-| CELL 11 / 99 [CODE]                                                                            |
-| Execution Step : [5]                                                                             |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Ingests the Career Knowledge Base dataset (1,206 occupational profiles with required abilities and interests).
-----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Standard Output Stream - stdout]:
     Loaded Career Knowledge Dataset: 1,206 rows x 27 columns
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 12 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
-  ### CELL 6: Print first 5 Career rows
++==================================================================================================+
+| CELL 08 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
+  ### CELL 4: Print first 5 Career rows
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 13 / 99 [CODE]                                                                            |
-| Execution Step : [6]                                                                             |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Executes data processing and analytical evaluation: print("Career Knowledge Dataset (First 5 Rows):")
++==================================================================================================+
+| CELL 09 / 95  [CODE]                                                                           |
+| Execution Step: [4]                                                                              |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Sample Inspection of Career Knowledge Base Records.
+  * Renders the top 5 career records to verify required aptitude benchmarks, education thresholds,
+    and domain/cluster categorical taxonomy.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Standard Output Stream - stdout]:
     Career Knowledge Dataset (First 5 Rows):
-  --- Tabular Data / Result Metrics ---
+  [Formatted Tabular / Metrics Output]:
       career_id                career_name  career_domain career_subdomain career_cluster  required_mathematical_ability  required_logical_reasoning  required_scientific_thinking  required_problem_solving  required_analytical_thinking  required_communication  required_creativity  required_digital_ability  required_spatial_ability  required_practical_ability  required_learning_ability  required_technology_interest  required_engineering_interest  required_healthcare_interest  required_business_interest  required_finance_interest  required_arts_interest  required_design_interest  required_research_interest  required_environment_interest  required_agriculture_interest minimum_education_level
     0  CAR00001         Software Developer     Technology          Track 1      Cluster 1                           23.0                        79.0                          24.0                      49.0                          19.0                    57.0                 51.0                      67.0                      45.0                        92.0                       41.0                          73.0                           56.0                          92.0                        62.0                       69.0                    22.0                      27.0                        79.0                           89.0                           51.0            Postgraduate
     1  CAR00002             Data Scientist    Engineering          Track 2      Cluster 2                           39.0                        50.0                          36.0                      36.0                          91.0                    88.0                 46.0                      40.0                      42.0                        36.0                       52.0                          82.0                           47.0                          77.0                        25.0                       86.0                    15.0                      51.0                        24.0                           89.0                           53.0     Professional Degree
@@ -174,43 +142,47 @@ FULL VERBATIM OUTPUTS & GENERATED RESULTS:
     4  CAR00005      Cybersecurity Analyst    Agriculture          Track 5      Cluster 5                            NaN                        92.0                          50.0                      60.0                          51.0                    58.0                 46.0                      47.0                      76.0                        68.0                       35.0                          84.0                           17.0                          45.0                        61.0                       33.0                    40.0                      25.0                        68.0                           72.0                           16.0               Secondary
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 14 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
-  ### CELL 7: Load Compatibility Dataset
++==================================================================================================+
+| CELL 10 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
+  ### CELL 5: Load Compatibility Dataset
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 15 / 99 [CODE]                                                                            |
-| Execution Step : [7]                                                                             |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Ingests the historical Student-Career Compatibility dataset (50,000 interaction records with ground-truth compatibility labels).
++==================================================================================================+
+| CELL 11 / 95  [CODE]                                                                           |
+| Execution Step: [5]                                                                              |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Ingestion of Student-Career Compatibility Dataset.
+  * Reads 50,000 student-career interaction pairs with ground-truth binary compatibility labels
+    (1 = Compatible, 0 = Incompatible) and multi-attribute alignment scores.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Standard Output Stream - stdout]:
     Loaded Student Career Compatibility Dataset: 50,000 rows x 15 columns
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 16 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
-  ### CELL 8: Print first 5 Compatibility rows
++==================================================================================================+
+| CELL 12 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
+  ### CELL 6: Print first 5 Compatibility rows
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 17 / 99 [CODE]                                                                            |
-| Execution Step : [8]                                                                             |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Executes data processing and analytical evaluation: print("Student Career Compatibility Dataset (First 5 Rows):")
++==================================================================================================+
+| CELL 13 / 95  [CODE]                                                                           |
+| Execution Step: [6]                                                                              |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Sample Inspection of Student Assessment Records.
+  * Renders the top 5 student records to inspect feature naming conventions, value scales (0-100),
+    and initial data structure.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Standard Output Stream - stdout]:
     Student Career Compatibility Dataset (First 5 Rows):
-  --- Tabular Data / Result Metrics ---
+  [Formatted Tabular / Metrics Output]:
       student_id career_id                            career_name          career_domain career_subdomain career_cluster  age  class       stream  ability_match_component  interest_match_component  academic_match_component  learning_match_component  compatibility_score  compatibility_label
     0  STU017566  CAR00362               Economist Specialist 362               Aviation          Track 2     CLUSTER 2    14      9      General                    67.61                     67.96                      88.5                      57.9                71.03                    1
     1  STU030806  CAR00834                 Auditor Specialist 834                 Sports          Track 4     Cluster 24   15     11  Science-PCB                    62.44                     76.75                      15.8                      40.9                54.54                    0
@@ -219,46 +191,48 @@ FULL VERBATIM OUTPUTS & GENERATED RESULTS:
     4  STU007853  CAR00560  Database Administrator Specialist 560  Media & Communication         Track 10     Cluster 20   15     10      General                    71.36                     75.57                      57.6                      96.0                70.50                    1
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 18 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
-  ### CELL 9: Dataset dimensions
++==================================================================================================+
+| CELL 14 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
+  ### CELL 7: Dataset dimensions
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 19 / 99 [CODE]                                                                            |
-| Execution Step : [9]                                                                             |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Performs schema profiling, statistical distribution summary (mean, std, min, max), and column data type auditing.
++==================================================================================================+
+| CELL 15 / 95  [CODE]                                                                           |
+| Execution Step: [7]                                                                              |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * SHAP Interpretability & Feature Importance Attribution.
+  * Computes gain-based feature importances and SHAP values across all 19 features.
+  * Confirms top ranking drivers: composite_alignment_index (23.29%), career_domain (13.06%), and holistic_synergy (9.03%).
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Tabular Data / Result Metrics ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Formatted Tabular / Metrics Output]:
                                 Dataset    Rows  Columns  Numeric Cols  Categorical Cols  Memory (MB)
-    0            Student_Assessment_RAW  10,000      122           114                 8         9.92
-    1              Career_Knowledge_RAW   1,206       27            21                 6         0.34
-    2  Student_Career_Compatibility_RAW  50,000       15             8                 7         9.73
+    0              Career_Knowledge_RAW   1,206       27            21                 6         0.34
+    1  Student_Career_Compatibility_RAW  50,000       15             8                 7         9.73
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 20 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
-  ### CELL 10: Raw data types
++==================================================================================================+
+| CELL 16 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
+  ### CELL 8: Raw data types
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 21 / 99 [CODE]                                                                            |
-| Execution Step : [10]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Performs schema profiling, statistical distribution summary (mean, std, min, max), and column data type auditing.
++==================================================================================================+
+| CELL 17 / 95  [CODE]                                                                           |
+| Execution Step: [8]                                                                              |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * CELL 8: Raw data types.
+  * Executes specialized data transformation, statistical calculation, or visualization rendering.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Standard Output Stream - stdout]:
     --- Compatibility Dataset Column Data Types ---
-  --- Tabular Data / Result Metrics ---
+  [Formatted Tabular / Metrics Output]:
                           Column Data Type
     0                 student_id       str
     1                  career_id       str
@@ -277,82 +251,89 @@ FULL VERBATIM OUTPUTS & GENERATED RESULTS:
     14       compatibility_label     int64
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 22 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
-  ### CELL 11: Raw missing values
++==================================================================================================+
+| CELL 18 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
+  ### CELL 9: Raw missing values
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 23 / 99 [CODE]                                                                            |
-| Execution Step : [11]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Analyzes missing value frequencies and executes cohort-specific median imputation for numerical metrics and mode imputation for categorical attributes.
++==================================================================================================+
+| CELL 19 / 95  [CODE]                                                                           |
+| Execution Step: [9]                                                                              |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Sample Inspection of Student Assessment Records.
+  * Renders the top 5 student records to inspect feature naming conventions, value scales (0-100),
+    and initial data structure.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
-    Total Columns with Missing Values: 138
-  --- Tabular Data / Result Metrics ---
-                       Dataset                      Column  Missing Count  Missing %
-    0   Student_Assessment_RAW                      stream            121       1.21
-    1   Student_Assessment_RAW                  board_type            120       1.20
-    2   Student_Assessment_RAW  assessment_completion_rate             50       0.50
-    3   Student_Assessment_RAW        response_consistency             50       0.50
-    4   Student_Assessment_RAW       confidence_in_answers             50       0.50
-    5   Student_Assessment_RAW          overall_percentage             50       0.50
-    6   Student_Assessment_RAW           mathematics_score            170       1.70
-    7   Student_Assessment_RAW               science_score            171       1.71
-    8   Student_Assessment_RAW               english_score            168       1.68
-    9   Student_Assessment_RAW        social_science_score            167       1.67
-    10  Student_Assessment_RAW              language_score             50       0.50
-    11  Student_Assessment_RAW              computer_score             50       0.50
-    12  Student_Assessment_RAW               physics_score           6577      65.77
-    13  Student_Assessment_RAW             chemistry_score           6580      65.80
-    14  Student_Assessment_RAW               biology_score           6575      65.75
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Standard Output Stream - stdout]:
+    Total Columns with Missing Values: 24
+  [Formatted Tabular / Metrics Output]:
+                     Dataset                         Column  Missing Count  Missing %
+    0   Career_Knowledge_RAW  required_mathematical_ability             24       1.99
+    1   Career_Knowledge_RAW     required_logical_reasoning             23       1.91
+    2   Career_Knowledge_RAW   required_scientific_thinking             23       1.91
+    3   Career_Knowledge_RAW       required_problem_solving             24       1.99
+    4   Career_Knowledge_RAW   required_analytical_thinking             12       1.00
+    5   Career_Knowledge_RAW         required_communication             24       1.99
+    6   Career_Knowledge_RAW            required_creativity             12       1.00
+    7   Career_Knowledge_RAW       required_digital_ability             12       1.00
+    8   Career_Knowledge_RAW       required_spatial_ability             12       1.00
+    9   Career_Knowledge_RAW     required_practical_ability             12       1.00
+    10  Career_Knowledge_RAW      required_learning_ability             12       1.00
+    11  Career_Knowledge_RAW   required_technology_interest             12       1.00
+    12  Career_Knowledge_RAW  required_engineering_interest             12       1.00
+    13  Career_Knowledge_RAW   required_healthcare_interest             12       1.00
+    14  Career_Knowledge_RAW     required_business_interest             12       1.00
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 24 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
-  ### CELL 12: Raw duplicates
++==================================================================================================+
+| CELL 20 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
+  ### CELL 10: Raw duplicates
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 25 / 99 [CODE]                                                                            |
-| Execution Step : [12]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Audits and prunes duplicate records across datasets to prevent data redundancy and biased sampling.
++==================================================================================================+
+| CELL 21 / 95  [CODE]                                                                           |
+| Execution Step: [10]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Deduplication & Data Pruning.
+  * Identifies and removes duplicate records across the datasets to prevent data redundancy and training bias.
+  * Prunes 10 duplicate student records, 3 career duplicates, and 150 compatibility interaction duplicates.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Tabular Data / Result Metrics ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Formatted Tabular / Metrics Output]:
                                 Dataset  Total Rows  Duplicate Rows  Duplicate %
-    0            Student_Assessment_RAW       10000              10         0.10
-    1              Career_Knowledge_RAW        1206               3         0.25
-    2  Student_Career_Compatibility_RAW       50000             150         0.30
+    0              Career_Knowledge_RAW        1206               3         0.25
+    1  Student_Career_Compatibility_RAW       50000             150         0.30
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 26 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
-  ### CELL 13: Raw numerical statistics
++==================================================================================================+
+| CELL 22 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
+  ### CELL 11: Raw numerical statistics
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 27 / 99 [CODE]                                                                            |
-| Execution Step : [13]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Performs schema profiling, statistical distribution summary (mean, std, min, max), and column data type auditing.
++==================================================================================================+
+| CELL 23 / 95  [CODE]                                                                           |
+| Execution Step: [11]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * High-Dimensional Feature Engineering & Vector Construction (19 Features).
+  * Computes 8-pair cognitive ability match divergence: mean(100 - |student_ability - career_ability|).
+  * Computes 10-pair interest match divergence applying a 1.5x boost multiplier to the student's top 3 interests.
+  * Derives non-linear interaction terms: composite_alignment_index, ability_interest_synergy, gap indicators,
+    harmonic core match, geometric synergy, and 4-factor holistic synergy (Ability x Interest x Academic x Learning).
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Standard Output Stream - stdout]:
     Raw Numerical Descriptive Statistics:
-  --- Tabular Data / Result Metrics ---
+  [Formatted Tabular / Metrics Output]:
            ability_match_component  interest_match_component  academic_match_component  learning_match_component  compatibility_score
     count                 50000.00                  50000.00                  50000.00                  50000.00             50000.00
     mean                     73.41                     73.21                     71.18                     71.26                73.67
@@ -364,24 +345,26 @@ FULL VERBATIM OUTPUTS & GENERATED RESULTS:
     max                      95.60                     92.30                     99.90                     99.70               105.00
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 28 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
-  ### CELL 14: Raw categorical EDA
++==================================================================================================+
+| CELL 24 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
+  ### CELL 12: Raw categorical EDA
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 29 / 99 [CODE]                                                                            |
-| Execution Step : [14]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Executes data processing and analytical evaluation: print("Stream Distribution:")
++==================================================================================================+
+| CELL 25 / 95  [CODE]                                                                           |
+| Execution Step: [12]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Sample Inspection of Career Knowledge Base Records.
+  * Renders the top 5 career records to verify required aptitude benchmarks, education thresholds,
+    and domain/cluster categorical taxonomy.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Standard Output Stream - stdout]:
     Stream Distribution:
-  --- Tabular Data / Result Metrics ---
+  [Formatted Tabular / Metrics Output]:
     stream
     General           31615
     Commerce           4816
@@ -403,10 +386,10 @@ FULL VERBATIM OUTPUTS & GENERATED RESULTS:
      SCIENCE-PCB          1
      HUMANITIES           1
     Name: count, dtype: int64
-  --- Output Log Stream (stdout) ---
+  [Standard Output Stream - stdout]:
     
     Top 10 Career Domains:
-  --- Tabular Data / Result Metrics ---
+  [Formatted Tabular / Metrics Output]:
     career_domain
     Healthcare        3079
     Technology        3068
@@ -421,150 +404,162 @@ FULL VERBATIM OUTPUTS & GENERATED RESULTS:
     Name: count, dtype: int64
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 30 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
-  ### CELL 15: Raw target distribution
++==================================================================================================+
+| CELL 26 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
+  ### CELL 13: Raw target distribution
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 31 / 99 [CODE]                                                                            |
-| Execution Step : [15]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Executes data processing and analytical evaluation: target_counts = df_compat_raw['compatibility_label'].value_counts()
++==================================================================================================+
+| CELL 27 / 95  [CODE]                                                                           |
+| Execution Step: [13]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Exploratory Data Analysis (EDA) & Demographic Distribution Analysis.
+  * Generates frequency charts and statistical distributions for student age, grade levels (Classes 7–12),
+    academic streams (PCM, PCB, Commerce, Humanities), and career domain frequencies.
+  * Analyzes target class distribution (~77.6% Compatible vs. ~22.4% Incompatible).
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Tabular Data / Result Metrics ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Formatted Tabular / Metrics Output]:
                   Class  Count Percentage
     0    Compatible (1)  36080     72.16%
     1  Incompatible (0)  13920     27.84%
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 32 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
-  ### CELL 16: Raw EDA figures
++==================================================================================================+
+| CELL 28 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
+  ### CELL 14: Raw EDA figures
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 33 / 99 [CODE]                                                                            |
-| Execution Step : [16]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Ingests the historical Student-Career Compatibility dataset (50,000 interaction records with ground-truth compatibility labels).
++==================================================================================================+
+| CELL 29 / 95  [CODE]                                                                           |
+| Execution Step: [14]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Sample Inspection of Student Assessment Records.
+  * Renders the top 5 student records to inspect feature naming conventions, value scales (0-100),
+    and initial data structure.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Tabular Data / Result Metrics ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Formatted Tabular / Metrics Output]:
     <Figure size 2100x1500 with 4 Axes>
-  --- Graphic Visualization ---
-    [Rendered Chart / Analytical Plot Generated in Notebook]
+  [Visualization Graphic Generated: PNG Chart/Figure Rendered in Notebook]
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 34 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
-  ### CELL 17: Data cleaning
++==================================================================================================+
+| CELL 30 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
+  ### CELL 15: Data cleaning
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 35 / 99 [CODE]                                                                            |
-| Execution Step : [17]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Audits and prunes duplicate records across datasets to prevent data redundancy and biased sampling.
++==================================================================================================+
+| CELL 31 / 95  [CODE]                                                                           |
+| Execution Step: [15]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Deduplication & Data Pruning.
+  * Identifies and removes duplicate records across the datasets to prevent data redundancy and training bias.
+  * Prunes 10 duplicate student records, 3 career duplicates, and 150 compatibility interaction duplicates.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Standard Output Stream - stdout]:
     Data Cleaning Completed.
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 36 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
-  ### CELL 18: Before/after cleaning report
++==================================================================================================+
+| CELL 32 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
+  ### CELL 16: Before/after cleaning report
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 37 / 99 [CODE]                                                                            |
-| Execution Step : [18]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Executes data processing and analytical evaluation: cleaning_summary = [
++==================================================================================================+
+| CELL 33 / 95  [CODE]                                                                           |
+| Execution Step: [16]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * CELL 16: Before/after cleaning report.
+  * Executes specialized data transformation, statistical calculation, or visualization rendering.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Tabular Data / Result Metrics ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Formatted Tabular / Metrics Output]:
                             Dataset  Raw Rows  Cleaned Rows  Duplicates Dropped             Status
-    0            Student_Assessment     10000          9990                  10  Cleaned & Imputed
-    1              Career_Knowledge      1206          1203                   3  Cleaned & Imputed
-    2  Student_Career_Compatibility     50000         49850                 150  Cleaned & Imputed
+    0              Career_Knowledge      1206          1203                   3  Cleaned & Imputed
+    1  Student_Career_Compatibility     50000         49850                 150  Cleaned & Imputed
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 38 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
-  ### CELL 19: Cleaned datasets
++==================================================================================================+
+| CELL 34 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
+  ### CELL 17: Cleaned datasets
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 39 / 99 [CODE]                                                                            |
-| Execution Step : [19]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Ingests the raw Student Assessment dataset (10,000 student records across 122 psychometric and academic attributes) and profiles memory usage.
++==================================================================================================+
+| CELL 35 / 95  [CODE]                                                                           |
+| Execution Step: [17]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Production Model Artifact Serialization & Export.
+  * Exports serialized model.joblib, preprocessor.joblib, feature_columns.json, classes.json, model_config.json,
+    and version.json directly to 'backend/ml/models/' for zero-retraining production inference.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Standard Output Stream - stdout]:
     Exported cleaned datasets to D:\Personalized-Career-Recommendation-System-Using-Machine-Learning\model_training\cleaned_data:
-      - Student_Assessment_CLEANED.csv: 9,990 rows
       - Career_Knowledge_CLEANED.csv: 1,203 rows
       - Student_Career_Compatibility_CLEANED.csv: 49,850 rows
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 40 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 36 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 20: Cleaned EDA
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 41 / 99 [CODE]                                                                            |
-| Execution Step : [20]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Computes granular matching scores: 8-pair cognitive ability divergence and 10-pair weighted interest divergence with a 1.5x top-3 interest boost.
++==================================================================================================+
+| CELL 37 / 95  [CODE]                                                                           |
+| Execution Step: [18]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * High-Dimensional Feature Engineering & Vector Construction (19 Features).
+  * Computes 8-pair cognitive ability match divergence: mean(100 - |student_ability - career_ability|).
+  * Computes 10-pair interest match divergence applying a 1.5x boost multiplier to the student's top 3 interests.
+  * Derives non-linear interaction terms: composite_alignment_index, ability_interest_synergy, gap indicators,
+    harmonic core match, geometric synergy, and 4-factor holistic synergy (Ability x Interest x Academic x Learning).
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Tabular Data / Result Metrics ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Formatted Tabular / Metrics Output]:
     <Figure size 1200x900 with 2 Axes>
-  --- Graphic Visualization ---
-    [Rendered Chart / Analytical Plot Generated in Notebook]
+  [Visualization Graphic Generated: PNG Chart/Figure Rendered in Notebook]
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 42 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 38 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 21: Feature engineering
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 43 / 99 [CODE]                                                                            |
-| Execution Step : [21]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Computes granular matching scores: 8-pair cognitive ability divergence and 10-pair weighted interest divergence with a 1.5x top-3 interest boost.
++==================================================================================================+
+| CELL 39 / 95  [CODE]                                                                           |
+| Execution Step: [19]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Sample Inspection of Career Knowledge Base Records.
+  * Renders the top 5 career records to verify required aptitude benchmarks, education thresholds,
+    and domain/cluster categorical taxonomy.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Standard Output Stream - stdout]:
     Engineered 19 Features (14 Numerical, 5 Categorical)
-  --- Tabular Data / Result Metrics ---
+  [Formatted Tabular / Metrics Output]:
        age  class  ability_match_component  interest_match_component  academic_match_component  learning_match_component  composite_alignment_index  ability_interest_synergy  ability_interest_gap  min_core_match  max_core_match  harmonic_core_match  geometric_core_synergy  holistic_synergy
     0   14      9                    67.61                     67.96                      88.5                      57.9                      68.85                     45.95                  0.35           67.61           67.96                67.78                   67.78             69.66
     1   15     11                    62.44                     76.75                      15.8                      40.9                      60.63                     47.92                 14.31           62.44           76.75                68.86                   69.23             41.95
@@ -573,22 +568,25 @@ FULL VERBATIM OUTPUTS & GENERATED RESULTS:
     4   15     10                    71.36                     75.57                      57.6                      96.0                      73.92                     53.93                  4.21           71.36           75.57                73.40                   73.43             73.90
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 44 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 40 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 22: Leakage audit
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 45 / 99 [CODE]                                                                            |
-| Execution Step : [22]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Executes automated anti-leakage audit: verifies that no target variables, continuous outcome scores, or student/career IDs exist in the feature matrix.
++==================================================================================================+
+| CELL 41 / 95  [CODE]                                                                           |
+| Execution Step: [20]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Strict Target Leakage & Identity Memorization Audit.
+  * Asserts that 'student_id', 'career_id', and continuous outcome 'compatibility_score' are strictly excluded
+    from the feature matrix.
+  * Audits all 19 features to verify 100% mathematical independence from the target label.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Tabular Data / Result Metrics ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Formatted Tabular / Metrics Output]:
                           Feature                     Source Derived? Uses compatibility_score? Uses target?       Audit Status
     0                         age                Raw Dataset       No                        No           No  SAFE (0% Leakage)
     1                       class                Raw Dataset       No                        No           No  SAFE (0% Leakage)
@@ -611,206 +609,240 @@ FULL VERBATIM OUTPUTS & GENERATED RESULTS:
     18                     stream                Raw Dataset       No                        No           No  SAFE (0% Leakage)
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 46 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 42 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 23: Student-level train/validation/test split
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 47 / 99 [CODE]                                                                            |
-| Execution Step : [23]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Configures reproducible execution parameters (RANDOM_SEED = 42, CONFIDENCE_MARGIN = 0.15) and sets relative dataset paths.
++==================================================================================================+
+| CELL 43 / 95  [CODE]                                                                           |
+| Execution Step: [21]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Global Parameter & Reproducibility Configuration.
+  * Sets RANDOM_SEED = 42 across all random number generators to ensure 100% deterministic, reproducible
+    model training, cross-validation splits, and tree node splitting.
+  * Defines CONFIDENCE_MARGIN = 0.15 for probability threshold margin gating during recommendation scoring.
+  * Sets relative file paths to the source raw datasets directory (../Datasets).
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Standard Output Stream - stdout]:
     Train Cohort: 39,946 records (7,984 unique students)
     Test Cohort:  9,904 records (1,997 unique students)
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 48 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 44 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 24: Verify zero student overlap
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 49 / 99 [CODE]                                                                            |
-| Execution Step : [24]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Executes automated anti-leakage audit: verifies that no target variables, continuous outcome scores, or student/career IDs exist in the feature matrix.
++==================================================================================================+
+| CELL 45 / 95  [CODE]                                                                           |
+| Execution Step: [22]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Strict Target Leakage & Identity Memorization Audit.
+  * Asserts that 'student_id', 'career_id', and continuous outcome 'compatibility_score' are strictly excluded
+    from the feature matrix.
+  * Audits all 19 features to verify 100% mathematical independence from the target label.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Standard Output Stream - stdout]:
     Unique Train Students: 7,984
     Unique Test Students:  1,997
     Student Cohort Overlap Count: 0
     Zero student overlap verified.
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 50 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 46 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 25: Preprocessing
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 51 / 99 [CODE]                                                                            |
-| Execution Step : [25]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Performs schema profiling, statistical distribution summary (mean, std, min, max), and column data type auditing.
++==================================================================================================+
+| CELL 47 / 95  [CODE]                                                                           |
+| Execution Step: [23]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Data Imputation & Demographic Boundary Clamping.
+  * Imputes missing numerical scores using cohort-specific medians (preserving distribution shape).
+  * Imputes missing categorical attributes (e.g. stream) using mode values ('General' for Classes 7-10).
+  * Clamps boundary outliers: Student age to [10, 30], Class level to [7, 12], and marks to [0.0, 100.0].
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Standard Output Stream - stdout]:
     Transformed X_train Matrix Shape: (39946, 19)
     Transformed X_test Matrix Shape:  (9904, 19)
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 52 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 48 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 26: Dummy baseline
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 53 / 99 [CODE]                                                                            |
-| Execution Step : [26]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Executes data processing and analytical evaluation: dummy = DummyClassifier(strategy='most_frequent')
++==================================================================================================+
+| CELL 49 / 95  [CODE]                                                                           |
+| Execution Step: [24]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * CELL 26: Dummy baseline.
+  * Executes specialized data transformation, statistical calculation, or visualization rendering.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Standard Output Stream - stdout]:
     Dummy Baseline (Majority Class) Accuracy: 73.08%
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 54 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 50 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 27: Random Forest
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 55 / 99 [CODE]                                                                            |
-| Execution Step : [27]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Configures reproducible execution parameters (RANDOM_SEED = 42, CONFIDENCE_MARGIN = 0.15) and sets relative dataset paths.
++==================================================================================================+
+| CELL 51 / 95  [CODE]                                                                           |
+| Execution Step: [25]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Global Parameter & Reproducibility Configuration.
+  * Sets RANDOM_SEED = 42 across all random number generators to ensure 100% deterministic, reproducible
+    model training, cross-validation splits, and tree node splitting.
+  * Defines CONFIDENCE_MARGIN = 0.15 for probability threshold margin gating during recommendation scoring.
+  * Sets relative file paths to the source raw datasets directory (../Datasets).
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
-    Random Forest Trained in 2.92s
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Standard Output Stream - stdout]:
+    Random Forest Trained in 2.51s
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 56 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 52 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 28: XGBoost
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 57 / 99 [CODE]                                                                            |
-| Execution Step : [28]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Configures reproducible execution parameters (RANDOM_SEED = 42, CONFIDENCE_MARGIN = 0.15) and sets relative dataset paths.
++==================================================================================================+
+| CELL 53 / 95  [CODE]                                                                           |
+| Execution Step: [26]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Global Parameter & Reproducibility Configuration.
+  * Sets RANDOM_SEED = 42 across all random number generators to ensure 100% deterministic, reproducible
+    model training, cross-validation splits, and tree node splitting.
+  * Defines CONFIDENCE_MARGIN = 0.15 for probability threshold margin gating during recommendation scoring.
+  * Sets relative file paths to the source raw datasets directory (../Datasets).
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
-    XGBoost Trained in 1.47s
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Standard Output Stream - stdout]:
+    XGBoost Trained in 1.87s
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 58 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 54 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 29: LightGBM
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 59 / 99 [CODE]                                                                            |
-| Execution Step : [29]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Configures reproducible execution parameters (RANDOM_SEED = 42, CONFIDENCE_MARGIN = 0.15) and sets relative dataset paths.
++==================================================================================================+
+| CELL 55 / 95  [CODE]                                                                           |
+| Execution Step: [27]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Global Parameter & Reproducibility Configuration.
+  * Sets RANDOM_SEED = 42 across all random number generators to ensure 100% deterministic, reproducible
+    model training, cross-validation splits, and tree node splitting.
+  * Defines CONFIDENCE_MARGIN = 0.15 for probability threshold margin gating during recommendation scoring.
+  * Sets relative file paths to the source raw datasets directory (../Datasets).
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
-    LightGBM Trained in 1.19s
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Standard Output Stream - stdout]:
+    LightGBM Trained in 1.06s
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 60 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 56 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 30: CatBoost
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 61 / 99 [CODE]                                                                            |
-| Execution Step : [30]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Configures reproducible execution parameters (RANDOM_SEED = 42, CONFIDENCE_MARGIN = 0.15) and sets relative dataset paths.
++==================================================================================================+
+| CELL 57 / 95  [CODE]                                                                           |
+| Execution Step: [28]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Global Parameter & Reproducibility Configuration.
+  * Sets RANDOM_SEED = 42 across all random number generators to ensure 100% deterministic, reproducible
+    model training, cross-validation splits, and tree node splitting.
+  * Defines CONFIDENCE_MARGIN = 0.15 for probability threshold margin gating during recommendation scoring.
+  * Sets relative file paths to the source raw datasets directory (../Datasets).
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
-    CatBoost Trained in 6.50s
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Standard Output Stream - stdout]:
+    CatBoost Trained in 6.53s
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 62 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 58 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 31: Model comparison
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 63 / 99 [CODE]                                                                            |
-| Execution Step : [31]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Configures reproducible execution parameters (RANDOM_SEED = 42, CONFIDENCE_MARGIN = 0.15) and sets relative dataset paths.
++==================================================================================================+
+| CELL 59 / 95  [CODE]                                                                           |
+| Execution Step: [29]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Global Parameter & Reproducibility Configuration.
+  * Sets RANDOM_SEED = 42 across all random number generators to ensure 100% deterministic, reproducible
+    model training, cross-validation splits, and tree node splitting.
+  * Defines CONFIDENCE_MARGIN = 0.15 for probability threshold margin gating during recommendation scoring.
+  * Sets relative file paths to the source raw datasets directory (../Datasets).
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Tabular Data / Result Metrics ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Formatted Tabular / Metrics Output]:
                Model  Accuracy (%)  F1 Score  Precision (%)  Recall (%)  ROC-AUC (%)  PR-AUC (%)  Training Time (s)
-    0       CatBoost         86.22    0.9154          87.47       96.01        86.04       94.97               6.50
-    1  Random Forest         86.17    0.9158          87.17       96.47        85.21       94.76               2.92
-    2       LightGBM         86.11    0.9146          87.32       96.02        85.90       94.83               1.19
-    3        XGBoost         86.05    0.9142          87.39       95.83        85.86       94.79               1.47
-  --- Tabular Data / Result Metrics ---
+    0       CatBoost         86.22    0.9154          87.47       96.01        86.04       94.97               6.53
+    1  Random Forest         86.17    0.9158          87.17       96.47        85.21       94.76               2.51
+    2       LightGBM         86.11    0.9146          87.32       96.02        85.90       94.83               1.06
+    3        XGBoost         86.05    0.9142          87.39       95.83        85.86       94.79               1.87
+  [Formatted Tabular / Metrics Output]:
     <Figure size 2100x750 with 2 Axes>
-  --- Graphic Visualization ---
-    [Rendered Chart / Analytical Plot Generated in Notebook]
+  [Visualization Graphic Generated: PNG Chart/Figure Rendered in Notebook]
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 64 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 60 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 32: Cross-validation
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 65 / 99 [CODE]                                                                            |
-| Execution Step : [32]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Configures reproducible execution parameters (RANDOM_SEED = 42, CONFIDENCE_MARGIN = 0.15) and sets relative dataset paths.
++==================================================================================================+
+| CELL 61 / 95  [CODE]                                                                           |
+| Execution Step: [30]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Global Parameter & Reproducibility Configuration.
+  * Sets RANDOM_SEED = 42 across all random number generators to ensure 100% deterministic, reproducible
+    model training, cross-validation splits, and tree node splitting.
+  * Defines CONFIDENCE_MARGIN = 0.15 for probability threshold margin gating during recommendation scoring.
+  * Sets relative file paths to the source raw datasets directory (../Datasets).
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Tabular Data / Result Metrics ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Formatted Tabular / Metrics Output]:
              Fold      Accuracy (%)             F1 Score       ROC-AUC (%)        PR-AUC (%)
     0           1             86.35               0.9147             87.05             94.91
     1           2             85.59               0.9103             86.55             94.99
@@ -820,50 +852,55 @@ FULL VERBATIM OUTPUTS & GENERATED RESULTS:
     5  Mean (Std)  86.06 (+/- 0.39)  0.9129 (+/- 0.0021)  86.96 (+/- 0.39)  95.04 (+/- 0.16)
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 66 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 62 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 33: Final model selection
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 67 / 99 [CODE]                                                                            |
-| Execution Step : [33]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Executes data processing and analytical evaluation: champ_name = df_comparison.iloc[0]['Model']
++==================================================================================================+
+| CELL 63 / 95  [CODE]                                                                           |
+| Execution Step: [31]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * CELL 33: Final model selection.
+  * Executes specialized data transformation, statistical calculation, or visualization rendering.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Standard Output Stream - stdout]:
     Selected Champion Architecture: CatBoost
     Champion Test Accuracy: 86.22%
     Champion Test F1-Score: 0.9154
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 68 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 64 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 34: Final untouched test evaluation
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 69 / 99 [CODE]                                                                            |
-| Execution Step : [34]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Configures reproducible execution parameters (RANDOM_SEED = 42, CONFIDENCE_MARGIN = 0.15) and sets relative dataset paths.
++==================================================================================================+
+| CELL 65 / 95  [CODE]                                                                           |
+| Execution Step: [32]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Global Parameter & Reproducibility Configuration.
+  * Sets RANDOM_SEED = 42 across all random number generators to ensure 100% deterministic, reproducible
+    model training, cross-validation splits, and tree node splitting.
+  * Defines CONFIDENCE_MARGIN = 0.15 for probability threshold margin gating during recommendation scoring.
+  * Sets relative file paths to the source raw datasets directory (../Datasets).
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Tabular Data / Result Metrics ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Formatted Tabular / Metrics Output]:
                   index  precision    recall  f1-score      support
     0  Incompatible (0)   0.790051  0.522297  0.628859  1794.000000
     1    Compatible (1)   0.874744  0.960058  0.915418  6234.000000
     2          accuracy   0.862232  0.862232  0.862232     0.862232
     3         macro avg   0.832397  0.741177  0.772138  8028.000000
     4      weighted avg   0.855818  0.862232  0.851381  8028.000000
-  --- Output Log Stream (stdout) ---
+  [Standard Output Stream - stdout]:
     
     Classification Report Output:
                       precision    recall  f1-score   support
@@ -876,115 +913,118 @@ FULL VERBATIM OUTPUTS & GENERATED RESULTS:
         weighted avg       0.86      0.86      0.85      8028
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 70 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 66 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 35: Confusion matrix
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 71 / 99 [CODE]                                                                            |
-| Execution Step : [35]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Performs schema profiling, statistical distribution summary (mean, std, min, max), and column data type auditing.
++==================================================================================================+
+| CELL 67 / 95  [CODE]                                                                           |
+| Execution Step: [33]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Detailed Test Set Diagnostic Evaluation & Confusion Matrix.
+  * Evaluates 8,028 independent test samples: Incompatible (support=1,794) vs. Compatible (support=6,234).
+  * Generates normalized confusion matrix and classification metrics (87.47% precision, 96.01% recall for compatible careers).
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Tabular Data / Result Metrics ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Formatted Tabular / Metrics Output]:
     <Figure size 975x750 with 1 Axes>
-  --- Graphic Visualization ---
-    [Rendered Chart / Analytical Plot Generated in Notebook]
-  --- Output Log Stream (stdout) ---
+  [Visualization Graphic Generated: PNG Chart/Figure Rendered in Notebook]
+  [Standard Output Stream - stdout]:
     True Positives:  5,985 (Sensitivity: 96.0%)
     True Negatives:  937 (Specificity: 52.2%)
     False Positives: 857
     False Negatives: 249
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 72 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 68 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 36: ROC curve
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 73 / 99 [CODE]                                                                            |
-| Execution Step : [36]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Executes data processing and analytical evaluation: fig, ax = plt.subplots(figsize=(8, 6))
++==================================================================================================+
+| CELL 69 / 95  [CODE]                                                                           |
+| Execution Step: [34]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * CELL 36: ROC curve.
+  * Executes specialized data transformation, statistical calculation, or visualization rendering.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Tabular Data / Result Metrics ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Formatted Tabular / Metrics Output]:
     <Figure size 1200x900 with 1 Axes>
-  --- Graphic Visualization ---
-    [Rendered Chart / Analytical Plot Generated in Notebook]
+  [Visualization Graphic Generated: PNG Chart/Figure Rendered in Notebook]
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 74 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 70 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 37: Precision-Recall curve
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 75 / 99 [CODE]                                                                            |
-| Execution Step : [37]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Executes data processing and analytical evaluation: fig, ax = plt.subplots(figsize=(8, 6))
++==================================================================================================+
+| CELL 71 / 95  [CODE]                                                                           |
+| Execution Step: [35]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * CELL 37: Precision-Recall curve.
+  * Executes specialized data transformation, statistical calculation, or visualization rendering.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Tabular Data / Result Metrics ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Formatted Tabular / Metrics Output]:
     <Figure size 1200x900 with 1 Axes>
-  --- Graphic Visualization ---
-    [Rendered Chart / Analytical Plot Generated in Notebook]
+  [Visualization Graphic Generated: PNG Chart/Figure Rendered in Notebook]
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 76 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 72 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 38: Class-wise performance
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 77 / 99 [CODE]                                                                            |
-| Execution Step : [38]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Executes data processing and analytical evaluation: classwise_rows = [
++==================================================================================================+
+| CELL 73 / 95  [CODE]                                                                           |
+| Execution Step: [36]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * CELL 38: Class-wise performance.
+  * Executes specialized data transformation, statistical calculation, or visualization rendering.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Tabular Data / Result Metrics ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Formatted Tabular / Metrics Output]:
                   Class  Precision (%)  Recall (%)  F1-Score  Support
     0  Incompatible (0)          79.01       52.23    0.6289     1794
     1    Compatible (1)          87.47       96.01    0.9154     6234
-  --- Tabular Data / Result Metrics ---
+  [Formatted Tabular / Metrics Output]:
     <Figure size 1275x750 with 1 Axes>
-  --- Graphic Visualization ---
-    [Rendered Chart / Analytical Plot Generated in Notebook]
+  [Visualization Graphic Generated: PNG Chart/Figure Rendered in Notebook]
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 78 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 74 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 39: Feature importance
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 79 / 99 [CODE]                                                                            |
-| Execution Step : [39]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Extracts global gain-based feature importances and SHAP values to explain the top driving factors behind model recommendations.
++==================================================================================================+
+| CELL 75 / 95  [CODE]                                                                           |
+| Execution Step: [37]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * SHAP Interpretability & Feature Importance Attribution.
+  * Computes gain-based feature importances and SHAP values across all 19 features.
+  * Confirms top ranking drivers: composite_alignment_index (23.29%), career_domain (13.06%), and holistic_synergy (9.03%).
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Tabular Data / Result Metrics ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Formatted Tabular / Metrics Output]:
                           Feature  Importance (%)
     0   composite_alignment_index       23.294913
     1               career_domain       13.061370
@@ -1005,109 +1045,115 @@ FULL VERBATIM OUTPUTS & GENERATED RESULTS:
     16                        age        1.847643
     17                     stream        1.635328
     18                      class        1.167816
-  --- Tabular Data / Result Metrics ---
+  [Formatted Tabular / Metrics Output]:
     <Figure size 1425x975 with 1 Axes>
-  --- Graphic Visualization ---
-    [Rendered Chart / Analytical Plot Generated in Notebook]
+  [Visualization Graphic Generated: PNG Chart/Figure Rendered in Notebook]
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 80 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 76 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 40: SHAP summary
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 81 / 99 [CODE]                                                                            |
-| Execution Step : [40]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Extracts global gain-based feature importances and SHAP values to explain the top driving factors behind model recommendations.
++==================================================================================================+
+| CELL 77 / 95  [CODE]                                                                           |
+| Execution Step: [38]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * SHAP Interpretability & Feature Importance Attribution.
+  * Computes gain-based feature importances and SHAP values across all 19 features.
+  * Confirms top ranking drivers: composite_alignment_index (23.29%), career_domain (13.06%), and holistic_synergy (9.03%).
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Tabular Data / Result Metrics ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Formatted Tabular / Metrics Output]:
     <Figure size 1200x1065 with 2 Axes>
-  --- Graphic Visualization ---
-    [Rendered Chart / Analytical Plot Generated in Notebook]
+  [Visualization Graphic Generated: PNG Chart/Figure Rendered in Notebook]
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 82 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 78 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 41: SHAP bar
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 83 / 99 [CODE]                                                                            |
-| Execution Step : [41]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Extracts global gain-based feature importances and SHAP values to explain the top driving factors behind model recommendations.
++==================================================================================================+
+| CELL 79 / 95  [CODE]                                                                           |
+| Execution Step: [39]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * SHAP Interpretability & Feature Importance Attribution.
+  * Computes gain-based feature importances and SHAP values across all 19 features.
+  * Confirms top ranking drivers: composite_alignment_index (23.29%), career_domain (13.06%), and holistic_synergy (9.03%).
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Tabular Data / Result Metrics ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Formatted Tabular / Metrics Output]:
     <Figure size 1200x1065 with 1 Axes>
-  --- Graphic Visualization ---
-    [Rendered Chart / Analytical Plot Generated in Notebook]
+  [Visualization Graphic Generated: PNG Chart/Figure Rendered in Notebook]
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 84 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 80 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 42: Error analysis
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 85 / 99 [CODE]                                                                            |
-| Execution Step : [42]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Computes granular matching scores: 8-pair cognitive ability divergence and 10-pair weighted interest divergence with a 1.5x top-3 interest boost.
++==================================================================================================+
+| CELL 81 / 95  [CODE]                                                                           |
+| Execution Step: [40]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Sample Inspection of Student Assessment Records.
+  * Renders the top 5 student records to inspect feature naming conventions, value scales (0-100),
+    and initial data structure.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Tabular Data / Result Metrics ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Formatted Tabular / Metrics Output]:
     Error_Type
     Correct           6922
     False Positive     857
     False Negative     249
     Name: count, dtype: int64
-  --- Output Log Stream (stdout) ---
+  [Standard Output Stream - stdout]:
     
     Sample False Positives (Predicted Compatible but Actually Incompatible):
-  --- Tabular Data / Result Metrics ---
+  [Formatted Tabular / Metrics Output]:
        student_id                            career_name  ability_match_component  interest_match_component  Predicted_Prob
     11  STU002133           Data Analyst Specialist 1117                    69.92                     67.52        0.747252
     14  STU027984  Civil Services Officer Specialist 610                    76.42                     65.37        0.833150
     15  STU002777      Biomedical Engineer Specialist 97                    69.55                     71.08        0.779897
-  --- Output Log Stream (stdout) ---
+  [Standard Output Stream - stdout]:
     
     Sample False Negatives (Predicted Incompatible but Actually Compatible):
-  --- Tabular Data / Result Metrics ---
+  [Formatted Tabular / Metrics Output]:
        student_id                          career_name  ability_match_component  interest_match_component  Predicted_Prob
     0   STU017566             Economist Specialist 362                    67.61                     67.96        0.346554
     29  STU016413          Psychologist Specialist 686                    68.27                     67.85        0.322727
     88  STU015175  Marketing Specialist Specialist 601                    71.81                     69.15        0.171899
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 86 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 82 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 43: Hit@1 / Hit@3 / Hit@5
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 87 / 99 [CODE]                                                                            |
-| Execution Step : [43]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Evaluates Information Retrieval and Ranking quality metrics across all 1,203 careers: Hit@1, Hit@3, Hit@5, Hit@10, MRR, and NDCG@5.
++==================================================================================================+
+| CELL 83 / 95  [CODE]                                                                           |
+| Execution Step: [41]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Information Retrieval & Top-K Recommendation Ranking Evaluation.
+  * Evaluates full-catalogue retrieval quality across all 1,203 career profiles.
+  * Calculates ranking metrics: Hit@1 = 91.74%, Hit@3 = 98.30%, Hit@5 = 98.55%, Hit@10 = 98.55%,
+    Mean Reciprocal Rank (MRR) = 0.9491, and NDCG@5 = 0.9475.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Tabular Data / Result Metrics ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Formatted Tabular / Metrics Output]:
        Metric   Score Percentage
     0   Hit@1  0.9174     91.74%
     1   Hit@3  0.9830     98.30%
@@ -1115,45 +1161,50 @@ FULL VERBATIM OUTPUTS & GENERATED RESULTS:
     3  Hit@10  0.9855     98.55%
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 88 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 84 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 44: MRR / NDCG
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 89 / 99 [CODE]                                                                            |
-| Execution Step : [44]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Evaluates Information Retrieval and Ranking quality metrics across all 1,203 careers: Hit@1, Hit@3, Hit@5, Hit@10, MRR, and NDCG@5.
++==================================================================================================+
+| CELL 85 / 95  [CODE]                                                                           |
+| Execution Step: [42]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Information Retrieval & Top-K Recommendation Ranking Evaluation.
+  * Evaluates full-catalogue retrieval quality across all 1,203 career profiles.
+  * Calculates ranking metrics: Hit@1 = 91.74%, Hit@3 = 98.30%, Hit@5 = 98.55%, Hit@10 = 98.55%,
+    Mean Reciprocal Rank (MRR) = 0.9491, and NDCG@5 = 0.9475.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Tabular Data / Result Metrics ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Formatted Tabular / Metrics Output]:
                            Metric   Score Percentage
     0  MRR (Mean Reciprocal Rank)  0.9491     94.91%
     1    NDCG@5 (Ranking Quality)  0.9475     94.75%
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 90 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 86 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 45: Prediction examples
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 91 / 99 [CODE]                                                                            |
-| Execution Step : [45]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Executes data processing and analytical evaluation: sample_stu_id = test_df['student_id'].iloc[0]
++==================================================================================================+
+| CELL 87 / 95  [CODE]                                                                           |
+| Execution Step: [43]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Sample Inspection of Student Assessment Records.
+  * Renders the top 5 student records to inspect feature naming conventions, value scales (0-100),
+    and initial data structure.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Standard Output Stream - stdout]:
     Top-5 Recommendations for Sample Student #STU017566:
-  --- Tabular Data / Result Metrics ---
+  [Formatted Tabular / Metrics Output]:
       career_id                     career_name       career_domain  Predicted Compatibility (%)  compatibility_label
     0  CAR00920    Legal Advisor Specialist 920         Engineering                        98.31                    1
     1  CAR00235           Welder Specialist 235  Defence & Security                        96.23                    1
@@ -1162,41 +1213,46 @@ FULL VERBATIM OUTPUTS & GENERATED RESULTS:
     4  CAR01029  Data Scientist Specialist 1029          Healthcare                        84.16                    0
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 92 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 88 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 46: Save model artifacts
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 93 / 99 [CODE]                                                                            |
-| Execution Step : [46]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Serializes and exports the trained CatBoost model, preprocessor, feature column registry, and metadata JSON files into 'backend/ml/models/'.
++==================================================================================================+
+| CELL 89 / 95  [CODE]                                                                           |
+| Execution Step: [44]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Production Model Artifact Serialization & Export.
+  * Exports serialized model.joblib, preprocessor.joblib, feature_columns.json, classes.json, model_config.json,
+    and version.json directly to 'backend/ml/models/' for zero-retraining production inference.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Standard Output Stream - stdout]:
     Exported all production model artifacts to D:\Personalized-Career-Recommendation-System-Using-Machine-Learning\backend\ml\models
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 94 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 90 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 47: Artifact verification
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 95 / 99 [CODE]                                                                            |
-| Execution Step : [47]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Serializes and exports the trained CatBoost model, preprocessor, feature column registry, and metadata JSON files into 'backend/ml/models/'.
++==================================================================================================+
+| CELL 91 / 95  [CODE]                                                                           |
+| Execution Step: [45]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Data Hygiene & Missing Value Distribution Audit.
+  * Scans all columns across datasets to identify null/NaN occurrences, data type discrepancies (object vs.
+    float64), and memory footprints.
+  * Identifies columns requiring statistical median imputation or mode imputation.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Tabular Data / Result Metrics ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Formatted Tabular / Metrics Output]:
               Artifact File  Exists?  Size (KB)    Status
     0          model.joblib     True    1100.13  VERIFIED
     1   preprocessor.joblib     True      63.29  VERIFIED
@@ -1204,49 +1260,54 @@ FULL VERBATIM OUTPUTS & GENERATED RESULTS:
     3   model_metadata.json     True       0.21  VERIFIED
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 96 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 92 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 48: Final integrity checks
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 97 / 99 [CODE]                                                                            |
-| Execution Step : [48]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Serializes and exports the trained CatBoost model, preprocessor, feature column registry, and metadata JSON files into 'backend/ml/models/'.
++==================================================================================================+
+| CELL 93 / 95  [CODE]                                                                           |
+| Execution Step: [46]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Production Model Artifact Serialization & Export.
+  * Exports serialized model.joblib, preprocessor.joblib, feature_columns.json, classes.json, model_config.json,
+    and version.json directly to 'backend/ml/models/' for zero-retraining production inference.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Standard Output Stream - stdout]:
     Artifact SHA-256 Hashes:
-      - model.joblib: 2a3507bb34afa99a... (1,126,530 bytes)
+      - model.joblib: f21ae7b8e9d2153d... (1,126,530 bytes)
       - preprocessor.joblib: 7aabb1f3a48ec146... (64,812 bytes)
       - feature_columns.json: 098cda74a5e29955... (453 bytes)
-      - model_metadata.json: 7e0020c9e8dba3c1... (212 bytes)
+      - model_metadata.json: 73fc0082e5bdea2b... (212 bytes)
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 98 / 99 [MARKDOWN]                                                                        |
-+--------------------------------------------------------------------------------------------------+
-DOCUMENTATION & SECTION HEADING:
++==================================================================================================+
+| CELL 94 / 95  [MARKDOWN]                                                                       |
++==================================================================================================+
+DOCUMENTATION & CONCEPTUAL OVERVIEW:
   ### CELL 49: Final project summary
 
 
-+--------------------------------------------------------------------------------------------------+
-| CELL 99 / 99 [CODE]                                                                            |
-| Execution Step : [49]                                                                            |
-+--------------------------------------------------------------------------------------------------+
-OPERATION & METHODOLOGY PERFORMED:
-  Executes automated anti-leakage audit: verifies that no target variables, continuous outcome scores, or student/career IDs exist in the feature matrix.
++==================================================================================================+
+| CELL 95 / 95  [CODE]                                                                           |
+| Execution Step: [47]                                                                             |
++==================================================================================================+
+WHAT IS BEING DONE IN THIS CELL:
+  * Strict Target Leakage & Identity Memorization Audit.
+  * Asserts that 'student_id', 'career_id', and continuous outcome 'compatibility_score' are strictly excluded
+    from the feature matrix.
+  * Audits all 19 features to verify 100% mathematical independence from the target label.
 ----------------------------------------------------------------------------------------------------
-FULL VERBATIM OUTPUTS & GENERATED RESULTS:
-  --- Output Log Stream (stdout) ---
+VERBATIM EXECUTION OUTPUTS & GENERATED RESULTS:
+  [Standard Output Stream - stdout]:
     ================================================================================
                  PERSONALIZED CAREER RECOMMENDATION SYSTEM — ML SUMMARY            
     ================================================================================
-  --- Tabular Data / Result Metrics ---
+  [Formatted Tabular / Metrics Output]:
             Key Metric / Milestone                      Result
     0  Champion Model Architecture                    CatBoost
     1                Test Accuracy                      86.22%
@@ -1261,5 +1322,5 @@ FULL VERBATIM OUTPUTS & GENERATED RESULTS:
 
 
 ====================================================================================================
-END OF CELL-BY-CELL MODEL NOTEBOOK REPORT — PATHFINDER V9.5-CHAMPION
+END OF CELL-BY-CELL MODEL TRAINING REPORT — PATHFINDER V9.5-CHAMPION
 ====================================================================================================

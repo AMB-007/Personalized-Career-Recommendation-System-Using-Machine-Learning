@@ -87,56 +87,35 @@ print("Configuration initialized.")
 print(f"Seed: {RANDOM_SEED} | Confidence Margin (Delta): {CONFIDENCE_MARGIN}")
 """))
 
-    # CELL 3: Load Student Dataset
-    cells.append(new_markdown_cell("""### CELL 3: Load Student Dataset"""))
-    cells.append(new_code_cell("""path_stu = DATA_DIR / "Student_Assessment_RAW_10k_with_issues.csv"
-df_stu_raw = pd.read_csv(path_stu)
-print(f"Loaded Student Assessment Dataset: {df_stu_raw.shape[0]:,} rows x {df_stu_raw.shape[1]} columns")
-"""))
-
-    # CELL 4: Print first 5 Student rows
-    cells.append(new_markdown_cell("""### CELL 4: Print first 5 Student rows"""))
-    cells.append(new_code_cell("""print("Student Assessment Dataset (First 5 Rows):")
-display(df_stu_raw.head())
-"""))
-
-    # CELL 5: Load Career Dataset
-    cells.append(new_markdown_cell("""### CELL 5: Load Career Dataset"""))
+    # CELL 3: Load Career Knowledge Dataset
+    cells.append(new_markdown_cell("""### CELL 3: Load Career Knowledge Dataset"""))
     cells.append(new_code_cell("""path_car = DATA_DIR / "Career_Knowledge_RAW_1206_with_issues.csv"
 df_car_raw = pd.read_csv(path_car)
 print(f"Loaded Career Knowledge Dataset: {df_car_raw.shape[0]:,} rows x {df_car_raw.shape[1]} columns")
 """))
 
-    # CELL 6: Print first 5 Career rows
-    cells.append(new_markdown_cell("""### CELL 6: Print first 5 Career rows"""))
+    # CELL 4: Print first 5 Career rows
+    cells.append(new_markdown_cell("""### CELL 4: Print first 5 Career rows"""))
     cells.append(new_code_cell("""print("Career Knowledge Dataset (First 5 Rows):")
 display(df_car_raw.head())
 """))
 
-    # CELL 7: Load Compatibility Dataset
-    cells.append(new_markdown_cell("""### CELL 7: Load Compatibility Dataset"""))
+    # CELL 5: Load Compatibility Dataset
+    cells.append(new_markdown_cell("""### CELL 5: Load Compatibility Dataset"""))
     cells.append(new_code_cell("""path_compat = DATA_DIR / "Student_Career_Compatibility_RAW_50k_with_issues.csv"
 df_compat_raw = pd.read_csv(path_compat)
 print(f"Loaded Student Career Compatibility Dataset: {df_compat_raw.shape[0]:,} rows x {df_compat_raw.shape[1]} columns")
 """))
 
-    # CELL 8: Print first 5 Compatibility rows
-    cells.append(new_markdown_cell("""### CELL 8: Print first 5 Compatibility rows"""))
+    # CELL 6: Print first 5 Compatibility rows
+    cells.append(new_markdown_cell("""### CELL 6: Print first 5 Compatibility rows"""))
     cells.append(new_code_cell("""print("Student Career Compatibility Dataset (First 5 Rows):")
 display(df_compat_raw.head())
 """))
 
-    # CELL 9: Dataset dimensions
-    cells.append(new_markdown_cell("""### CELL 9: Dataset dimensions"""))
+    # CELL 7: Dataset dimensions
+    cells.append(new_markdown_cell("""### CELL 7: Dataset dimensions"""))
     cells.append(new_code_cell("""dim_summary = [
-    {
-        "Dataset": "Student_Assessment_RAW",
-        "Rows": f"{df_stu_raw.shape[0]:,}",
-        "Columns": df_stu_raw.shape[1],
-        "Numeric Cols": len(df_stu_raw.select_dtypes(include=[np.number]).columns),
-        "Categorical Cols": len(df_stu_raw.select_dtypes(include=['object', 'string']).columns),
-        "Memory (MB)": round(df_stu_raw.memory_usage().sum() / (1024**2), 2)
-    },
     {
         "Dataset": "Career_Knowledge_RAW",
         "Rows": f"{df_car_raw.shape[0]:,}",
@@ -158,16 +137,16 @@ df_dim_summary = pd.DataFrame(dim_summary)
 display(df_dim_summary)
 """))
 
-    # CELL 10: Raw data types
-    cells.append(new_markdown_cell("""### CELL 10: Raw data types"""))
+    # CELL 8: Raw data types
+    cells.append(new_markdown_cell("""### CELL 8: Raw data types"""))
     cells.append(new_code_cell("""print("--- Compatibility Dataset Column Data Types ---")
 display(pd.DataFrame({"Column": df_compat_raw.columns, "Data Type": df_compat_raw.dtypes.values}))
 """))
 
-    # CELL 11: Raw missing values
-    cells.append(new_markdown_cell("""### CELL 11: Raw missing values"""))
+    # CELL 9: Raw missing values
+    cells.append(new_markdown_cell("""### CELL 9: Raw missing values"""))
     cells.append(new_code_cell("""missing_records = []
-for dname, df in [("Student_Assessment_RAW", df_stu_raw), ("Career_Knowledge_RAW", df_car_raw), ("Student_Career_Compatibility_RAW", df_compat_raw)]:
+for dname, df in [("Career_Knowledge_RAW", df_car_raw), ("Student_Career_Compatibility_RAW", df_compat_raw)]:
     nulls = df.isnull().sum()
     for col, cnt in nulls[nulls > 0].items():
         missing_records.append({"Dataset": dname, "Column": col, "Missing Count": cnt, "Missing %": round((cnt / len(df)) * 100, 2)})
@@ -177,10 +156,9 @@ print(f"Total Columns with Missing Values: {len(df_missing)}")
 display(df_missing.head(15))
 """))
 
-    # CELL 12: Raw duplicates
-    cells.append(new_markdown_cell("""### CELL 12: Raw duplicates"""))
+    # CELL 10: Raw duplicates
+    cells.append(new_markdown_cell("""### CELL 10: Raw duplicates"""))
     cells.append(new_code_cell("""dup_records = [
-    {"Dataset": "Student_Assessment_RAW", "Total Rows": len(df_stu_raw), "Duplicate Rows": int(df_stu_raw.duplicated().sum()), "Duplicate %": round(df_stu_raw.duplicated().sum() / len(df_stu_raw) * 100, 2)},
     {"Dataset": "Career_Knowledge_RAW", "Total Rows": len(df_car_raw), "Duplicate Rows": int(df_car_raw.duplicated().sum()), "Duplicate %": round(df_car_raw.duplicated().sum() / len(df_car_raw) * 100, 2)},
     {"Dataset": "Student_Career_Compatibility_RAW", "Total Rows": len(df_compat_raw), "Duplicate Rows": int(df_compat_raw.duplicated().sum()), "Duplicate %": round(df_compat_raw.duplicated().sum() / len(df_compat_raw) * 100, 2)},
 ]
@@ -188,15 +166,15 @@ df_dups = pd.DataFrame(dup_records)
 display(df_dups)
 """))
 
-    # CELL 13: Raw numerical statistics
-    cells.append(new_markdown_cell("""### CELL 13: Raw numerical statistics"""))
+    # CELL 11: Raw numerical statistics
+    cells.append(new_markdown_cell("""### CELL 11: Raw numerical statistics"""))
     cells.append(new_code_cell("""num_cols = ['ability_match_component', 'interest_match_component', 'academic_match_component', 'learning_match_component', 'compatibility_score']
 print("Raw Numerical Descriptive Statistics:")
 display(df_compat_raw[num_cols].describe().round(2))
 """))
 
-    # CELL 14: Raw categorical EDA
-    cells.append(new_markdown_cell("""### CELL 14: Raw categorical EDA"""))
+    # CELL 12: Raw categorical EDA
+    cells.append(new_markdown_cell("""### CELL 12: Raw categorical EDA"""))
     cells.append(new_code_cell("""print("Stream Distribution:")
 display(df_compat_raw['stream'].value_counts(dropna=False))
 
@@ -204,8 +182,8 @@ print("\\nTop 10 Career Domains:")
 display(df_compat_raw['career_domain'].value_counts(dropna=False).head(10))
 """))
 
-    # CELL 15: Raw target distribution
-    cells.append(new_markdown_cell("""### CELL 15: Raw target distribution"""))
+    # CELL 13: Raw target distribution
+    cells.append(new_markdown_cell("""### CELL 13: Raw target distribution"""))
     cells.append(new_code_cell("""target_counts = df_compat_raw['compatibility_label'].value_counts()
 target_pcts = df_compat_raw['compatibility_label'].value_counts(normalize=True) * 100
 df_target = pd.DataFrame({
@@ -216,8 +194,8 @@ df_target = pd.DataFrame({
 display(df_target)
 """))
 
-    # CELL 16: Raw EDA figures
-    cells.append(new_markdown_cell("""### CELL 16: Raw EDA figures"""))
+    # CELL 14: Raw EDA figures
+    cells.append(new_markdown_cell("""### CELL 14: Raw EDA figures"""))
     cells.append(new_code_cell("""fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
 # 1. Target Label Distribution
@@ -263,12 +241,11 @@ plt.tight_layout()
 plt.show()
 """))
 
-    # CELL 17: Data cleaning
-    cells.append(new_markdown_cell("""### CELL 17: Data cleaning"""))
+    # CELL 15: Data cleaning
+    cells.append(new_markdown_cell("""### CELL 15: Data cleaning"""))
     cells.append(new_code_cell("""# 1. Deduplication
 df_compat_clean = df_compat_raw.drop_duplicates().reset_index(drop=True)
 df_car_clean = df_car_raw.drop_duplicates().reset_index(drop=True)
-df_stu_clean = df_stu_raw.drop_duplicates().reset_index(drop=True)
 
 # 2. Categorical Imputation & Normalization
 cat_cols = ['career_name', 'career_domain', 'career_subdomain', 'career_cluster', 'stream']
@@ -289,10 +266,9 @@ df_compat_clean['compatibility_label'] = df_compat_clean['compatibility_label'].
 print("Data Cleaning Completed.")
 """))
 
-    # CELL 18: Before/after cleaning report
-    cells.append(new_markdown_cell("""### CELL 18: Before/after cleaning report"""))
+    # CELL 16: Before/after cleaning report
+    cells.append(new_markdown_cell("""### CELL 16: Before/after cleaning report"""))
     cells.append(new_code_cell("""cleaning_summary = [
-    {"Dataset": "Student_Assessment", "Raw Rows": len(df_stu_raw), "Cleaned Rows": len(df_stu_clean), "Duplicates Dropped": len(df_stu_raw) - len(df_stu_clean), "Status": "Cleaned & Imputed"},
     {"Dataset": "Career_Knowledge", "Raw Rows": len(df_car_raw), "Cleaned Rows": len(df_car_clean), "Duplicates Dropped": len(df_car_raw) - len(df_car_clean), "Status": "Cleaned & Imputed"},
     {"Dataset": "Student_Career_Compatibility", "Raw Rows": len(df_compat_raw), "Cleaned Rows": len(df_compat_clean), "Duplicates Dropped": len(df_compat_raw) - len(df_compat_clean), "Status": "Cleaned & Imputed"},
 ]
@@ -300,14 +276,12 @@ df_clean_rep = pd.DataFrame(cleaning_summary)
 display(df_clean_rep)
 """))
 
-    # CELL 19: Cleaned datasets
-    cells.append(new_markdown_cell("""### CELL 19: Cleaned datasets"""))
-    cells.append(new_code_cell("""df_stu_clean.to_csv(CLEANED_DIR / "Student_Assessment_CLEANED.csv", index=False)
-df_car_clean.to_csv(CLEANED_DIR / "Career_Knowledge_CLEANED.csv", index=False)
+    # CELL 17: Cleaned datasets
+    cells.append(new_markdown_cell("""### CELL 17: Cleaned datasets"""))
+    cells.append(new_code_cell("""df_car_clean.to_csv(CLEANED_DIR / "Career_Knowledge_CLEANED.csv", index=False)
 df_compat_clean.to_csv(CLEANED_DIR / "Student_Career_Compatibility_CLEANED.csv", index=False)
 
 print(f"Exported cleaned datasets to {CLEANED_DIR.resolve()}:")
-print(f"  - Student_Assessment_CLEANED.csv: {len(df_stu_clean):,} rows")
 print(f"  - Career_Knowledge_CLEANED.csv: {len(df_car_clean):,} rows")
 print(f"  - Student_Career_Compatibility_CLEANED.csv: {len(df_compat_clean):,} rows")
 """))

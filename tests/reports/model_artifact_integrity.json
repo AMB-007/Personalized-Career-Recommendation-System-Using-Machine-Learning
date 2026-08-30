@@ -1,26 +1,20 @@
 {
-  "model_version": "V9.5-Champion",
-  "algorithm": "CatBoost",
   "files": {
     "model.joblib": {
-      "sha256": "2a3507bb34afa99a3534bae7d475df933849d1026b9455a0bab639479aa14462",
-      "size_bytes": 1126530,
-      "status": "verified"
+      "sha256": "f21ae7b8e9d2153dedac83d89c5344d0854371e25a5c0d9a749c56cd5fe7abff",
+      "size_bytes": 1126530
     },
     "preprocessor.joblib": {
       "sha256": "7aabb1f3a48ec1469c225d468e48c672390e81802a15d62650cf3713ef04682e",
-      "size_bytes": 64812,
-      "status": "verified"
+      "size_bytes": 64812
     },
-    "feature_columns.json": {
-      "sha256": "098cda74a5e299550a1d5308fad51a698dcb9e96f555f4b58501ca371fa560a6",
-      "size_bytes": 453,
-      "status": "verified"
+    "model_metadata.json": {
+      "sha256": "73fc0082e5bdea2b6e48a25f209a70233bd577d268dbfd0fc621a540b6554ad0",
+      "size_bytes": 212
     },
     "career_knowledge_requirements.csv": {
       "sha256": "f116b73cfd3d82967c632a46ea7ca7d1c17c18222d5a804fa1cd929750883228",
-      "size_bytes": 230917,
-      "status": "verified"
+      "size_bytes": 230917
     }
   }
 }
