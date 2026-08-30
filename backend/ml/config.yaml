@@ -1,0 +1,24 @@
+# backend/ml/config.yaml
+# Configuration for the career recommendation engine.
+# Domain‑specific minimum thresholds (values are percentages 0‑100).
+# If a career's required value is below the threshold, it will be filtered out.
+
+domain_requirements:
+  healthcare:
+    scientific_reasoning: 60
+    mathematical_ability: 60
+  engineering:
+    engineering_interest: 55
+  arts:
+    arts_interest: 50
+
+# Interest‑weighting parameters
+# Top N interests (by student score) receive a boost factor.
+interest_boost_factor: 1.5
+top_n_interests: 3
+# Default global thresholds applied when a domain is not explicitly listed.
+# Default global thresholds applied when a domain is not explicitly listed.
+default_requirements:
+  required_scientific_thinking: 50
+  required_mathematical_ability: 50
+

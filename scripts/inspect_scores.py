@@ -30,8 +30,8 @@ student_profile = {
 }
 
 recs = CareerRecommendationEngine.generate_recommendations(student_profile, top_k=10)
-print(f"Total Evaluated: {recs.get('total_careers_evaluated')}")
+print(f"Total Evaluated: {recs.get('total_evaluated_careers')}")
 print(f"Model Version: {recs.get('model_version')}")
 print("-" * 80)
 for r in recs['recommendations']:
-    print(f"Rank #{r['rank']:2d}: {r['career_name']} | Domain: {r['career_domain']} | Score: {r['compatibility_score']}% | Prob: {r['probability']:.4f} | A_match: {r.get('ability_match_component')} | I_match: {r.get('interest_match_component')}")
+    print(f"Rank #{r['rank']:2d}: {r['career_name']} | Domain: {r['career_domain']} | Score: {r['compatibility_score']}% | Prob: {r['probability']:.4f} | A_match: {r.get('ability_match_score')}% | I_match: {r.get('interest_match_score')}%")

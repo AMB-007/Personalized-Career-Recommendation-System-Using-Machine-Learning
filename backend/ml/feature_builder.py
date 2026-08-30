@@ -7,11 +7,16 @@ XGBoost Career Compatibility Model.
 
 import logging
 from typing import Dict, List, Any, Optional, Union
+from pathlib import Path
+import yaml
 import numpy as np
 import pandas as pd
 from backend.ml.model_loader import get_feature_columns
 
 logger = logging.getLogger(__name__)
+
+# stray _load_config removed (now defined inside FeatureBuilder class)
+
 
 # 8 Primary Cognitive & Aptitude Dimensions for Ability Matching
 PRIMARY_ABILITY_PAIRS = [
@@ -42,6 +47,36 @@ PRIMARY_INTEREST_PAIRS = [
 
 class FeatureBuilder:
     """Builds and validates feature vectors for XGBoost compatibility inference."""
+
+    @classmethod
+    def _load_config(cls):
+        """Load ``backend/ml/config.yaml`` once per process.
+
+        Returns an empty dict if the file is missing.
+        """
+        config_path = Path(__file__).resolve().parent / "config.yaml"
+        if config_path.exists():
+            with open(config_path, "r", encoding="utf-8") as f:
+                return yaml.safe_load(f) or {}
+        return {}
+
+    @classmethod
+    def _interest_weights(cls, student_scores: Dict[str, Any]) -> Dict[str, float]:
+        """Return weighting factors for each interest.
+
+        The top N interests (by student score) receive a boost factor defined in config.
+        """
+        cfg = cls._load_config()
+        top_n = cfg.get('top_n_interests', 3)
+        boost = cfg.get('interest_boost_factor', 1.5)
+        # collect interest fields
+        interest_fields = [field for field, _ in PRIMARY_INTEREST_PAIRS]
+        scores = {field: cls._extract_student_interest_score(student_scores, field) for field in interest_fields}
+        top_fields = sorted(scores, key=scores.get, reverse=True)[:top_n]
+        weights = {field: 1.0 for field in interest_fields}
+        for f in top_fields:
+            weights[f] = boost
+        return weights
 
     @staticmethod
     def _extract_student_ability_score(student_scores: Dict[str, Any], field_name: str) -> float:
@@ -109,11 +144,15 @@ class FeatureBuilder:
         and career required interests: mean(100 - |student - required|).
         """
         diffs = []
+        weights = cls._interest_weights(student_scores)
         for stu_field, car_field in PRIMARY_INTEREST_PAIRS:
             s_val = cls._extract_student_interest_score(student_scores, stu_field)
             c_val = float(career_reqs.get(car_field, 50.0) or 50.0)
-            diffs.append(max(0.0, 100.0 - abs(s_val - c_val)))
-        return round(float(np.mean(diffs)), 2)
+            weight = weights.get(stu_field, 1.0)
+            diffs.append(weight * max(0.0, 100.0 - abs(s_val - c_val)))
+        # normalize by total weight sum to keep scale 0‑100
+        total_weight = sum(weights.values())
+        return round(float(np.mean(diffs) / total_weight * len(weights)), 2)
 
     @classmethod
     def build_candidate_feature_row(
