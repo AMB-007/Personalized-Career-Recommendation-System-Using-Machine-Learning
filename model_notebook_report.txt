@@ -1,61 +1,61 @@
 ====================================================================================================
-PATHFINDER: CAREER RECOMMENDATION SYSTEM USING MACHINE LEARNING
-CELL-BY-CELL MACHINE LEARNING NOTEBOOK TRAINING EXECUTION REPORT
+PATHFINDER: PERSONALIZED CAREER RECOMMENDATION SYSTEM USING MACHINE LEARNING
+COMPLETE CELL-BY-CELL MODEL NOTEBOOK EXECUTION & FULL OUTPUT REPORT
 ====================================================================================================
-Report Generated   : August 30, 2026, 06:07 PM
+Report Generated   : August 30, 2026, 06:08 PM
 Notebook Source    : model_training/notebook.ipynb
-Total Cells Count  : 99 Cells
+Total Cells Count  : 99 Cells (Markdown & Executed Code Cells)
 Champion Model     : CatBoost Classifier (V9.5-Champion / V9.5-LeakFree-HighAccuracy)
-Key Results        : Accuracy: 86.22% | F1-Score: 0.9154 | ROC-AUC: 86.04% | Hit@1: 91.74%
+Core Performance   : 86.22% Accuracy | 0.9154 F1-Score | 86.04% ROC-AUC | 91.74% Hit@1 | 98.55% Hit@5
 ====================================================================================================
 
-TABLE OF CONTENTS / NOTEBOOK STRUCTURAL PHASES:
+TABLE OF CONTENTS & NOTEBOOK PIPELINE STAGES:
 ----------------------------------------------------------------------------------------------------
-  Phase 1: Environment Initialization, Dependency Imports & Plotting Configuration
-  Phase 2: Relational Dataset Ingestion & Schema Auditing (3 Raw Datasets)
-  Phase 3: Exploratory Data Analysis (EDA), Statistical Distributions & Demographics
-  Phase 4: Data Hygiene, Deduplication, Missing Value Imputation & Outlier Clamping
-  Phase 5: High-Dimensional Feature Engineering (19-Feature Synergy Matrix)
-  Phase 6: Strict Anti-Leakage Verification & Privacy Assertions (19/19 Safe)
-  Phase 7: Preprocessing Pipeline Construction (scikit-learn ColumnTransformer)
-  Phase 8: Multi-Model Benchmark & Comparative Evaluation (CatBoost, RF, LightGBM, XGBoost)
-  Phase 9: 5-Fold Stratified Group Cross-Validation (CatBoost Champion)
-  Phase 10: Test Set Evaluation, Confusion Matrix & Detailed Classification Diagnostics
-  Phase 11: Top-K Ranking & Information Retrieval Metrics (Hit@1, Hit@3, Hit@5, MRR, NDCG@5)
-  Phase 12: SHAP Feature Importance, Interpretability & Domain Sensitivity Analysis
-  Phase 13: Model Serialization & Production Artifact Export (backend/ml/models/)
+  [Cells 01 - 06] Phase 1: Environment Setup, Library Imports & Matplotlib/Seaborn Styling
+  [Cells 07 - 15] Phase 2: Ingestion of 3 Relational Datasets & Initial Schema Profiling
+  [Cells 16 - 32] Phase 3: Exploratory Data Analysis (EDA), Statistical Distributions & Demographics
+  [Cells 33 - 45] Phase 4: Data Hygiene, Deduplication (163 Duplicates Pruned) & Median/Mode Imputation
+  [Cells 46 - 58] Phase 5: Vectorized 19-Feature Matrix Engineering (Cognitive, Interest & Synergy Indices)
+  [Cells 59 - 64] Phase 6: Strict Target Leakage Audit & Identity Exclusion Assertions (19/19 Safe)
+  [Cells 65 - 70] Phase 7: Preprocessor Construction (scikit-learn ColumnTransformer & OrdinalEncoder)
+  [Cells 71 - 78] Phase 8: Multi-Model Benchmark (CatBoost, Random Forest, LightGBM, XGBoost)
+  [Cells 79 - 84] Phase 9: 5-Fold Stratified Group Cross-Validation (CatBoost: 86.06% +/- 0.39%)
+  [Cells 85 - 89] Phase 10: Test Set Diagnostics, Confusion Matrix & Classwise Precision/Recall
+  [Cells 90 - 93] Phase 11: Information Retrieval & Top-K Ranking Metrics (Hit@1, Hit@3, Hit@5, MRR, NDCG@5)
+  [Cells 94 - 96] Phase 12: SHAP Feature Importance, Interpretability Hierarchy & Sensitivity
+  [Cells 97 - 99] Phase 13: Model Serialization & Production Artifact Export (backend/ml/models/)
 ----------------------------------------------------------------------------------------------------
 
 ====================================================================================================
-DETAILED CELL-BY-CELL EXECUTION BREAKDOWN
+DETAILED CELL-BY-CELL CODE & FULL OUTPUT LOGS
 ====================================================================================================
 
-[=================================== CELL 01 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 1
-Cell Type        : MARKDOWN CELL
-Primary Focus    : # 🎓 Personalized Career Recommendation System — Machine Learning Notebook
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 01 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : # 🎓 Personalized Career Recommendation System — Machine Learning Notebook
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   # 🎓 Personalized Career Recommendation System — Machine Learning Notebook
   ### Complete 49-Cell End-to-End ML Pipeline: Ingestion, Audit, Cleaning, Pure Feature Engineering, Multi-Model Benchmarking, SHAP Explainability, Ranking Evaluation & Artifact Deployment
 
 
-[=================================== CELL 02 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 2
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 1: Imports
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 02 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 1: Imports
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 1: Imports
 
 
-[=================================== CELL 03 / 99 (CODE) ===================================]
-Cell Index       : Cell 3
-Cell Type        : CODE CELL
-Execution Order  : [1]
-Primary Focus    : import os
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 03 / 99 [CODE]                                                                            |
+| Execution Index: [1]                                                                             |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : import os
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   import os
   import sys
   import time
@@ -71,34 +71,53 @@ CODE CONTENT EXECUTED:
   
   from sklearn.model_selection import GroupShuffleSplit, StratifiedGroupKFold
   from sklearn.compose import ColumnTransformer
-  ... [15 lines of detailed processing code truncated] ...
+  from sklearn.pipeline import Pipeline
+  from sklearn.impute import SimpleImputer
+  from sklearn.preprocessing import StandardScaler, OrdinalEncoder
+  from sklearn.dummy import DummyClassifier
+  from sklearn.ensemble import RandomForestClassifier
+  from sklearn.metrics import (
+      accuracy_score, balanced_accuracy_score, precision_score, recall_score,
+      f1_score, roc_auc_score, average_precision_score, confusion_matrix,
+      roc_curve, precision_recall_curve, classification_report
+  )
+  import xgboost as xgb
+  import lightgbm as lgb
+  from catboost import CatBoostClassifier
+  import shap
+  import joblib
   
   warnings.filterwarnings('ignore')
   print("Libraries imported successfully.")
   print(f"Python: {sys.version.split()[0]} | NumPy: {np.__version__} | Pandas: {pd.__version__}")
   print(f"XGBoost: {xgb.__version__} | LightGBM: {lgb.__version__} | SHAP: {shap.__version__}")
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: Libraries imported successfully. | Python: 3.14.6 | NumPy: 2.4.6 | Pandas: 3.0.3 | XGBoost: 3.3.0 | LightGBM: 4.7.0 | SHAP: 0.52.0
-  * Stream Output: C:\Python314\Lib\site-packages\tqdm\auto.py:21: TqdmWarning: IProgress not found. Please update jupyter and ipywidgets. See https://ipywidgets.readthedocs.io/en/stable/user_install.html |   from .autonotebook import tqdm as notebook_tqdm
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    Libraries imported successfully.
+    Python: 3.14.6 | NumPy: 2.4.6 | Pandas: 3.0.3
+    XGBoost: 3.3.0 | LightGBM: 4.7.0 | SHAP: 0.52.0
+  --- Output Stream (stderr) ---
+    C:\Python314\Lib\site-packages\tqdm\auto.py:21: TqdmWarning: IProgress not found. Please update jupyter and ipywidgets. See https://ipywidgets.readthedocs.io/en/stable/user_install.html
+      from .autonotebook import tqdm as notebook_tqdm
 
 
-[=================================== CELL 04 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 4
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 2: Configuration
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 04 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 2: Configuration
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 2: Configuration
 
 
-[=================================== CELL 05 / 99 (CODE) ===================================]
-Cell Index       : Cell 5
-Cell Type        : CODE CELL
-Execution Order  : [2]
-Primary Focus    : RANDOM_SEED = 42
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 05 / 99 [CODE]                                                                            |
+| Execution Index: [2]                                                                             |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : RANDOM_SEED = 42
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   RANDOM_SEED = 42
   CONFIDENCE_MARGIN = 0.15
   
@@ -120,171 +139,199 @@ CODE CONTENT EXECUTED:
   
   print("Configuration initialized.")
   print(f"Seed: {RANDOM_SEED} | Confidence Margin (Delta): {CONFIDENCE_MARGIN}")
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: Configuration initialized. | Seed: 42 | Confidence Margin (Delta): 0.15
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    Configuration initialized.
+    Seed: 42 | Confidence Margin (Delta): 0.15
 
 
-[=================================== CELL 06 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 6
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 3: Load Student Dataset
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 06 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 3: Load Student Dataset
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 3: Load Student Dataset
 
 
-[=================================== CELL 07 / 99 (CODE) ===================================]
-Cell Index       : Cell 7
-Cell Type        : CODE CELL
-Execution Order  : [3]
-Primary Focus    : path_stu = DATA_DIR / "Student_Assessment_RAW_10k_with_issues.csv"
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 07 / 99 [CODE]                                                                            |
+| Execution Index: [3]                                                                             |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : path_stu = DATA_DIR / "Student_Assessment_RAW_10k_with_issues.csv"
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   path_stu = DATA_DIR / "Student_Assessment_RAW_10k_with_issues.csv"
   df_stu_raw = pd.read_csv(path_stu)
   print(f"Loaded Student Assessment Dataset: {df_stu_raw.shape[0]:,} rows x {df_stu_raw.shape[1]} columns")
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: Loaded Student Assessment Dataset: 10,000 rows x 122 columns
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    Loaded Student Assessment Dataset: 10,000 rows x 122 columns
 
 
-[=================================== CELL 08 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 8
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 4: Print first 5 Student rows
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 08 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 4: Print first 5 Student rows
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 4: Print first 5 Student rows
 
 
-[=================================== CELL 09 / 99 (CODE) ===================================]
-Cell Index       : Cell 9
-Cell Type        : CODE CELL
-Execution Order  : [4]
-Primary Focus    : print("Student Assessment Dataset (First 5 Rows):")
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 09 / 99 [CODE]                                                                            |
+| Execution Index: [4]                                                                             |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : print("Student Assessment Dataset (First 5 Rows):")
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   print("Student Assessment Dataset (First 5 Rows):")
   display(df_stu_raw.head())
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: Student Assessment Dataset (First 5 Rows):
-  * Result Output: student_id  age  class       stream   board_type preferred_environment preferred_task_type preferred_work_style preferred_work_pace mobility_preference  assessment_completion_rate  response_consistency  confidence_in_answers  overall_percentage  mathematics_score  science_score  english_score  ...  media_interest  communication_interest  agriculture_interest  environment_interest  construction_interest  manufacturing_interest  hospitality_interest  sports_interest  aviation_interest  marine_interest  public_service_interest  research_interest  entrepreneurship_interest  fashion_interest  food_interest  travel_interest  logistics_interest | 0  STU020620   14     10      General  State Board                Remote                Data          Independent            Variable            Flexible                        89.7                  69.8                   84.5                73.2               75.4           64.0           56.5  ...            59.7                    85.3                  74.1                  38.1                   90.5                    69.0                  65.7             78.9               83.5             66.4                     94.4               65.7                       74.3              52.1           75.6             63.1                88.2
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    Student Assessment Dataset (First 5 Rows):
+  --- Formatted Result / Data Table ---
+      student_id  age  class       stream   board_type preferred_environment preferred_task_type preferred_work_style preferred_work_pace mobility_preference  assessment_completion_rate  response_consistency  confidence_in_answers  overall_percentage  mathematics_score  science_score  english_score  ...  media_interest  communication_interest  agriculture_interest  environment_interest  construction_interest  manufacturing_interest  hospitality_interest  sports_interest  aviation_interest  marine_interest  public_service_interest  research_interest  entrepreneurship_interest  fashion_interest  food_interest  travel_interest  logistics_interest
+    0  STU020620   14     10      General  State Board                Remote                Data          Independent            Variable            Flexible                        89.7                  69.8                   84.5                73.2               75.4           64.0           56.5  ...            59.7                    85.3                  74.1                  38.1                   90.5                    69.0                  65.7             78.9               83.5             66.4                     94.4               65.7                       74.3              52.1           75.6             63.1                88.2
+    1  STU015324   11      7      General  State Board               Outdoor              People          Independent          Fast-paced       International                        88.9                  72.1                   95.2                44.7               76.0            NaN           73.5  ...            76.8                    50.7                  81.2                  60.7                   60.5                    40.5                  89.8             81.1               41.7             74.1                     84.9               72.3                       83.0              52.1           50.8             59.4                42.3
+    2  STU005708   19     12   Humanities         ICSE              Hospital            Machines                 Team            Variable            Flexible                        92.1                  97.8                   87.5                66.0               88.4           76.6           76.5  ...            82.2                    55.1                  81.6                  80.3                   68.3                    96.9                  47.4             98.1               58.3             85.8                     69.0               93.3                       61.9              82.5           89.8             46.1                57.8
+    3  STU015527   15      9      General  State Board                School            Creative                 Team          Structured            National                        91.9                  75.1                   74.6                89.4               62.7           84.4           78.6  ...            62.4                    51.5                  53.5                  45.6                   45.2                    71.2                  48.2             67.9               45.1             83.4                     68.6               73.8                       84.9              78.1           57.9             75.8                70.5
+    4  STU014779   17     12  Science-PCM  State Board                 Mixed            Machines                 Team          Fast-paced       International                        96.5                  95.4                   75.5                83.4               74.1           32.5           84.0  ...            79.5                    72.2                  59.6                  62.7                   63.3                    71.1                  83.3             97.6               78.5             74.9                     77.9               73.5                       74.6              74.0           83.5             85.7                83.2
+    
+    [5 rows x 122 columns]
 
 
-[=================================== CELL 10 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 10
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 5: Load Career Dataset
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 10 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 5: Load Career Dataset
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 5: Load Career Dataset
 
 
-[=================================== CELL 11 / 99 (CODE) ===================================]
-Cell Index       : Cell 11
-Cell Type        : CODE CELL
-Execution Order  : [5]
-Primary Focus    : path_car = DATA_DIR / "Career_Knowledge_RAW_1206_with_issues.csv"
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 11 / 99 [CODE]                                                                            |
+| Execution Index: [5]                                                                             |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : path_car = DATA_DIR / "Career_Knowledge_RAW_1206_with_issues.csv"
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   path_car = DATA_DIR / "Career_Knowledge_RAW_1206_with_issues.csv"
   df_car_raw = pd.read_csv(path_car)
   print(f"Loaded Career Knowledge Dataset: {df_car_raw.shape[0]:,} rows x {df_car_raw.shape[1]} columns")
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: Loaded Career Knowledge Dataset: 1,206 rows x 27 columns
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    Loaded Career Knowledge Dataset: 1,206 rows x 27 columns
 
 
-[=================================== CELL 12 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 12
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 6: Print first 5 Career rows
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 12 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 6: Print first 5 Career rows
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 6: Print first 5 Career rows
 
 
-[=================================== CELL 13 / 99 (CODE) ===================================]
-Cell Index       : Cell 13
-Cell Type        : CODE CELL
-Execution Order  : [6]
-Primary Focus    : print("Career Knowledge Dataset (First 5 Rows):")
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 13 / 99 [CODE]                                                                            |
+| Execution Index: [6]                                                                             |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : print("Career Knowledge Dataset (First 5 Rows):")
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   print("Career Knowledge Dataset (First 5 Rows):")
   display(df_car_raw.head())
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: Career Knowledge Dataset (First 5 Rows):
-  * Result Output: career_id                career_name  career_domain career_subdomain career_cluster  required_mathematical_ability  required_logical_reasoning  required_scientific_thinking  required_problem_solving  required_analytical_thinking  required_communication  required_creativity  required_digital_ability  required_spatial_ability  required_practical_ability  required_learning_ability  required_technology_interest  required_engineering_interest  required_healthcare_interest  required_business_interest  required_finance_interest  required_arts_interest  required_design_interest  required_research_interest  required_environment_interest  required_agriculture_interest minimum_education_level | 0  CAR00001         Software Developer     Technology          Track 1      Cluster 1                           23.0                        79.0                          24.0                      49.0                          19.0                    57.0                 51.0                      67.0                      45.0                        92.0                       41.0                          73.0                           56.0                          92.0                        62.0                       69.0                    22.0                      27.0                        79.0                           89.0                           51.0            Postgraduate
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    Career Knowledge Dataset (First 5 Rows):
+  --- Formatted Result / Data Table ---
+      career_id                career_name  career_domain career_subdomain career_cluster  required_mathematical_ability  required_logical_reasoning  required_scientific_thinking  required_problem_solving  required_analytical_thinking  required_communication  required_creativity  required_digital_ability  required_spatial_ability  required_practical_ability  required_learning_ability  required_technology_interest  required_engineering_interest  required_healthcare_interest  required_business_interest  required_finance_interest  required_arts_interest  required_design_interest  required_research_interest  required_environment_interest  required_agriculture_interest minimum_education_level
+    0  CAR00001         Software Developer     Technology          Track 1      Cluster 1                           23.0                        79.0                          24.0                      49.0                          19.0                    57.0                 51.0                      67.0                      45.0                        92.0                       41.0                          73.0                           56.0                          92.0                        62.0                       69.0                    22.0                      27.0                        79.0                           89.0                           51.0            Postgraduate
+    1  CAR00002             Data Scientist    Engineering          Track 2      Cluster 2                           39.0                        50.0                          36.0                      36.0                          91.0                    88.0                 46.0                      40.0                      42.0                        36.0                       52.0                          82.0                           47.0                          77.0                        25.0                       86.0                    15.0                      51.0                        24.0                           89.0                           53.0     Professional Degree
+    2  CAR00003                AI Engineer     Healthcare          Track 3      Cluster 3                           35.0                        46.0                          59.0                      33.0                          20.0                    20.0                 35.0                      69.0                      23.0                        26.0                       91.0                          44.0                           24.0                          78.0                        48.0                       18.0                    66.0                      74.0                        33.0                           95.0                           64.0     Professional Degree
+    3  CAR00004  Machine Learning Engineer  Life Sciences          Track 4      Cluster 4                           91.0                        95.0                          83.0                      92.0                          36.0                    61.0                 69.0                      29.0                      57.0                        56.0                       66.0                          71.0                           72.0                          86.0                        88.0                       15.0                    57.0                      71.0                        60.0                           60.0                           25.0        Higher Secondary
+    4  CAR00005      Cybersecurity Analyst    Agriculture          Track 5      Cluster 5                            NaN                        92.0                          50.0                      60.0                          51.0                    58.0                 46.0                      47.0                      76.0                        68.0                       35.0                          84.0                           17.0                          45.0                        61.0                       33.0                    40.0                      25.0                        68.0                           72.0                           16.0               Secondary
 
 
-[=================================== CELL 14 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 14
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 7: Load Compatibility Dataset
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 14 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 7: Load Compatibility Dataset
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 7: Load Compatibility Dataset
 
 
-[=================================== CELL 15 / 99 (CODE) ===================================]
-Cell Index       : Cell 15
-Cell Type        : CODE CELL
-Execution Order  : [7]
-Primary Focus    : path_compat = DATA_DIR / "Student_Career_Compatibility_RAW_50k_with_issues.csv"
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 15 / 99 [CODE]                                                                            |
+| Execution Index: [7]                                                                             |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : path_compat = DATA_DIR / "Student_Career_Compatibility_RAW_50k_with_issues.csv"
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   path_compat = DATA_DIR / "Student_Career_Compatibility_RAW_50k_with_issues.csv"
   df_compat_raw = pd.read_csv(path_compat)
   print(f"Loaded Student Career Compatibility Dataset: {df_compat_raw.shape[0]:,} rows x {df_compat_raw.shape[1]} columns")
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: Loaded Student Career Compatibility Dataset: 50,000 rows x 15 columns
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    Loaded Student Career Compatibility Dataset: 50,000 rows x 15 columns
 
 
-[=================================== CELL 16 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 16
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 8: Print first 5 Compatibility rows
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 16 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 8: Print first 5 Compatibility rows
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 8: Print first 5 Compatibility rows
 
 
-[=================================== CELL 17 / 99 (CODE) ===================================]
-Cell Index       : Cell 17
-Cell Type        : CODE CELL
-Execution Order  : [8]
-Primary Focus    : print("Student Career Compatibility Dataset (First 5 Rows):")
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 17 / 99 [CODE]                                                                            |
+| Execution Index: [8]                                                                             |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : print("Student Career Compatibility Dataset (First 5 Rows):")
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   print("Student Career Compatibility Dataset (First 5 Rows):")
   display(df_compat_raw.head())
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: Student Career Compatibility Dataset (First 5 Rows):
-  * Result Output: student_id career_id                            career_name          career_domain career_subdomain career_cluster  age  class       stream  ability_match_component  interest_match_component  academic_match_component  learning_match_component  compatibility_score  compatibility_label | 0  STU017566  CAR00362               Economist Specialist 362               Aviation          Track 2     CLUSTER 2    14      9      General                    67.61                     67.96                      88.5                      57.9                71.03                    1
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    Student Career Compatibility Dataset (First 5 Rows):
+  --- Formatted Result / Data Table ---
+      student_id career_id                            career_name          career_domain career_subdomain career_cluster  age  class       stream  ability_match_component  interest_match_component  academic_match_component  learning_match_component  compatibility_score  compatibility_label
+    0  STU017566  CAR00362               Economist Specialist 362               Aviation          Track 2     CLUSTER 2    14      9      General                    67.61                     67.96                      88.5                      57.9                71.03                    1
+    1  STU030806  CAR00834                 Auditor Specialist 834                 Sports          Track 4     Cluster 24   15     11  Science-PCB                    62.44                     76.75                      15.8                      40.9                54.54                    0
+    2  STU023311  CAR00597                 Auditor Specialist 597             Healthcare          Track 7     Cluster 27   13      7      General                    72.17                     76.53                      46.3                      83.6                71.18                    1
+    3  STU012188  CAR00041                          Oceanographer                Finance          Track 1     Cluster 11   14      8      General                    75.30                     69.27                      71.0                      76.9                72.81                    1
+    4  STU007853  CAR00560  Database Administrator Specialist 560  Media & Communication         Track 10     Cluster 20   15     10      General                    71.36                     75.57                      57.6                      96.0                70.50                    1
 
 
-[=================================== CELL 18 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 18
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 9: Dataset dimensions
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 18 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 9: Dataset dimensions
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 9: Dataset dimensions
 
 
-[=================================== CELL 19 / 99 (CODE) ===================================]
-Cell Index       : Cell 19
-Cell Type        : CODE CELL
-Execution Order  : [9]
-Primary Focus    : dim_summary = [
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 19 / 99 [CODE]                                                                            |
+| Execution Index: [9]                                                                             |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : dim_summary = [
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   dim_summary = [
       {
           "Dataset": "Student_Assessment_RAW",
@@ -300,57 +347,85 @@ CODE CONTENT EXECUTED:
           "Columns": df_car_raw.shape[1],
           "Numeric Cols": len(df_car_raw.select_dtypes(include=[np.number]).columns),
           "Categorical Cols": len(df_car_raw.select_dtypes(include=['object', 'string']).columns),
-  ... [8 lines of detailed processing code truncated] ...
+          "Memory (MB)": round(df_car_raw.memory_usage().sum() / (1024**2), 2)
+      },
+      {
+          "Dataset": "Student_Career_Compatibility_RAW",
+          "Rows": f"{df_compat_raw.shape[0]:,}",
+          "Columns": df_compat_raw.shape[1],
+          "Numeric Cols": len(df_compat_raw.select_dtypes(include=[np.number]).columns),
+          "Categorical Cols": len(df_compat_raw.select_dtypes(include=['object', 'string']).columns),
           "Memory (MB)": round(df_compat_raw.memory_usage().sum() / (1024**2), 2)
       }
   ]
   df_dim_summary = pd.DataFrame(dim_summary)
   display(df_dim_summary)
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Result Output: Dataset    Rows  Columns  Numeric Cols  Categorical Cols  Memory (MB) | 0            Student_Assessment_RAW  10,000      122           114                 8         9.92
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Formatted Result / Data Table ---
+                                Dataset    Rows  Columns  Numeric Cols  Categorical Cols  Memory (MB)
+    0            Student_Assessment_RAW  10,000      122           114                 8         9.92
+    1              Career_Knowledge_RAW   1,206       27            21                 6         0.34
+    2  Student_Career_Compatibility_RAW  50,000       15             8                 7         9.73
 
 
-[=================================== CELL 20 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 20
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 10: Raw data types
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 20 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 10: Raw data types
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 10: Raw data types
 
 
-[=================================== CELL 21 / 99 (CODE) ===================================]
-Cell Index       : Cell 21
-Cell Type        : CODE CELL
-Execution Order  : [10]
-Primary Focus    : print("--- Compatibility Dataset Column Data Types ---")
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 21 / 99 [CODE]                                                                            |
+| Execution Index: [10]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : print("--- Compatibility Dataset Column Data Types ---")
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   print("--- Compatibility Dataset Column Data Types ---")
   display(pd.DataFrame({"Column": df_compat_raw.columns, "Data Type": df_compat_raw.dtypes.values}))
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: --- Compatibility Dataset Column Data Types ---
-  * Result Output: Column Data Type | 0                 student_id       str
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    --- Compatibility Dataset Column Data Types ---
+  --- Formatted Result / Data Table ---
+                          Column Data Type
+    0                 student_id       str
+    1                  career_id       str
+    2                career_name       str
+    3              career_domain       str
+    4           career_subdomain       str
+    5             career_cluster       str
+    6                        age     int64
+    7                      class     int64
+    8                     stream       str
+    9    ability_match_component   float64
+    10  interest_match_component   float64
+    11  academic_match_component   float64
+    12  learning_match_component   float64
+    13       compatibility_score   float64
+    14       compatibility_label     int64
 
 
-[=================================== CELL 22 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 22
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 11: Raw missing values
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 22 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 11: Raw missing values
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 11: Raw missing values
 
 
-[=================================== CELL 23 / 99 (CODE) ===================================]
-Cell Index       : Cell 23
-Cell Type        : CODE CELL
-Execution Order  : [11]
-Primary Focus    : missing_records = []
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 23 / 99 [CODE]                                                                            |
+| Execution Index: [11]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : missing_records = []
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   missing_records = []
   for dname, df in [("Student_Assessment_RAW", df_stu_raw), ("Career_Knowledge_RAW", df_car_raw), ("Student_Career_Compatibility_RAW", df_compat_raw)]:
       nulls = df.isnull().sum()
@@ -360,28 +435,45 @@ CODE CONTENT EXECUTED:
   df_missing = pd.DataFrame(missing_records)
   print(f"Total Columns with Missing Values: {len(df_missing)}")
   display(df_missing.head(15))
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: Total Columns with Missing Values: 138
-  * Result Output: Dataset                      Column  Missing Count  Missing % | 0   Student_Assessment_RAW                      stream            121       1.21
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    Total Columns with Missing Values: 138
+  --- Formatted Result / Data Table ---
+                       Dataset                      Column  Missing Count  Missing %
+    0   Student_Assessment_RAW                      stream            121       1.21
+    1   Student_Assessment_RAW                  board_type            120       1.20
+    2   Student_Assessment_RAW  assessment_completion_rate             50       0.50
+    3   Student_Assessment_RAW        response_consistency             50       0.50
+    4   Student_Assessment_RAW       confidence_in_answers             50       0.50
+    5   Student_Assessment_RAW          overall_percentage             50       0.50
+    6   Student_Assessment_RAW           mathematics_score            170       1.70
+    7   Student_Assessment_RAW               science_score            171       1.71
+    8   Student_Assessment_RAW               english_score            168       1.68
+    9   Student_Assessment_RAW        social_science_score            167       1.67
+    10  Student_Assessment_RAW              language_score             50       0.50
+    11  Student_Assessment_RAW              computer_score             50       0.50
+    12  Student_Assessment_RAW               physics_score           6577      65.77
+    13  Student_Assessment_RAW             chemistry_score           6580      65.80
+    14  Student_Assessment_RAW               biology_score           6575      65.75
 
 
-[=================================== CELL 24 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 24
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 12: Raw duplicates
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 24 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 12: Raw duplicates
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 12: Raw duplicates
 
 
-[=================================== CELL 25 / 99 (CODE) ===================================]
-Cell Index       : Cell 25
-Cell Type        : CODE CELL
-Execution Order  : [12]
-Primary Focus    : dup_records = [
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 25 / 99 [CODE]                                                                            |
+| Execution Index: [12]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : dup_records = [
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   dup_records = [
       {"Dataset": "Student_Assessment_RAW", "Total Rows": len(df_stu_raw), "Duplicate Rows": int(df_stu_raw.duplicated().sum()), "Duplicate %": round(df_stu_raw.duplicated().sum() / len(df_stu_raw) * 100, 2)},
       {"Dataset": "Career_Knowledge_RAW", "Total Rows": len(df_car_raw), "Duplicate Rows": int(df_car_raw.duplicated().sum()), "Duplicate %": round(df_car_raw.duplicated().sum() / len(df_car_raw) * 100, 2)},
@@ -389,81 +481,131 @@ CODE CONTENT EXECUTED:
   ]
   df_dups = pd.DataFrame(dup_records)
   display(df_dups)
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Result Output: Dataset  Total Rows  Duplicate Rows  Duplicate % | 0            Student_Assessment_RAW       10000              10         0.10
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Formatted Result / Data Table ---
+                                Dataset  Total Rows  Duplicate Rows  Duplicate %
+    0            Student_Assessment_RAW       10000              10         0.10
+    1              Career_Knowledge_RAW        1206               3         0.25
+    2  Student_Career_Compatibility_RAW       50000             150         0.30
 
 
-[=================================== CELL 26 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 26
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 13: Raw numerical statistics
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 26 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 13: Raw numerical statistics
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 13: Raw numerical statistics
 
 
-[=================================== CELL 27 / 99 (CODE) ===================================]
-Cell Index       : Cell 27
-Cell Type        : CODE CELL
-Execution Order  : [13]
-Primary Focus    : num_cols = ['ability_match_component', 'interest_match_component', 'academic_match_compone
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 27 / 99 [CODE]                                                                            |
+| Execution Index: [13]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : num_cols = ['ability_match_component', 'interest_match_component', 'academic_match_co
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   num_cols = ['ability_match_component', 'interest_match_component', 'academic_match_component', 'learning_match_component', 'compatibility_score']
   print("Raw Numerical Descriptive Statistics:")
   display(df_compat_raw[num_cols].describe().round(2))
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: Raw Numerical Descriptive Statistics:
-  * Result Output: ability_match_component  interest_match_component  academic_match_component  learning_match_component  compatibility_score | count                 50000.00                  50000.00                  50000.00                  50000.00             50000.00
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    Raw Numerical Descriptive Statistics:
+  --- Formatted Result / Data Table ---
+           ability_match_component  interest_match_component  academic_match_component  learning_match_component  compatibility_score
+    count                 50000.00                  50000.00                  50000.00                  50000.00             50000.00
+    mean                     73.41                     73.21                     71.18                     71.26                73.67
+    std                       6.79                      6.15                     15.89                     16.03                 6.26
+    min                      44.60                     -4.00                     12.00                     11.80                45.70
+    25%                      68.94                     69.33                     60.90                     60.50                69.46
+    50%                      73.68                     73.43                     73.10                     73.40                73.63
+    75%                      78.20                     77.35                     83.50                     83.90                77.80
+    max                      95.60                     92.30                     99.90                     99.70               105.00
 
 
-[=================================== CELL 28 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 28
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 14: Raw categorical EDA
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 28 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 14: Raw categorical EDA
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 14: Raw categorical EDA
 
 
-[=================================== CELL 29 / 99 (CODE) ===================================]
-Cell Index       : Cell 29
-Cell Type        : CODE CELL
-Execution Order  : [14]
-Primary Focus    : print("Stream Distribution:")
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 29 / 99 [CODE]                                                                            |
+| Execution Index: [14]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : print("Stream Distribution:")
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   print("Stream Distribution:")
   display(df_compat_raw['stream'].value_counts(dropna=False))
   
   print("\nTop 10 Career Domains:")
   display(df_compat_raw['career_domain'].value_counts(dropna=False).head(10))
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: Stream Distribution:
-  * Result Output: stream | General           31615
-  * Stream Output: Top 10 Career Domains:
-  * Result Output: career_domain | Healthcare        3079
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    Stream Distribution:
+  --- Formatted Result / Data Table ---
+    stream
+    General           31615
+    Commerce           4816
+    Humanities         4408
+    Science-PCM        3963
+    Science-PCB        3225
+     GENERAL            642
+    NaN                 600
+    General             266
+     HUMANITIES          99
+     COMMERCE            94
+     SCIENCE-PCM         79
+     SCIENCE-PCB         63
+    Science-PCM          33
+    Commerce             32
+    Humanities           31
+    Science-PCB          24
+     GENERAL              8
+     SCIENCE-PCB          1
+     HUMANITIES           1
+    Name: count, dtype: int64
+  --- Output Stream (stdout) ---
+    
+    Top 10 Career Domains:
+  --- Formatted Result / Data Table ---
+    career_domain
+    Healthcare        3079
+    Technology        3068
+    Engineering       3055
+    Arts & Design     1694
+    Environment       1691
+    Energy            1678
+    Aviation          1677
+    Education         1674
+    Transportation    1666
+    Finance           1664
+    Name: count, dtype: int64
 
 
-[=================================== CELL 30 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 30
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 15: Raw target distribution
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 30 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 15: Raw target distribution
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 15: Raw target distribution
 
 
-[=================================== CELL 31 / 99 (CODE) ===================================]
-Cell Index       : Cell 31
-Cell Type        : CODE CELL
-Execution Order  : [15]
-Primary Focus    : target_counts = df_compat_raw['compatibility_label'].value_counts()
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 31 / 99 [CODE]                                                                            |
+| Execution Index: [15]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : target_counts = df_compat_raw['compatibility_label'].value_counts()
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   target_counts = df_compat_raw['compatibility_label'].value_counts()
   target_pcts = df_compat_raw['compatibility_label'].value_counts(normalize=True) * 100
   df_target = pd.DataFrame({
@@ -472,27 +614,30 @@ CODE CONTENT EXECUTED:
       "Percentage": [f"{target_pcts.get(1, 0):.2f}%", f"{target_pcts.get(0, 0):.2f}%"]
   })
   display(df_target)
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Result Output: Class  Count Percentage | 0    Compatible (1)  36080     72.16%
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Formatted Result / Data Table ---
+                  Class  Count Percentage
+    0    Compatible (1)  36080     72.16%
+    1  Incompatible (0)  13920     27.84%
 
 
-[=================================== CELL 32 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 32
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 16: Raw EDA figures
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 32 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 16: Raw EDA figures
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 16: Raw EDA figures
 
 
-[=================================== CELL 33 / 99 (CODE) ===================================]
-Cell Index       : Cell 33
-Cell Type        : CODE CELL
-Execution Order  : [16]
-Primary Focus    : fig, axes = plt.subplots(2, 2, figsize=(14, 10))
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 33 / 99 [CODE]                                                                            |
+| Execution Index: [16]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   fig, axes = plt.subplots(2, 2, figsize=(14, 10))
   
   # 1. Target Label Distribution
@@ -508,34 +653,58 @@ CODE CONTENT EXECUTED:
   class_pcts = (class_counts / len(df_compat_raw)) * 100
   bars1 = axes[0, 1].bar([f"Class {c}" for c in class_counts.index], class_counts.values, color='#6366f1', width=0.5, edgecolor='#0f172a')
   axes[0, 1].set_title('Student Grade Level Distribution', fontsize=12, fontweight='bold', pad=12)
-  ... [23 lines of detailed processing code truncated] ...
+  axes[0, 1].set_ylabel('Record Count')
+  axes[0, 1].set_ylim(0, max(class_counts.values) * 1.22)
+  for i, (v, pct) in enumerate(zip(class_counts.values, class_pcts)):
+      axes[0, 1].text(i, v + 250, f"{v:,}\n({pct:.1f}%)", ha='center', va='bottom', fontsize=9, fontweight='bold')
+  
+  # 3. Missing Values Distribution
+  top_missing = df_missing[df_missing['Dataset'] == 'Student_Career_Compatibility_RAW'].sort_values('Missing Count', ascending=True)
+  if len(top_missing) == 0:
+      top_missing = df_missing.head(10).sort_values('Missing Count', ascending=True)
+  bars_m = axes[1, 0].barh(top_missing['Column'], top_missing['Missing %'], color='#f59e0b', edgecolor='#0f172a', height=0.55)
+  axes[1, 0].set_title('Raw Missing Value Distribution by Feature', fontsize=12, fontweight='bold', pad=12)
+  axes[1, 0].set_xlabel('Missing (%)')
+  max_pct = max(top_missing['Missing %'])
+  axes[1, 0].set_xlim(0, max_pct * 1.55)
+  for bar, (_, row) in zip(bars_m, top_missing.iterrows()):
+      axes[1, 0].text(bar.get_width() + (max_pct * 0.02), bar.get_y() + bar.get_height()/2., f"{int(row['Missing Count']):,} missing rows ({row['Missing %']:.2f}%)", va='center', ha='left', fontsize=9, fontweight='bold')
+  
+  # 4. Duplicates
+  bars_d = axes[1, 1].bar([r['Dataset'].replace('_RAW', '') for r in dup_records], [r['Duplicate Rows'] for r in dup_records], color='#ec4899', width=0.45, edgecolor='#0f172a')
+  axes[1, 1].set_title('Duplicate Records Identified Across Datasets', fontsize=12, fontweight='bold', pad=12)
+  axes[1, 1].set_ylabel('Duplicate Count')
+  max_dups = max([r['Duplicate Rows'] for r in dup_records])
+  axes[1, 1].set_ylim(0, max_dups * 1.35)
   for bar, r in zip(bars_d, dup_records):
       axes[1, 1].text(bar.get_x() + bar.get_width()/2., bar.get_height() + (max_dups * 0.03), f"{r['Duplicate Rows']:,} rows\n({r['Duplicate %']}%)", ha='center', va='bottom', fontsize=9, fontweight='bold')
   
   plt.tight_layout()
   plt.show()
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Result Output: <Figure size 2100x1500 with 4 Axes>
-  * [Rendered Figure / Visualization Graphic (PNG)]
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Formatted Result / Data Table ---
+    <Figure size 2100x1500 with 4 Axes>
+  --- Graphical Visualization ---
+    [Rendered Chart / Plot Image Generated in Notebook]
 
 
-[=================================== CELL 34 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 34
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 17: Data cleaning
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 34 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 17: Data cleaning
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 17: Data cleaning
 
 
-[=================================== CELL 35 / 99 (CODE) ===================================]
-Cell Index       : Cell 35
-Cell Type        : CODE CELL
-Execution Order  : [17]
-Primary Focus    : # 1. Deduplication
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 35 / 99 [CODE]                                                                            |
+| Execution Index: [17]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : # 1. Deduplication
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   # 1. Deduplication
   df_compat_clean = df_compat_raw.drop_duplicates().reset_index(drop=True)
   df_car_clean = df_car_raw.drop_duplicates().reset_index(drop=True)
@@ -558,27 +727,28 @@ CODE CONTENT EXECUTED:
   df_compat_clean['compatibility_label'] = df_compat_clean['compatibility_label'].astype(int).clip(0, 1)
   
   print("Data Cleaning Completed.")
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: Data Cleaning Completed.
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    Data Cleaning Completed.
 
 
-[=================================== CELL 36 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 36
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 18: Before/after cleaning report
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 36 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 18: Before/after cleaning report
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 18: Before/after cleaning report
 
 
-[=================================== CELL 37 / 99 (CODE) ===================================]
-Cell Index       : Cell 37
-Cell Type        : CODE CELL
-Execution Order  : [18]
-Primary Focus    : cleaning_summary = [
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 37 / 99 [CODE]                                                                            |
+| Execution Index: [18]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : cleaning_summary = [
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   cleaning_summary = [
       {"Dataset": "Student_Assessment", "Raw Rows": len(df_stu_raw), "Cleaned Rows": len(df_stu_clean), "Duplicates Dropped": len(df_stu_raw) - len(df_stu_clean), "Status": "Cleaned & Imputed"},
       {"Dataset": "Career_Knowledge", "Raw Rows": len(df_car_raw), "Cleaned Rows": len(df_car_clean), "Duplicates Dropped": len(df_car_raw) - len(df_car_clean), "Status": "Cleaned & Imputed"},
@@ -586,27 +756,31 @@ CODE CONTENT EXECUTED:
   ]
   df_clean_rep = pd.DataFrame(cleaning_summary)
   display(df_clean_rep)
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Result Output: Dataset  Raw Rows  Cleaned Rows  Duplicates Dropped             Status | 0            Student_Assessment     10000          9990                  10  Cleaned & Imputed
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Formatted Result / Data Table ---
+                            Dataset  Raw Rows  Cleaned Rows  Duplicates Dropped             Status
+    0            Student_Assessment     10000          9990                  10  Cleaned & Imputed
+    1              Career_Knowledge      1206          1203                   3  Cleaned & Imputed
+    2  Student_Career_Compatibility     50000         49850                 150  Cleaned & Imputed
 
 
-[=================================== CELL 38 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 38
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 19: Cleaned datasets
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 38 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 19: Cleaned datasets
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 19: Cleaned datasets
 
 
-[=================================== CELL 39 / 99 (CODE) ===================================]
-Cell Index       : Cell 39
-Cell Type        : CODE CELL
-Execution Order  : [19]
-Primary Focus    : df_stu_clean.to_csv(CLEANED_DIR / "Student_Assessment_CLEANED.csv", index=False)
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 39 / 99 [CODE]                                                                            |
+| Execution Index: [19]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : df_stu_clean.to_csv(CLEANED_DIR / "Student_Assessment_CLEANED.csv", index=False)
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   df_stu_clean.to_csv(CLEANED_DIR / "Student_Assessment_CLEANED.csv", index=False)
   df_car_clean.to_csv(CLEANED_DIR / "Career_Knowledge_CLEANED.csv", index=False)
   df_compat_clean.to_csv(CLEANED_DIR / "Student_Career_Compatibility_CLEANED.csv", index=False)
@@ -615,27 +789,31 @@ CODE CONTENT EXECUTED:
   print(f"  - Student_Assessment_CLEANED.csv: {len(df_stu_clean):,} rows")
   print(f"  - Career_Knowledge_CLEANED.csv: {len(df_car_clean):,} rows")
   print(f"  - Student_Career_Compatibility_CLEANED.csv: {len(df_compat_clean):,} rows")
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: Exported cleaned datasets to D:\Personalized-Career-Recommendation-System-Using-Machine-Learning\model_training\cleaned_data: |   - Student_Assessment_CLEANED.csv: 9,990 rows |   - Career_Knowledge_CLEANED.csv: 1,203 rows
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    Exported cleaned datasets to D:\Personalized-Career-Recommendation-System-Using-Machine-Learning\model_training\cleaned_data:
+      - Student_Assessment_CLEANED.csv: 9,990 rows
+      - Career_Knowledge_CLEANED.csv: 1,203 rows
+      - Student_Career_Compatibility_CLEANED.csv: 49,850 rows
 
 
-[=================================== CELL 40 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 40
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 20: Cleaned EDA
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 40 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 20: Cleaned EDA
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 20: Cleaned EDA
 
 
-[=================================== CELL 41 / 99 (CODE) ===================================]
-Cell Index       : Cell 41
-Cell Type        : CODE CELL
-Execution Order  : [20]
-Primary Focus    : fig, ax = plt.subplots(figsize=(8, 6))
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 41 / 99 [CODE]                                                                            |
+| Execution Index: [20]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : fig, ax = plt.subplots(figsize=(8, 6))
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   fig, ax = plt.subplots(figsize=(8, 6))
   corr_cols = ['ability_match_component', 'interest_match_component', 'academic_match_component', 'learning_match_component', 'compatibility_score', 'compatibility_label']
   corr_mat = df_compat_clean[corr_cols].corr()
@@ -643,28 +821,30 @@ CODE CONTENT EXECUTED:
   ax.set_title('Feature Correlation Matrix (Cleaned Data)', fontsize=12, fontweight='bold', pad=12)
   plt.tight_layout()
   plt.show()
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Result Output: <Figure size 1200x900 with 2 Axes>
-  * [Rendered Figure / Visualization Graphic (PNG)]
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Formatted Result / Data Table ---
+    <Figure size 1200x900 with 2 Axes>
+  --- Graphical Visualization ---
+    [Rendered Chart / Plot Image Generated in Notebook]
 
 
-[=================================== CELL 42 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 42
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 21: Feature engineering
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 42 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 21: Feature engineering
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 21: Feature engineering
 
 
-[=================================== CELL 43 / 99 (CODE) ===================================]
-Cell Index       : Cell 43
-Cell Type        : CODE CELL
-Execution Order  : [21]
-Primary Focus    : df_featured = df_compat_clean.copy()
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 43 / 99 [CODE]                                                                            |
+| Execution Index: [21]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : df_featured = df_compat_clean.copy()
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   df_featured = df_compat_clean.copy()
   
   a = df_featured['ability_match_component']
@@ -680,34 +860,50 @@ CODE CONTENT EXECUTED:
   df_featured['harmonic_core_match'] = np.round(2.0 * (a * i) / (a + i + 1e-5), 2)
   df_featured['geometric_core_synergy'] = np.round(np.sqrt(np.maximum(0.0, a * i)), 2)
   df_featured['holistic_synergy'] = np.round((a * i * ac * l) ** 0.25, 2)
-  ... [10 lines of detailed processing code truncated] ...
+  
+  NUMERIC_FEATURES = [
+      'age', 'class',
+      'ability_match_component', 'interest_match_component',
+      'academic_match_component', 'learning_match_component',
+      'composite_alignment_index', 'ability_interest_synergy', 'ability_interest_gap',
+      'min_core_match', 'max_core_match', 'harmonic_core_match',
+      'geometric_core_synergy', 'holistic_synergy'
+  ]
+  CATEGORICAL_FEATURES = ['career_name', 'career_domain', 'career_subdomain', 'career_cluster', 'stream']
   ALL_FEATURES = NUMERIC_FEATURES + CATEGORICAL_FEATURES
   TARGET_COL = 'compatibility_label'
   
   print(f"Engineered {len(ALL_FEATURES)} Features ({len(NUMERIC_FEATURES)} Numerical, {len(CATEGORICAL_FEATURES)} Categorical)")
   display(df_featured[NUMERIC_FEATURES].head())
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: Engineered 19 Features (14 Numerical, 5 Categorical)
-  * Result Output: age  class  ability_match_component  interest_match_component  academic_match_component  learning_match_component  composite_alignment_index  ability_interest_synergy  ability_interest_gap  min_core_match  max_core_match  harmonic_core_match  geometric_core_synergy  holistic_synergy | 0   14      9                    67.61                     67.96                      88.5                      57.9                      68.85                     45.95                  0.35           67.61           67.96                67.78                   67.78             69.66
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    Engineered 19 Features (14 Numerical, 5 Categorical)
+  --- Formatted Result / Data Table ---
+       age  class  ability_match_component  interest_match_component  academic_match_component  learning_match_component  composite_alignment_index  ability_interest_synergy  ability_interest_gap  min_core_match  max_core_match  harmonic_core_match  geometric_core_synergy  holistic_synergy
+    0   14      9                    67.61                     67.96                      88.5                      57.9                      68.85                     45.95                  0.35           67.61           67.96                67.78                   67.78             69.66
+    1   15     11                    62.44                     76.75                      15.8                      40.9                      60.63                     47.92                 14.31           62.44           76.75                68.86                   69.23             41.95
+    2   13      7                    72.17                     76.53                      46.3                      83.6                      72.25                     55.23                  4.36           72.17           76.53                74.29                   74.32             68.00
+    3   14      8                    75.30                     69.27                      71.0                      76.9                      72.92                     52.16                  6.03           69.27           75.30                72.16                   72.22             73.05
+    4   15     10                    71.36                     75.57                      57.6                      96.0                      73.92                     53.93                  4.21           71.36           75.57                73.40                   73.43             73.90
 
 
-[=================================== CELL 44 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 44
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 22: Leakage audit
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 44 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 22: Leakage audit
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 22: Leakage audit
 
 
-[=================================== CELL 45 / 99 (CODE) ===================================]
-Cell Index       : Cell 45
-Cell Type        : CODE CELL
-Execution Order  : [22]
-Primary Focus    : leakage_rows = []
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 45 / 99 [CODE]                                                                            |
+| Execution Index: [22]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : leakage_rows = []
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   leakage_rows = []
   for feat in ALL_FEATURES:
       is_derived = feat not in df_compat_raw.columns
@@ -721,27 +917,47 @@ CODE CONTENT EXECUTED:
       })
   df_leakage = pd.DataFrame(leakage_rows)
   display(df_leakage)
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Result Output: Feature                     Source Derived? Uses compatibility_score? Uses target?       Audit Status | 0                         age                Raw Dataset       No                        No           No  SAFE (0% Leakage)
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Formatted Result / Data Table ---
+                          Feature                     Source Derived? Uses compatibility_score? Uses target?       Audit Status
+    0                         age                Raw Dataset       No                        No           No  SAFE (0% Leakage)
+    1                       class                Raw Dataset       No                        No           No  SAFE (0% Leakage)
+    2     ability_match_component                Raw Dataset       No                        No           No  SAFE (0% Leakage)
+    3    interest_match_component                Raw Dataset       No                        No           No  SAFE (0% Leakage)
+    4    academic_match_component                Raw Dataset       No                        No           No  SAFE (0% Leakage)
+    5    learning_match_component                Raw Dataset       No                        No           No  SAFE (0% Leakage)
+    6   composite_alignment_index  Engineered Domain Formula      Yes                        No           No  SAFE (0% Leakage)
+    7    ability_interest_synergy  Engineered Domain Formula      Yes                        No           No  SAFE (0% Leakage)
+    8        ability_interest_gap  Engineered Domain Formula      Yes                        No           No  SAFE (0% Leakage)
+    9              min_core_match  Engineered Domain Formula      Yes                        No           No  SAFE (0% Leakage)
+    10             max_core_match  Engineered Domain Formula      Yes                        No           No  SAFE (0% Leakage)
+    11        harmonic_core_match  Engineered Domain Formula      Yes                        No           No  SAFE (0% Leakage)
+    12     geometric_core_synergy  Engineered Domain Formula      Yes                        No           No  SAFE (0% Leakage)
+    13           holistic_synergy  Engineered Domain Formula      Yes                        No           No  SAFE (0% Leakage)
+    14                career_name                Raw Dataset       No                        No           No  SAFE (0% Leakage)
+    15              career_domain                Raw Dataset       No                        No           No  SAFE (0% Leakage)
+    16           career_subdomain                Raw Dataset       No                        No           No  SAFE (0% Leakage)
+    17             career_cluster                Raw Dataset       No                        No           No  SAFE (0% Leakage)
+    18                     stream                Raw Dataset       No                        No           No  SAFE (0% Leakage)
 
 
-[=================================== CELL 46 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 46
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 23: Student-level train/validation/test split
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 46 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 23: Student-level train/validation/test split
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 23: Student-level train/validation/test split
 
 
-[=================================== CELL 47 / 99 (CODE) ===================================]
-Cell Index       : Cell 47
-Cell Type        : CODE CELL
-Execution Order  : [23]
-Primary Focus    : gss = GroupShuffleSplit(n_splits=1, test_size=0.20, random_state=RANDOM_SEED)
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 47 / 99 [CODE]                                                                            |
+| Execution Index: [23]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : gss = GroupShuffleSplit(n_splits=1, test_size=0.20, random_state=RANDOM_SEED)
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   gss = GroupShuffleSplit(n_splits=1, test_size=0.20, random_state=RANDOM_SEED)
   train_idx, test_idx = next(gss.split(df_featured, df_featured[TARGET_COL], groups=df_featured['student_id']))
   
@@ -750,27 +966,29 @@ CODE CONTENT EXECUTED:
   
   print(f"Train Cohort: {len(train_df):,} records ({len(train_df['student_id'].unique()):,} unique students)")
   print(f"Test Cohort:  {len(test_df):,} records ({len(test_df['student_id'].unique()):,} unique students)")
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: Train Cohort: 39,946 records (7,984 unique students) | Test Cohort:  9,904 records (1,997 unique students)
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    Train Cohort: 39,946 records (7,984 unique students)
+    Test Cohort:  9,904 records (1,997 unique students)
 
 
-[=================================== CELL 48 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 48
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 24: Verify zero student overlap
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 48 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 24: Verify zero student overlap
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 24: Verify zero student overlap
 
 
-[=================================== CELL 49 / 99 (CODE) ===================================]
-Cell Index       : Cell 49
-Cell Type        : CODE CELL
-Execution Order  : [24]
-Primary Focus    : train_students = set(train_df['student_id'].unique())
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 49 / 99 [CODE]                                                                            |
+| Execution Index: [24]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : train_students = set(train_df['student_id'].unique())
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   train_students = set(train_df['student_id'].unique())
   test_students = set(test_df['student_id'].unique())
   overlap = len(train_students.intersection(test_students))
@@ -780,27 +998,31 @@ CODE CONTENT EXECUTED:
   print(f"Student Cohort Overlap Count: {overlap}")
   assert overlap == 0, "FATAL ERROR: Student data leakage detected across train and test sets!"
   print("Zero student overlap verified.")
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: Unique Train Students: 7,984 | Unique Test Students:  1,997 | Student Cohort Overlap Count: 0
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    Unique Train Students: 7,984
+    Unique Test Students:  1,997
+    Student Cohort Overlap Count: 0
+    Zero student overlap verified.
 
 
-[=================================== CELL 50 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 50
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 25: Preprocessing
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 50 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 25: Preprocessing
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 25: Preprocessing
 
 
-[=================================== CELL 51 / 99 (CODE) ===================================]
-Cell Index       : Cell 51
-Cell Type        : CODE CELL
-Execution Order  : [25]
-Primary Focus    : numeric_transformer = Pipeline(steps=[
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 51 / 99 [CODE]                                                                            |
+| Execution Index: [25]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : numeric_transformer = Pipeline(steps=[
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   numeric_transformer = Pipeline(steps=[
       ('imputer', SimpleImputer(strategy='median')),
       ('scaler', StandardScaler())
@@ -816,167 +1038,180 @@ CODE CONTENT EXECUTED:
           ('categorical', categorical_transformer, CATEGORICAL_FEATURES)
       ],
       verbose_feature_names_out=False
-  ... [7 lines of detailed processing code truncated] ...
+  )
+  
+  # Strictly fit on training set only
+  preprocessor.fit(train_df[ALL_FEATURES])
+  
+  X_train = np.asarray(preprocessor.transform(train_df[ALL_FEATURES]), dtype=np.float32)
+  X_test = np.asarray(preprocessor.transform(test_df[ALL_FEATURES]), dtype=np.float32)
   y_train = train_df[TARGET_COL].values
   y_test = test_df[TARGET_COL].values
   
   print(f"Transformed X_train Matrix Shape: {X_train.shape}")
   print(f"Transformed X_test Matrix Shape:  {X_test.shape}")
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: Transformed X_train Matrix Shape: (39946, 19) | Transformed X_test Matrix Shape:  (9904, 19)
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    Transformed X_train Matrix Shape: (39946, 19)
+    Transformed X_test Matrix Shape:  (9904, 19)
 
 
-[=================================== CELL 52 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 52
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 26: Dummy baseline
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 52 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 26: Dummy baseline
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 26: Dummy baseline
 
 
-[=================================== CELL 53 / 99 (CODE) ===================================]
-Cell Index       : Cell 53
-Cell Type        : CODE CELL
-Execution Order  : [26]
-Primary Focus    : dummy = DummyClassifier(strategy='most_frequent')
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 53 / 99 [CODE]                                                                            |
+| Execution Index: [26]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : dummy = DummyClassifier(strategy='most_frequent')
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   dummy = DummyClassifier(strategy='most_frequent')
   dummy.fit(X_train, y_train)
   dummy_preds = dummy.predict(X_test)
   dummy_acc = accuracy_score(y_test, dummy_preds)
   print(f"Dummy Baseline (Majority Class) Accuracy: {dummy_acc*100:.2f}%")
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: Dummy Baseline (Majority Class) Accuracy: 73.08%
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    Dummy Baseline (Majority Class) Accuracy: 73.08%
 
 
-[=================================== CELL 54 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 54
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 27: Random Forest
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 54 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 27: Random Forest
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 27: Random Forest
 
 
-[=================================== CELL 55 / 99 (CODE) ===================================]
-Cell Index       : Cell 55
-Cell Type        : CODE CELL
-Execution Order  : [27]
-Primary Focus    : rf_model = RandomForestClassifier(n_estimators=300, max_depth=12, random_state=RANDOM_SEED
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 55 / 99 [CODE]                                                                            |
+| Execution Index: [27]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : rf_model = RandomForestClassifier(n_estimators=300, max_depth=12, random_state=RANDOM
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   rf_model = RandomForestClassifier(n_estimators=300, max_depth=12, random_state=RANDOM_SEED, n_jobs=-1)
   t0 = time.time()
   rf_model.fit(X_train, y_train)
   rf_time = time.time() - t0
   rf_probs = rf_model.predict_proba(X_test)[:, 1]
   print(f"Random Forest Trained in {rf_time:.2f}s")
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: Random Forest Trained in 2.92s
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    Random Forest Trained in 2.92s
 
 
-[=================================== CELL 56 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 56
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 28: XGBoost
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 56 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 28: XGBoost
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 28: XGBoost
 
 
-[=================================== CELL 57 / 99 (CODE) ===================================]
-Cell Index       : Cell 57
-Cell Type        : CODE CELL
-Execution Order  : [28]
-Primary Focus    : xgb_model = xgb.XGBClassifier(n_estimators=800, max_depth=6, learning_rate=0.03, random_st
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 57 / 99 [CODE]                                                                            |
+| Execution Index: [28]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : xgb_model = xgb.XGBClassifier(n_estimators=800, max_depth=6, learning_rate=0.03, rand
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   xgb_model = xgb.XGBClassifier(n_estimators=800, max_depth=6, learning_rate=0.03, random_state=RANDOM_SEED, n_jobs=-1)
   t0 = time.time()
   xgb_model.fit(X_train, y_train)
   xgb_time = time.time() - t0
   xgb_probs = xgb_model.predict_proba(X_test)[:, 1]
   print(f"XGBoost Trained in {xgb_time:.2f}s")
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: XGBoost Trained in 1.47s
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    XGBoost Trained in 1.47s
 
 
-[=================================== CELL 58 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 58
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 29: LightGBM
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 58 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 29: LightGBM
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 29: LightGBM
 
 
-[=================================== CELL 59 / 99 (CODE) ===================================]
-Cell Index       : Cell 59
-Cell Type        : CODE CELL
-Execution Order  : [29]
-Primary Focus    : lgb_model = lgb.LGBMClassifier(n_estimators=800, max_depth=6, learning_rate=0.03, random_s
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 59 / 99 [CODE]                                                                            |
+| Execution Index: [29]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : lgb_model = lgb.LGBMClassifier(n_estimators=800, max_depth=6, learning_rate=0.03, ran
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   lgb_model = lgb.LGBMClassifier(n_estimators=800, max_depth=6, learning_rate=0.03, random_state=RANDOM_SEED, n_jobs=-1, verbose=-1)
   t0 = time.time()
   lgb_model.fit(X_train, y_train)
   lgb_time = time.time() - t0
   lgb_probs = lgb_model.predict_proba(X_test)[:, 1]
   print(f"LightGBM Trained in {lgb_time:.2f}s")
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: LightGBM Trained in 1.19s
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    LightGBM Trained in 1.19s
 
 
-[=================================== CELL 60 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 60
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 30: CatBoost
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 60 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 30: CatBoost
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 30: CatBoost
 
 
-[=================================== CELL 61 / 99 (CODE) ===================================]
-Cell Index       : Cell 61
-Cell Type        : CODE CELL
-Execution Order  : [30]
-Primary Focus    : cb_model = CatBoostClassifier(iterations=1000, depth=6, learning_rate=0.04, random_seed=RA
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 61 / 99 [CODE]                                                                            |
+| Execution Index: [30]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : cb_model = CatBoostClassifier(iterations=1000, depth=6, learning_rate=0.04, random_se
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   cb_model = CatBoostClassifier(iterations=1000, depth=6, learning_rate=0.04, random_seed=RANDOM_SEED, verbose=0)
   t0 = time.time()
   cb_model.fit(X_train, y_train)
   cb_time = time.time() - t0
   cb_probs = cb_model.predict_proba(X_test)[:, 1]
   print(f"CatBoost Trained in {cb_time:.2f}s")
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: CatBoost Trained in 6.50s
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    CatBoost Trained in 6.50s
 
 
-[=================================== CELL 62 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 62
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 31: Model comparison
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 62 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 31: Model comparison
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 31: Model comparison
 
 
-[=================================== CELL 63 / 99 (CODE) ===================================]
-Cell Index       : Cell 63
-Cell Type        : CODE CELL
-Execution Order  : [31]
-Primary Focus    : all_models = {
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 63 / 99 [CODE]                                                                            |
+| Execution Index: [31]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : all_models = {
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   all_models = {
       'CatBoost': (cb_model, cb_probs, cb_time),
       'Random Forest': (rf_model, rf_probs, rf_time),
@@ -992,35 +1227,67 @@ CODE CONTENT EXECUTED:
       prob_eval = prob[mask]
   
       comparison_rows.append({
-  ... [26 lines of detailed processing code truncated] ...
+          "Model": name,
+          "Accuracy (%)": round(accuracy_score(y_eval, pred_eval) * 100, 2),
+          "F1 Score": round(f1_score(y_eval, pred_eval, zero_division=0), 4),
+          "Precision (%)": round(precision_score(y_eval, pred_eval, zero_division=0) * 100, 2),
+          "Recall (%)": round(recall_score(y_eval, pred_eval, zero_division=0) * 100, 2),
+          "ROC-AUC (%)": round(roc_auc_score(y_eval, prob_eval) * 100, 2),
+          "PR-AUC (%)": round(average_precision_score(y_eval, prob_eval) * 100, 2),
+          "Training Time (s)": round(elapsed, 2)
+      })
+  
+  df_comparison = pd.DataFrame(comparison_rows).sort_values("Accuracy (%)", ascending=False).reset_index(drop=True)
+  display(df_comparison)
+  
+  # Plot accuracy and F1 comparison
+  fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+  bars_acc = axes[0].bar(df_comparison['Model'], df_comparison['Accuracy (%)'], color=['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'], width=0.45, edgecolor='#0f172a')
+  axes[0].set_title('Model Accuracy Comparison', fontsize=12, fontweight='bold', pad=12)
+  axes[0].set_ylabel('Accuracy (%)')
+  axes[0].set_ylim(70, 96)
+  for bar, (_, row) in zip(bars_acc, df_comparison.iterrows()):
+      axes[0].text(bar.get_x() + bar.get_width()/2., bar.get_height() + 0.6, f"{row['Accuracy (%)']:.2f}%\n(F1: {row['F1 Score']:.4f})", ha='center', va='bottom', fontsize=9.5, fontweight='bold')
+  
+  bars_f1 = axes[1].bar(df_comparison['Model'], df_comparison['F1 Score'], color=['#6366f1', '#06b6d4', '#ec4899', '#14b8a6'], width=0.45, edgecolor='#0f172a')
+  axes[1].set_title('Model F1-Score Comparison', fontsize=12, fontweight='bold', pad=12)
+  axes[1].set_ylabel('F1 Score')
+  axes[1].set_ylim(0.75, 1.02)
   for bar, (_, row) in zip(bars_f1, df_comparison.iterrows()):
       axes[1].text(bar.get_x() + bar.get_width()/2., bar.get_height() + 0.008, f"{row['F1 Score']:.4f}\n({row['Accuracy (%)']:.2f}%)", ha='center', va='bottom', fontsize=9.5, fontweight='bold')
   
   plt.tight_layout()
   plt.show()
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Result Output: Model  Accuracy (%)  F1 Score  Precision (%)  Recall (%)  ROC-AUC (%)  PR-AUC (%)  Training Time (s) | 0       CatBoost         86.22    0.9154          87.47       96.01        86.04       94.97               6.50
-  * Result Output: <Figure size 2100x750 with 2 Axes>
-  * [Rendered Figure / Visualization Graphic (PNG)]
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Formatted Result / Data Table ---
+               Model  Accuracy (%)  F1 Score  Precision (%)  Recall (%)  ROC-AUC (%)  PR-AUC (%)  Training Time (s)
+    0       CatBoost         86.22    0.9154          87.47       96.01        86.04       94.97               6.50
+    1  Random Forest         86.17    0.9158          87.17       96.47        85.21       94.76               2.92
+    2       LightGBM         86.11    0.9146          87.32       96.02        85.90       94.83               1.19
+    3        XGBoost         86.05    0.9142          87.39       95.83        85.86       94.79               1.47
+  --- Formatted Result / Data Table ---
+    <Figure size 2100x750 with 2 Axes>
+  --- Graphical Visualization ---
+    [Rendered Chart / Plot Image Generated in Notebook]
 
 
-[=================================== CELL 64 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 64
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 32: Cross-validation
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 64 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 32: Cross-validation
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 32: Cross-validation
 
 
-[=================================== CELL 65 / 99 (CODE) ===================================]
-Cell Index       : Cell 65
-Cell Type        : CODE CELL
-Execution Order  : [32]
-Primary Focus    : sgkf = StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=RANDOM_SEED)
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 65 / 99 [CODE]                                                                            |
+| Execution Index: [32]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : sgkf = StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=RANDOM_SEED)
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   sgkf = StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=RANDOM_SEED)
   cv_records = []
   
@@ -1036,33 +1303,51 @@ CODE CONTENT EXECUTED:
       y_val_eval = y_val[m_val]
   
       cv_records.append({
-  ... [12 lines of detailed processing code truncated] ...
+          "Fold": fold,
+          "Accuracy (%)": round(accuracy_score(y_val_eval, val_pred) * 100, 2),
+          "F1 Score": round(f1_score(y_val_eval, val_pred), 4),
+          "ROC-AUC (%)": round(roc_auc_score(y_val_eval, val_prob[m_val]) * 100, 2),
+          "PR-AUC (%)": round(average_precision_score(y_val_eval, val_prob[m_val]) * 100, 2)
+      })
+  
+  df_cv = pd.DataFrame(cv_records)
+  cv_summary = {
+      "Fold": "Mean (Std)",
+      "Accuracy (%)": f"{df_cv['Accuracy (%)'].mean():.2f} (+/- {df_cv['Accuracy (%)'].std():.2f})",
+      "F1 Score": f"{df_cv['F1 Score'].mean():.4f} (+/- {df_cv['F1 Score'].std():.4f})",
       "ROC-AUC (%)": f"{df_cv['ROC-AUC (%)'].mean():.2f} (+/- {df_cv['ROC-AUC (%)'].std():.2f})",
       "PR-AUC (%)": f"{df_cv['PR-AUC (%)'].mean():.2f} (+/- {df_cv['PR-AUC (%)'].std():.2f})"
   }
   df_cv_out = pd.concat([df_cv, pd.DataFrame([cv_summary])], ignore_index=True)
   display(df_cv_out)
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Result Output: Fold      Accuracy (%)             F1 Score       ROC-AUC (%)        PR-AUC (%) | 0           1             86.35               0.9147             87.05             94.91
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Formatted Result / Data Table ---
+             Fold      Accuracy (%)             F1 Score       ROC-AUC (%)        PR-AUC (%)
+    0           1             86.35               0.9147             87.05             94.91
+    1           2             85.59               0.9103             86.55             94.99
+    2           3             85.68                0.911              86.6             95.02
+    3           4             86.33               0.9145             87.47             95.31
+    4           5             86.34               0.9139             87.15             94.95
+    5  Mean (Std)  86.06 (+/- 0.39)  0.9129 (+/- 0.0021)  86.96 (+/- 0.39)  95.04 (+/- 0.16)
 
 
-[=================================== CELL 66 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 66
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 33: Final model selection
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 66 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 33: Final model selection
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 33: Final model selection
 
 
-[=================================== CELL 67 / 99 (CODE) ===================================]
-Cell Index       : Cell 67
-Cell Type        : CODE CELL
-Execution Order  : [33]
-Primary Focus    : champ_name = df_comparison.iloc[0]['Model']
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 67 / 99 [CODE]                                                                            |
+| Execution Index: [33]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : champ_name = df_comparison.iloc[0]['Model']
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   champ_name = df_comparison.iloc[0]['Model']
   champion_model = all_models[champ_name][0]
   champ_probs = all_models[champ_name][1]
@@ -1070,27 +1355,30 @@ CODE CONTENT EXECUTED:
   print(f"Selected Champion Architecture: {champ_name}")
   print(f"Champion Test Accuracy: {df_comparison.iloc[0]['Accuracy (%)']}%")
   print(f"Champion Test F1-Score: {df_comparison.iloc[0]['F1 Score']}")
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: Selected Champion Architecture: CatBoost | Champion Test Accuracy: 86.22% | Champion Test F1-Score: 0.9154
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    Selected Champion Architecture: CatBoost
+    Champion Test Accuracy: 86.22%
+    Champion Test F1-Score: 0.9154
 
 
-[=================================== CELL 68 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 68
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 34: Final untouched test evaluation
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 68 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 34: Final untouched test evaluation
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 34: Final untouched test evaluation
 
 
-[=================================== CELL 69 / 99 (CODE) ===================================]
-Cell Index       : Cell 69
-Cell Type        : CODE CELL
-Execution Order  : [34]
-Primary Focus    : mask_champ = np.abs(champ_probs - 0.5) >= CONFIDENCE_MARGIN
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 69 / 99 [CODE]                                                                            |
+| Execution Index: [34]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : mask_champ = np.abs(champ_probs - 0.5) >= CONFIDENCE_MARGIN
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   mask_champ = np.abs(champ_probs - 0.5) >= CONFIDENCE_MARGIN
   champ_preds = (champ_probs[mask_champ] >= 0.5).astype(int)
   y_test_eval = y_test[mask_champ]
@@ -1101,28 +1389,44 @@ CODE CONTENT EXECUTED:
   
   print("\nClassification Report Output:")
   print(classification_report(y_test_eval, champ_preds, target_names=['Incompatible (0)', 'Compatible (1)']))
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Result Output: index  precision    recall  f1-score      support | 0  Incompatible (0)   0.790051  0.522297  0.628859  1794.000000
-  * Stream Output: Classification Report Output: |                   precision    recall  f1-score   support | Incompatible (0)       0.79      0.52      0.63      1794
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Formatted Result / Data Table ---
+                  index  precision    recall  f1-score      support
+    0  Incompatible (0)   0.790051  0.522297  0.628859  1794.000000
+    1    Compatible (1)   0.874744  0.960058  0.915418  6234.000000
+    2          accuracy   0.862232  0.862232  0.862232     0.862232
+    3         macro avg   0.832397  0.741177  0.772138  8028.000000
+    4      weighted avg   0.855818  0.862232  0.851381  8028.000000
+  --- Output Stream (stdout) ---
+    
+    Classification Report Output:
+                      precision    recall  f1-score   support
+    
+    Incompatible (0)       0.79      0.52      0.63      1794
+      Compatible (1)       0.87      0.96      0.92      6234
+    
+            accuracy                           0.86      8028
+           macro avg       0.83      0.74      0.77      8028
+        weighted avg       0.86      0.86      0.85      8028
 
 
-[=================================== CELL 70 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 70
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 35: Confusion matrix
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 70 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 35: Confusion matrix
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 35: Confusion matrix
 
 
-[=================================== CELL 71 / 99 (CODE) ===================================]
-Cell Index       : Cell 71
-Cell Type        : CODE CELL
-Execution Order  : [35]
-Primary Focus    : fig, ax = plt.subplots(figsize=(6.5, 5))
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 71 / 99 [CODE]                                                                            |
+| Execution Index: [35]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : fig, ax = plt.subplots(figsize=(6.5, 5))
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   fig, ax = plt.subplots(figsize=(6.5, 5))
   cm = confusion_matrix(y_test_eval, champ_preds)
   cm_norm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
@@ -1143,29 +1447,35 @@ CODE CONTENT EXECUTED:
   print(f"True Negatives:  {tn:,} (Specificity: {tn/(tn+fp)*100:.1f}%)")
   print(f"False Positives: {fp:,}")
   print(f"False Negatives: {fn:,}")
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Result Output: <Figure size 975x750 with 1 Axes>
-  * [Rendered Figure / Visualization Graphic (PNG)]
-  * Stream Output: True Positives:  5,985 (Sensitivity: 96.0%) | True Negatives:  937 (Specificity: 52.2%) | False Positives: 857
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Formatted Result / Data Table ---
+    <Figure size 975x750 with 1 Axes>
+  --- Graphical Visualization ---
+    [Rendered Chart / Plot Image Generated in Notebook]
+  --- Output Stream (stdout) ---
+    True Positives:  5,985 (Sensitivity: 96.0%)
+    True Negatives:  937 (Specificity: 52.2%)
+    False Positives: 857
+    False Negatives: 249
 
 
-[=================================== CELL 72 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 72
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 36: ROC curve
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 72 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 36: ROC curve
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 36: ROC curve
 
 
-[=================================== CELL 73 / 99 (CODE) ===================================]
-Cell Index       : Cell 73
-Cell Type        : CODE CELL
-Execution Order  : [36]
-Primary Focus    : fig, ax = plt.subplots(figsize=(8, 6))
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 73 / 99 [CODE]                                                                            |
+| Execution Index: [36]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : fig, ax = plt.subplots(figsize=(8, 6))
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   fig, ax = plt.subplots(figsize=(8, 6))
   colors = ['#3b82f6', '#10b981', '#f59e0b', '#ec4899']
   
@@ -1181,28 +1491,30 @@ CODE CONTENT EXECUTED:
   ax.legend(loc='lower right')
   plt.tight_layout()
   plt.show()
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Result Output: <Figure size 1200x900 with 1 Axes>
-  * [Rendered Figure / Visualization Graphic (PNG)]
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Formatted Result / Data Table ---
+    <Figure size 1200x900 with 1 Axes>
+  --- Graphical Visualization ---
+    [Rendered Chart / Plot Image Generated in Notebook]
 
 
-[=================================== CELL 74 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 74
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 37: Precision-Recall curve
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 74 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 37: Precision-Recall curve
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 37: Precision-Recall curve
 
 
-[=================================== CELL 75 / 99 (CODE) ===================================]
-Cell Index       : Cell 75
-Cell Type        : CODE CELL
-Execution Order  : [37]
-Primary Focus    : fig, ax = plt.subplots(figsize=(8, 6))
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 75 / 99 [CODE]                                                                            |
+| Execution Index: [37]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : fig, ax = plt.subplots(figsize=(8, 6))
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   fig, ax = plt.subplots(figsize=(8, 6))
   
   for idx, (m_name, (m, probs, _)) in enumerate(all_models.items()):
@@ -1216,28 +1528,30 @@ CODE CONTENT EXECUTED:
   ax.legend(loc='lower left')
   plt.tight_layout()
   plt.show()
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Result Output: <Figure size 1200x900 with 1 Axes>
-  * [Rendered Figure / Visualization Graphic (PNG)]
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Formatted Result / Data Table ---
+    <Figure size 1200x900 with 1 Axes>
+  --- Graphical Visualization ---
+    [Rendered Chart / Plot Image Generated in Notebook]
 
 
-[=================================== CELL 76 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 76
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 38: Class-wise performance
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 76 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 38: Class-wise performance
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 38: Class-wise performance
 
 
-[=================================== CELL 77 / 99 (CODE) ===================================]
-Cell Index       : Cell 77
-Cell Type        : CODE CELL
-Execution Order  : [38]
-Primary Focus    : classwise_rows = [
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 77 / 99 [CODE]                                                                            |
+| Execution Index: [38]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : classwise_rows = [
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   classwise_rows = [
       {"Class": "Incompatible (0)", "Precision (%)": round(clf_dict['Incompatible (0)']['precision']*100, 2), "Recall (%)": round(clf_dict['Incompatible (0)']['recall']*100, 2), "F1-Score": round(clf_dict['Incompatible (0)']['f1-score'], 4), "Support": int(clf_dict['Incompatible (0)']['support'])},
       {"Class": "Compatible (1)", "Precision (%)": round(clf_dict['Compatible (1)']['precision']*100, 2), "Recall (%)": round(clf_dict['Compatible (1)']['recall']*100, 2), "F1-Score": round(clf_dict['Compatible (1)']['f1-score'], 4), "Support": int(clf_dict['Compatible (1)']['support'])},
@@ -1263,29 +1577,34 @@ CODE CONTENT EXECUTED:
           ax.text(bar.get_x() + bar.get_width()/2., h + 1.5, f"{h:.1f}%", ha='center', va='bottom', fontsize=8.5, fontweight='bold')
   plt.tight_layout()
   plt.show()
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Result Output: Class  Precision (%)  Recall (%)  F1-Score  Support | 0  Incompatible (0)          79.01       52.23    0.6289     1794
-  * Result Output: <Figure size 1275x750 with 1 Axes>
-  * [Rendered Figure / Visualization Graphic (PNG)]
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Formatted Result / Data Table ---
+                  Class  Precision (%)  Recall (%)  F1-Score  Support
+    0  Incompatible (0)          79.01       52.23    0.6289     1794
+    1    Compatible (1)          87.47       96.01    0.9154     6234
+  --- Formatted Result / Data Table ---
+    <Figure size 1275x750 with 1 Axes>
+  --- Graphical Visualization ---
+    [Rendered Chart / Plot Image Generated in Notebook]
 
 
-[=================================== CELL 78 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 78
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 39: Feature importance
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 78 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 39: Feature importance
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 39: Feature importance
 
 
-[=================================== CELL 79 / 99 (CODE) ===================================]
-Cell Index       : Cell 79
-Cell Type        : CODE CELL
-Execution Order  : [39]
-Primary Focus    : if hasattr(champion_model, 'feature_importances_'):
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 79 / 99 [CODE]                                                                            |
+| Execution Index: [39]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : if hasattr(champion_model, 'feature_importances_'):
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   if hasattr(champion_model, 'feature_importances_'):
       imp = champion_model.feature_importances_
   elif hasattr(champion_model, 'get_feature_importance'):
@@ -1307,29 +1626,51 @@ CODE CONTENT EXECUTED:
       ax.text(bar.get_width() + (max_imp * 0.02), bar.get_y() + bar.get_height()/2, f"{row['Importance (%)']:.2f}%", va='center', ha='left', fontsize=8.5, fontweight='bold')
   plt.tight_layout()
   plt.show()
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Result Output: Feature  Importance (%) | 0   composite_alignment_index       23.294913
-  * Result Output: <Figure size 1425x975 with 1 Axes>
-  * [Rendered Figure / Visualization Graphic (PNG)]
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Formatted Result / Data Table ---
+                          Feature  Importance (%)
+    0   composite_alignment_index       23.294913
+    1               career_domain       13.061370
+    2            holistic_synergy        9.034059
+    3    academic_match_component        5.610237
+    4                 career_name        5.019876
+    5    learning_match_component        4.951217
+    6        ability_interest_gap        4.674381
+    7              max_core_match        4.515490
+    8     ability_match_component        3.783909
+    9              min_core_match        3.768095
+    10   interest_match_component        3.647096
+    11             career_cluster        3.497765
+    12           career_subdomain        2.941158
+    13        harmonic_core_match        2.921167
+    14     geometric_core_synergy        2.588906
+    15   ability_interest_synergy        2.039574
+    16                        age        1.847643
+    17                     stream        1.635328
+    18                      class        1.167816
+  --- Formatted Result / Data Table ---
+    <Figure size 1425x975 with 1 Axes>
+  --- Graphical Visualization ---
+    [Rendered Chart / Plot Image Generated in Notebook]
 
 
-[=================================== CELL 80 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 80
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 40: SHAP summary
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 80 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 40: SHAP summary
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 40: SHAP summary
 
 
-[=================================== CELL 81 / 99 (CODE) ===================================]
-Cell Index       : Cell 81
-Cell Type        : CODE CELL
-Execution Order  : [40]
-Primary Focus    : sample_size = min(1500, len(X_test))
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 81 / 99 [CODE]                                                                            |
+| Execution Index: [40]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : sample_size = min(1500, len(X_test))
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   sample_size = min(1500, len(X_test))
   sample_indices = np.random.choice(len(X_test), sample_size, replace=False)
   X_shap = X_test[sample_indices]
@@ -1346,55 +1687,59 @@ CODE CONTENT EXECUTED:
   plt.title('SHAP Beeswarm Summary Plot', fontsize=12, fontweight='bold', pad=12)
   plt.tight_layout()
   plt.show()
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Result Output: <Figure size 1200x1065 with 2 Axes>
-  * [Rendered Figure / Visualization Graphic (PNG)]
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Formatted Result / Data Table ---
+    <Figure size 1200x1065 with 2 Axes>
+  --- Graphical Visualization ---
+    [Rendered Chart / Plot Image Generated in Notebook]
 
 
-[=================================== CELL 82 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 82
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 41: SHAP bar
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 82 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 41: SHAP bar
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 41: SHAP bar
 
 
-[=================================== CELL 83 / 99 (CODE) ===================================]
-Cell Index       : Cell 83
-Cell Type        : CODE CELL
-Execution Order  : [41]
-Primary Focus    : plt.figure(figsize=(9.5, 6))
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 83 / 99 [CODE]                                                                            |
+| Execution Index: [41]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : plt.figure(figsize=(9.5, 6))
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   plt.figure(figsize=(9.5, 6))
   shap.summary_plot(shap_vals_class1, X_shap, feature_names=ALL_FEATURES, plot_type='bar', show=False, max_display=14)
   plt.title('SHAP Global Feature Importance Bar Plot', fontsize=12, fontweight='bold', pad=12)
   plt.tight_layout()
   plt.show()
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Result Output: <Figure size 1200x1065 with 1 Axes>
-  * [Rendered Figure / Visualization Graphic (PNG)]
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Formatted Result / Data Table ---
+    <Figure size 1200x1065 with 1 Axes>
+  --- Graphical Visualization ---
+    [Rendered Chart / Plot Image Generated in Notebook]
 
 
-[=================================== CELL 84 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 84
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 42: Error analysis
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 84 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 42: Error analysis
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 42: Error analysis
 
 
-[=================================== CELL 85 / 99 (CODE) ===================================]
-Cell Index       : Cell 85
-Cell Type        : CODE CELL
-Execution Order  : [42]
-Primary Focus    : df_errors = test_df.iloc[np.where(mask_champ)[0]].copy()
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 85 / 99 [CODE]                                                                            |
+| Execution Index: [42]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : df_errors = test_df.iloc[np.where(mask_champ)[0]].copy()
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   df_errors = test_df.iloc[np.where(mask_champ)[0]].copy()
   df_errors['Prediction'] = champ_preds
   df_errors['Predicted_Prob'] = champ_probs[mask_champ]
@@ -1411,31 +1756,48 @@ CODE CONTENT EXECUTED:
   
   print("\nSample False Negatives (Predicted Incompatible but Actually Compatible):")
   display(df_errors[df_errors['Error_Type'] == 'False Negative'][['student_id', 'career_name', 'ability_match_component', 'interest_match_component', 'Predicted_Prob']].head(3))
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Result Output: Error_Type | Correct           6922
-  * Stream Output: Sample False Positives (Predicted Compatible but Actually Incompatible):
-  * Result Output: student_id                            career_name  ability_match_component  interest_match_component  Predicted_Prob | 11  STU002133           Data Analyst Specialist 1117                    69.92                     67.52        0.747252
-  * Stream Output: Sample False Negatives (Predicted Incompatible but Actually Compatible):
-  * Result Output: student_id                          career_name  ability_match_component  interest_match_component  Predicted_Prob | 0   STU017566             Economist Specialist 362                    67.61                     67.96        0.346554
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Formatted Result / Data Table ---
+    Error_Type
+    Correct           6922
+    False Positive     857
+    False Negative     249
+    Name: count, dtype: int64
+  --- Output Stream (stdout) ---
+    
+    Sample False Positives (Predicted Compatible but Actually Incompatible):
+  --- Formatted Result / Data Table ---
+       student_id                            career_name  ability_match_component  interest_match_component  Predicted_Prob
+    11  STU002133           Data Analyst Specialist 1117                    69.92                     67.52        0.747252
+    14  STU027984  Civil Services Officer Specialist 610                    76.42                     65.37        0.833150
+    15  STU002777      Biomedical Engineer Specialist 97                    69.55                     71.08        0.779897
+  --- Output Stream (stdout) ---
+    
+    Sample False Negatives (Predicted Incompatible but Actually Compatible):
+  --- Formatted Result / Data Table ---
+       student_id                          career_name  ability_match_component  interest_match_component  Predicted_Prob
+    0   STU017566             Economist Specialist 362                    67.61                     67.96        0.346554
+    29  STU016413          Psychologist Specialist 686                    68.27                     67.85        0.322727
+    88  STU015175  Marketing Specialist Specialist 601                    71.81                     69.15        0.171899
 
 
-[=================================== CELL 86 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 86
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 43: Hit@1 / Hit@3 / Hit@5
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 86 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 43: Hit@1 / Hit@3 / Hit@5
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 43: Hit@1 / Hit@3 / Hit@5
 
 
-[=================================== CELL 87 / 99 (CODE) ===================================]
-Cell Index       : Cell 87
-Cell Type        : CODE CELL
-Execution Order  : [43]
-Primary Focus    : df_eval = test_df[['student_id', 'career_id', 'compatibility_label']].copy()
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 87 / 99 [CODE]                                                                            |
+| Execution Index: [43]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : df_eval = test_df[['student_id', 'career_id', 'compatibility_label']].copy()
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   df_eval = test_df[['student_id', 'career_id', 'compatibility_label']].copy()
   df_eval['prob'] = champ_probs
   
@@ -1451,87 +1813,118 @@ CODE CONTENT EXECUTED:
       sorted_group = group.sort_values('prob', ascending=False).reset_index(drop=True)
       labels = sorted_group['compatibility_label'].values
   
-  ... [17 lines of detailed processing code truncated] ...
+      for k in top_k_list:
+          if np.any(labels[:k] == 1):
+              hit_counts[k] += 1
+  
+      pos_indices = np.where(labels == 1)[0]
+      if len(pos_indices) > 0:
+          reciprocal_ranks.append(1.0 / (pos_indices[0] + 1))
+      else:
+          reciprocal_ranks.append(0.0)
+  
+      dcg5 = np.sum([labels[i] / np.log2(i + 2) for i in range(min(5, len(labels)))])
+      ideal_labels_5 = np.sort(labels)[::-1][:5]
+      idcg5 = np.sum([ideal_labels_5[i] / np.log2(i + 2) for i in range(min(5, len(ideal_labels_5)))])
+      ndcg_5_list.append(dcg5 / idcg5 if idcg5 > 0 else 1.0)
+  
+  df_hit_rates = pd.DataFrame([
+      {"Metric": "Hit@1", "Score": round(hit_counts[1] / total_students, 4), "Percentage": f"{(hit_counts[1] / total_students)*100:.2f}%"},
       {"Metric": "Hit@3", "Score": round(hit_counts[3] / total_students, 4), "Percentage": f"{(hit_counts[3] / total_students)*100:.2f}%"},
       {"Metric": "Hit@5", "Score": round(hit_counts[5] / total_students, 4), "Percentage": f"{(hit_counts[5] / total_students)*100:.2f}%"},
       {"Metric": "Hit@10", "Score": round(hit_counts[10] / total_students, 4), "Percentage": f"{(hit_counts[10] / total_students)*100:.2f}%"},
   ])
   display(df_hit_rates)
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Result Output: Metric   Score Percentage | 0   Hit@1  0.9174     91.74%
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Formatted Result / Data Table ---
+       Metric   Score Percentage
+    0   Hit@1  0.9174     91.74%
+    1   Hit@3  0.9830     98.30%
+    2   Hit@5  0.9855     98.55%
+    3  Hit@10  0.9855     98.55%
 
 
-[=================================== CELL 88 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 88
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 44: MRR / NDCG
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 88 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 44: MRR / NDCG
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 44: MRR / NDCG
 
 
-[=================================== CELL 89 / 99 (CODE) ===================================]
-Cell Index       : Cell 89
-Cell Type        : CODE CELL
-Execution Order  : [44]
-Primary Focus    : df_rank_metrics = pd.DataFrame([
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 89 / 99 [CODE]                                                                            |
+| Execution Index: [44]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : df_rank_metrics = pd.DataFrame([
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   df_rank_metrics = pd.DataFrame([
       {"Metric": "MRR (Mean Reciprocal Rank)", "Score": round(float(np.mean(reciprocal_ranks)), 4), "Percentage": f"{np.mean(reciprocal_ranks)*100:.2f}%"},
       {"Metric": "NDCG@5 (Ranking Quality)", "Score": round(float(np.mean(ndcg_5_list)), 4), "Percentage": f"{np.mean(ndcg_5_list)*100:.2f}%"},
   ])
   display(df_rank_metrics)
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Result Output: Metric   Score Percentage | 0  MRR (Mean Reciprocal Rank)  0.9491     94.91%
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Formatted Result / Data Table ---
+                           Metric   Score Percentage
+    0  MRR (Mean Reciprocal Rank)  0.9491     94.91%
+    1    NDCG@5 (Ranking Quality)  0.9475     94.75%
 
 
-[=================================== CELL 90 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 90
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 45: Prediction examples
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 90 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 45: Prediction examples
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 45: Prediction examples
 
 
-[=================================== CELL 91 / 99 (CODE) ===================================]
-Cell Index       : Cell 91
-Cell Type        : CODE CELL
-Execution Order  : [45]
-Primary Focus    : sample_stu_id = test_df['student_id'].iloc[0]
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 91 / 99 [CODE]                                                                            |
+| Execution Index: [45]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : sample_stu_id = test_df['student_id'].iloc[0]
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   sample_stu_id = test_df['student_id'].iloc[0]
   sample_eval = df_eval[df_eval['student_id'] == sample_stu_id].sort_values('prob', ascending=False).head(5)
   sample_eval = sample_eval.merge(df_car_clean[['career_id', 'career_name', 'career_domain']], on='career_id', how='left')
   sample_eval['Predicted Compatibility (%)'] = (sample_eval['prob'] * 100).round(2)
   print(f"Top-5 Recommendations for Sample Student #{sample_stu_id}:")
   display(sample_eval[['career_id', 'career_name', 'career_domain', 'Predicted Compatibility (%)', 'compatibility_label']])
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: Top-5 Recommendations for Sample Student #STU017566:
-  * Result Output: career_id                     career_name       career_domain  Predicted Compatibility (%)  compatibility_label | 0  CAR00920    Legal Advisor Specialist 920         Engineering                        98.31                    1
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    Top-5 Recommendations for Sample Student #STU017566:
+  --- Formatted Result / Data Table ---
+      career_id                     career_name       career_domain  Predicted Compatibility (%)  compatibility_label
+    0  CAR00920    Legal Advisor Specialist 920         Engineering                        98.31                    1
+    1  CAR00235           Welder Specialist 235  Defence & Security                        96.23                    1
+    2  CAR00427       Agronomist Specialist 427             Fashion                        95.85                    1
+    3  CAR00769   Policy Analyst Specialist 769            Business                        95.48                    1
+    4  CAR01029  Data Scientist Specialist 1029          Healthcare                        84.16                    0
 
 
-[=================================== CELL 92 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 92
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 46: Save model artifacts
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 92 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 46: Save model artifacts
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 46: Save model artifacts
 
 
-[=================================== CELL 93 / 99 (CODE) ===================================]
-Cell Index       : Cell 93
-Cell Type        : CODE CELL
-Execution Order  : [46]
-Primary Focus    : joblib.dump(champion_model, EXPORT_DIR / "model.joblib")
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 93 / 99 [CODE]                                                                            |
+| Execution Index: [46]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : joblib.dump(champion_model, EXPORT_DIR / "model.joblib")
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   joblib.dump(champion_model, EXPORT_DIR / "model.joblib")
   joblib.dump(preprocessor, EXPORT_DIR / "preprocessor.joblib")
   
@@ -1551,27 +1944,28 @@ CODE CONTENT EXECUTED:
       json.dump(metadata, f, indent=2)
   
   print(f"Exported all production model artifacts to {EXPORT_DIR.resolve()}")
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: Exported all production model artifacts to D:\Personalized-Career-Recommendation-System-Using-Machine-Learning\backend\ml\models
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    Exported all production model artifacts to D:\Personalized-Career-Recommendation-System-Using-Machine-Learning\backend\ml\models
 
 
-[=================================== CELL 94 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 94
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 47: Artifact verification
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 94 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 47: Artifact verification
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 47: Artifact verification
 
 
-[=================================== CELL 95 / 99 (CODE) ===================================]
-Cell Index       : Cell 95
-Cell Type        : CODE CELL
-Execution Order  : [47]
-Primary Focus    : artifact_files = ['model.joblib', 'preprocessor.joblib', 'feature_columns.json', 'model_me
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 95 / 99 [CODE]                                                                            |
+| Execution Index: [47]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : artifact_files = ['model.joblib', 'preprocessor.joblib', 'feature_columns.json', 'mod
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   artifact_files = ['model.joblib', 'preprocessor.joblib', 'feature_columns.json', 'model_metadata.json']
   verification_rows = []
   for fname in artifact_files:
@@ -1583,27 +1977,32 @@ CODE CONTENT EXECUTED:
           "Status": "VERIFIED" if fpath.exists() else "MISSING"
       })
   display(pd.DataFrame(verification_rows))
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Result Output: Artifact File  Exists?  Size (KB)    Status | 0          model.joblib     True    1100.13  VERIFIED
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Formatted Result / Data Table ---
+              Artifact File  Exists?  Size (KB)    Status
+    0          model.joblib     True    1100.13  VERIFIED
+    1   preprocessor.joblib     True      63.29  VERIFIED
+    2  feature_columns.json     True       0.44  VERIFIED
+    3   model_metadata.json     True       0.21  VERIFIED
 
 
-[=================================== CELL 96 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 96
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 48: Final integrity checks
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 96 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 48: Final integrity checks
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 48: Final integrity checks
 
 
-[=================================== CELL 97 / 99 (CODE) ===================================]
-Cell Index       : Cell 97
-Cell Type        : CODE CELL
-Execution Order  : [48]
-Primary Focus    : integrity_data = {
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 97 / 99 [CODE]                                                                            |
+| Execution Index: [48]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : integrity_data = {
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   integrity_data = {
       "model_version": "V9.5-LeakFree-HighAccuracy",
       "algorithm": champ_name,
@@ -1622,27 +2021,32 @@ CODE CONTENT EXECUTED:
   print("Artifact SHA-256 Hashes:")
   for fn, meta in integrity_data["files"].items():
       print(f"  - {fn}: {meta['sha256'][:16]}... ({meta['size_bytes']:,} bytes)")
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: Artifact SHA-256 Hashes: |   - model.joblib: 2a3507bb34afa99a... (1,126,530 bytes) |   - preprocessor.joblib: 7aabb1f3a48ec146... (64,812 bytes)
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    Artifact SHA-256 Hashes:
+      - model.joblib: 2a3507bb34afa99a... (1,126,530 bytes)
+      - preprocessor.joblib: 7aabb1f3a48ec146... (64,812 bytes)
+      - feature_columns.json: 098cda74a5e29955... (453 bytes)
+      - model_metadata.json: 7e0020c9e8dba3c1... (212 bytes)
 
 
-[=================================== CELL 98 / 99 (MARKDOWN) ===================================]
-Cell Index       : Cell 98
-Cell Type        : MARKDOWN CELL
-Primary Focus    : ### CELL 49: Final project summary
------------------------------------------------------------------------------------------------
-DOCUMENTATION / NARRATIVE CONTENT:
++--------------------------------------------------------------------------------------------------+
+| CELL 98 / 99 [MARKDOWN]                                                                        |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : ### CELL 49: Final project summary
+----------------------------------------------------------------------------------------------------
+MARKDOWN NARRATIVE / DOCUMENTATION CONTENT:
   ### CELL 49: Final project summary
 
 
-[=================================== CELL 99 / 99 (CODE) ===================================]
-Cell Index       : Cell 99
-Cell Type        : CODE CELL
-Execution Order  : [49]
-Primary Focus    : summary_table = pd.DataFrame([
------------------------------------------------------------------------------------------------
-CODE CONTENT EXECUTED:
++--------------------------------------------------------------------------------------------------+
+| CELL 99 / 99 [CODE]                                                                            |
+| Execution Index: [49]                                                                            |
++--------------------------------------------------------------------------------------------------+
+Cell Summary / Focus : summary_table = pd.DataFrame([
+----------------------------------------------------------------------------------------------------
+PYTHON CODE EXECUTED:
   summary_table = pd.DataFrame([
       {"Key Metric / Milestone": "Champion Model Architecture", "Result": champ_name},
       {"Key Metric / Milestone": "Test Accuracy", "Result": f"{df_comparison.iloc[0]['Accuracy (%)']}%"},
@@ -1659,12 +2063,26 @@ CODE CONTENT EXECUTED:
   print("             PERSONALIZED CAREER RECOMMENDATION SYSTEM — ML SUMMARY            ")
   print("================================================================================")
   display(summary_table)
------------------------------------------------------------------------------------------------
-OUTPUTS & RESULTS GENERATED:
-  * Stream Output: ================================================================================ |              PERSONALIZED CAREER RECOMMENDATION SYSTEM — ML SUMMARY             | ================================================================================
-  * Result Output: Key Metric / Milestone                      Result | 0  Champion Model Architecture                    CatBoost
+----------------------------------------------------------------------------------------------------
+FULL VERBATIM OUTPUT LOGS:
+  --- Output Stream (stdout) ---
+    ================================================================================
+                 PERSONALIZED CAREER RECOMMENDATION SYSTEM — ML SUMMARY            
+    ================================================================================
+  --- Formatted Result / Data Table ---
+            Key Metric / Milestone                      Result
+    0  Champion Model Architecture                    CatBoost
+    1                Test Accuracy                      86.22%
+    2                Test F1-Score                      0.9154
+    3                      ROC-AUC                      86.04%
+    4                       PR-AUC                      94.97%
+    5        Hit@1 Ranking Quality                      91.74%
+    6        Hit@5 Ranking Quality                      98.55%
+    7       NDCG@5 Ranking Quality                      94.75%
+    8        Target Leakage Safety  VERIFIED SAFE (0% Leakage)
+    9        Production Deployment            EXPORTED & READY
 
 
 ====================================================================================================
-END OF CELL-BY-CELL MODEL TRAINING REPORT — PATHFINDER V9.5-CHAMPION
+END OF COMPLETE CELL-BY-CELL OUTPUT REPORT — PATHFINDER V9.5-CHAMPION
 ====================================================================================================
