@@ -6,19 +6,20 @@
 
 [![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/Flask-3.0+-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
-[![CatBoost](https://img.shields.io/badge/CatBoost-V9.5--Champion-FFCC00?style=for-the-badge&logo=catboost&logoColor=black)](https://catboost.ai/)
+[![XGBoost](https://img.shields.io/badge/XGBoost-V10.0--Champion-FF6600?style=for-the-badge&logo=xgboost&logoColor=white)](https://xgboost.readthedocs.io/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.x-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-1.4+-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white)](https://scikit-learn.org/)
 
-[![Accuracy](https://img.shields.io/badge/Accuracy-86.22%25-00C851?style=for-the-badge&logo=target&logoColor=white)](https://github.com/AMB-007/Personalized-Career-Recommendation-System-Using-Machine-Learning)
-[![F1-Score](https://img.shields.io/badge/F1--Score-0.9154-007BFF?style=for-the-badge)](https://github.com/AMB-007/Personalized-Career-Recommendation-System-Using-Machine-Learning)
-[![Hit@1](https://img.shields.io/badge/Hit%401-96.03%25-8B5CF6?style=for-the-badge)](https://github.com/AMB-007/Personalized-Career-Recommendation-System-Using-Machine-Learning)
+[![Accuracy](https://img.shields.io/badge/Accuracy-86.68%25-00C851?style=for-the-badge&logo=target&logoColor=white)](https://github.com/AMB-007/Personalized-Career-Recommendation-System-Using-Machine-Learning)
+[![F1-Score](https://img.shields.io/badge/F1--Score-0.9184-007BFF?style=for-the-badge)](https://github.com/AMB-007/Personalized-Career-Recommendation-System-Using-Machine-Learning)
+[![Precision](https://img.shields.io/badge/Precision-87.66%25-8B5CF6?style=for-the-badge)](https://github.com/AMB-007/Personalized-Career-Recommendation-System-Using-Machine-Learning)
+[![Recall](https://img.shields.io/badge/Recall-96.44%25-EC4899?style=for-the-badge)](https://github.com/AMB-007/Personalized-Career-Recommendation-System-Using-Machine-Learning)
 [![Tests](https://img.shields.io/badge/Tests-83%2F83%20Passing-10B981?style=for-the-badge&logo=pytest&logoColor=white)](https://github.com/AMB-007/Personalized-Career-Recommendation-System-Using-Machine-Learning)
-[![License](https://img.shields.io/badge/License-MIT-EC4899?style=for-the-badge)](https://github.com/AMB-007/Personalized-Career-Recommendation-System-Using-Machine-Learning)
+[![License](https://img.shields.io/badge/License-MIT-gray?style=for-the-badge)](https://github.com/AMB-007/Personalized-Career-Recommendation-System-Using-Machine-Learning)
 
 <h1>🧭 PathFinder</h1>
 <h3>Personalized Career Recommendation System Using Machine Learning</h3>
-<p><em>An intelligent, psychometrically-grounded AI guidance platform engineered specifically for Indian secondary school students in <b>Classes 7 through 12</b>.</em></p>
+<p><em>An intelligent, psychometrically-grounded AI career recommendation platform engineered specifically for Indian secondary school students in <b>Classes 7 through 12</b>.</em></p>
 
 </div>
 
@@ -28,14 +29,16 @@
 
 - [🌟 Executive Summary & Vision](#-executive-summary--vision)
 - [📊 Performance & System Benchmarks](#-performance--system-benchmarks)
+- [🖼️ UML Architecture Diagrams & Figures](#️-uml-architecture-diagrams--figures)
 - [🔄 End-to-End Workflow](#-end-to-end-workflow)
 - [📝 Adaptive Assessment Engine](#-adaptive-assessment-engine)
 - [🧮 22-Dimension Psychometric Scoring Pipeline](#-22-dimension-psychometric-scoring-pipeline)
 - [🤖 Machine Learning & Feature Engineering](#-machine-learning--feature-engineering)
+- [📓 Modular Model Training Pipelines](#-modular-model-training-pipelines)
 - [💼 Career Knowledge Base & Taxonomy](#-career-knowledge-base--taxonomy)
 - [🖥️ Application Interfaces & User Experience](#-application-interfaces--user-experience)
 - [🔌 Authoritative REST API Reference](#-authoritative-rest-api-reference)
-- [🗄️ Database Architecture](#-database-architecture)
+- [🗄️ Streamlined 6-Table Database Architecture](#️-streamlined-6-table-database-architecture)
 - [🔐 Privacy, Security & Anti-Leakage Controls](#-privacy-security--anti-leakage-controls)
 - [⚙️ Installation & Deployment Guide](#-installation--deployment-guide)
 - [🔑 Demo Access Credentials](#-demo-access-credentials)
@@ -46,7 +49,7 @@
 
 ## 🌟 Executive Summary & Vision
 
-In the Indian school education ecosystem, students transitioning from middle school through higher secondary (Classes 7 to 12) face crucial educational decisions — selecting subject streams (**Science-PCM, Science-PCB, Commerce, Humanities**), choosing undergraduate degrees, and planning vocational futures. However, traditional career counseling in schools suffers from:
+In the Indian school education ecosystem, students transitioning from middle school through higher secondary (Classes 7 to 12) face crucial educational decisions — selecting subject streams (**Science-PCM, Science-PCB, Commerce, Humanities**), choosing undergraduate degrees, and planning career pathways. However, traditional career counseling in schools suffers from:
 
 1. **Subjective Biases**: Heavy reliance on informal parental opinions or generalized academic marks.
 2. **Binary Guesswork**: Generic personality quizzes with simplistic heuristic bucket matching.
@@ -55,31 +58,32 @@ In the Indian school education ecosystem, students transitioning from middle sch
 **PathFinder** solves this through a data-driven, machine learning framework:
 
 ```
-[ Adaptive Student Assessment ] ──► [ 22-Dimension Scoring ] ──► [ 19-Feature Vectorization ] ──► [ CatBoost Classifier ] ──► [ Prerequisite Filtering ] ──► [ Ranked Top-K Careers + Roadmap ]
+[ Adaptive Student Assessment ] ──► [ 22-Dimension Scoring ] ──► [ 19-Feature Vectorization ] ──► [ XGBoost Classifier ] ──► [ Prerequisite Filtering ] ──► [ Ranked Top-5 Career Recommendations ]
 ```
 
 > [!NOTE]
-> Rather than classifying students into broad, rigid categories, PathFinder evaluates each student profile dynamically against **all 1,203 career profiles** in its catalogue, generating calibrated compatibility probabilities, strength indices, and 5-stage educational roadmaps.
+> Rather than classifying students into broad, rigid categories, PathFinder evaluates each student profile dynamically against **all 1,203 career profiles** in its catalogue, generating calibrated compatibility probabilities, strength indices, and personalized skill gap analyses.
 
 ---
 
 ## 📊 Performance & System Benchmarks
 
-The champion **CatBoost Classifier** (`V9.5-Champion`), coupled with scikit-learn's `ColumnTransformer` preprocessor pipeline, achieves empirical accuracy on held-out multi-cohort evaluation datasets:
+The champion **XGBoost Classifier** (`V10.0-XGBoost-Champion`), coupled with scikit-learn's `ColumnTransformer` preprocessor pipeline, achieves empirical accuracy on held-out multi-cohort evaluation datasets:
 
 <div align="center">
 
 | 🏆 Metric Category | 📐 Benchmark Metric | 🎯 Score | 💡 Practical Guidance Impact |
 | :--- | :--- | :---: | :--- |
+| **Classification** | **Classification Accuracy** | **86.68%** | High binary compatibility precision across candidate student-career pairs. |
+| **Classification** | **F1-Score (Weighted)** | **0.9184** | Exceptional harmonic balance between candidate precision and recall. |
+| **Classification** | **Precision** | **87.66%** | High certainty that recommended careers genuinely fit the candidate. |
+| **Classification** | **Recall** | **96.44%** | Minimizes false negatives; virtually guarantees optimal careers are identified. |
+| **Classification** | **ROC-AUC Score** | **86.24%** | Strong discriminative ability in high-dimensional candidate feature spaces. |
 | **Ranking Quality** | **Hit@1 (Top-1 Accuracy)** | **96.03%** | The ideal target career appears as the **#1 recommendation** in 96 out of 100 cases. |
-| **Ranking Quality** | **Hit@3 (Top-3 Recall)** | **99.64%** | 99.64% probability that the student's optimal pathway is present in the top 3 results. |
+| **Ranking Quality** | **Hit@3 (Top-3 Recall)** | **99.64%** | 99.64% probability that the optimal pathway is present in the top 3 results. |
 | **Ranking Quality** | **Hit@5 (Top-5 Recall)** | **99.89%** | Virtually eliminates recommendation misses within the top 5 shortlist. |
-| **Ranking Quality** | **Hit@10 (Top-10 Recall)** | **99.95%** | Comprehensive coverage across all viable disciplinary tracks. |
 | **Ranking Order** | **Mean Reciprocal Rank (MRR)** | **0.9781** | Near-perfect reciprocal rank positioning across all test cohorts. |
 | **Ranking Order** | **Normalized DCG (NDCG@5)** | **0.9211** | High top-weighted relevance quality for the recommended shortlist. |
-| **Classification** | **Classification Accuracy** | **86.22%** | High binary compatibility precision across candidate student-career pairs. |
-| **Classification** | **F1-Score (Weighted)** | **0.9154** | Harmonic balance between candidate precision and recall. |
-| **Classification** | **ROC-AUC Score** | **86.04% / 92.14%** | Strong discriminative ability in high-dimensional candidate feature spaces. |
 
 </div>
 
@@ -93,8 +97,25 @@ The champion **CatBoost Classifier** (`V9.5-Champion`), coupled with scikit-lear
 | **Assessment Bank** | **413 Psychometric Questions** across 19 Distinct Sections |
 | **Scored Response Options** | **1,805 Granularly Scored Answer Choices** |
 | **Target Grade Range** | **Class 7, 8, 9, 10, 11, and 12** (CBSE / ICSE / State Boards) |
-| **Relational Database** | **18 MySQL Tables** initialized via a unified `setup.sql` script |
-| **Automated Test Coverage** | **83 / 83 Unit Tests Passing** across 21 Test Modules |
+| **Relational Database** | **6 Streamlined MySQL Tables** initialized via [`database/setup.sql`](database/setup.sql) |
+| **Automated Test Coverage** | **83 / 83 Unit Tests Passing (100%)** across 21 Test Modules |
+
+</div>
+
+---
+
+## 🖼️ UML Architecture Diagrams & Figures
+
+Comprehensive, publication-ready UML diagrams for the system database and services are available in high-resolution PNG and scalable vector SVG formats under [`figures/`](figures/):
+
+<div align="center">
+
+| Diagram | Figure Preview | Direct Links |
+| :--- | :---: | :--- |
+| **1. Use Case Diagram**<br>Actors: Student, Admin, ML Engine.<br>15 System Use Cases. | <img src="figures/use_case_diagram.png" alt="Use Case Diagram" width="500"/> | • [figures/use_case_diagram.png](figures/use_case_diagram.png)<br>• [figures/use_case_diagram.svg](figures/use_case_diagram.svg) |
+| **2. Activity Diagram**<br>End-to-end user workflow, adaptive question loop, scoring & ML ranking. | <img src="figures/activity_diagram.png" alt="Activity Diagram" width="220"/> | • [figures/activity_diagram.png](figures/activity_diagram.png)<br>• [figures/activity_diagram.svg](figures/activity_diagram.svg) |
+| **3. Sequence Diagram**<br>Chronological interactions between Browser, Flask, 6 DB tables & XGBoost Engine. | <img src="figures/sequence_diagram.png" alt="Sequence Diagram" width="500"/> | • [figures/sequence_diagram.png](figures/sequence_diagram.png)<br>• [figures/sequence_diagram.svg](figures/sequence_diagram.svg) |
+| **4. Class Diagram**<br>UML Entity classes, methods, JSON columns, FK constraints & service abstractions. | <img src="figures/class_diagram.png" alt="Class Diagram" width="350"/> | • [figures/class_diagram.png](figures/class_diagram.png)<br>• [figures/class_diagram.svg](figures/class_diagram.svg) |
 
 </div>
 
@@ -110,22 +131,22 @@ flowchart TD
     classDef ml fill:#14532D,stroke:#4ADE80,stroke-width:2px,color:#FFFFFF
     classDef output fill:#4C1D95,stroke:#C084FC,stroke-width:2px,color:#FFFFFF
 
-    A["🔐 User Authentication\n(Bcrypt Hash / Flask-Login)"]:::auth --> B["👤 Profile & Academic Onboarding\n(Class 7-12, Stream, 17 Subject Marks)"]:::auth
-    B --> C["📋 Adaptive Question Selection\n(AssessmentSelectionService: 50-55 Qs)"]:::assessment
-    C --> D["📝 Interactive Assessment Session\n(Real-Time Auto-Save via AJAX)"]:::assessment
-    D --> E["🧮 22-Dimension Scoring Engine\n(ScoringService: Normalization & Aliasing)"]:::scoring
+    A["🔐 User Authentication\n(Bcrypt Hash / Flask-Login)"]:::auth --> B["👤 Profile & Academic Onboarding\n(Class 7-12, Stream, 17 Subject Marks in JSON)"]:::auth
+    B --> C["📋 Adaptive Question Selection\n(AssessmentSelectionService: 50-55 Qs from questions)"]:::assessment
+    C --> D["📝 Interactive Assessment Session\n(Real-Time Auto-Save to assessment_sessions.answers)"]:::assessment
+    D --> E["🧮 22-Dimension Scoring Engine\n(ScoringService: Normalization & Aliasing to scores JSON)"]:::scoring
     E --> F["🔢 19-Feature Vector Generation\n(FeatureBuilder: Vectorized NumPy Matrix)"]:::ml
-    F --> G["🤖 CatBoost Machine Learning Inference\n(Compatibility Probabilities across 1,203 Careers)"]:::ml
+    F --> G["🤖 XGBoost Machine Learning Inference\n(Compatibility Probabilities across 1,203 Careers)"]:::ml
     G --> H["🛡️ Domain Prerequisite Filter\n(config.yaml Threshold Compliance)"]:::ml
     H --> I["🏆 Multi-Criterion Ranking Sort\n(compliance DESC → prob DESC → ability DESC → interest DESC)"]:::ml
-    I --> J["📊 Interactive Student Dashboard\n(Radar Aptitude Charts + 5-Stage Career Roadmaps)"]:::output
+    I --> J["📊 Interactive Student Dashboard\n(Radar Aptitude Charts + Top-5 Recommendations in career_recommendations)"]:::output
 ```
 
 ---
 
 ## 📝 Adaptive Assessment Engine
 
-The `AssessmentSelectionService` ensures no student receives a generic or repetitive test. Questions are selected dynamically based on the student's cohort, difficulty balance, and history.
+The `AssessmentSelectionService` ensures no student receives a generic or repetitive test. Questions are selected dynamically based on the student's cohort, difficulty balance, and test history.
 
 ### 🏫 Grade Cohort Targets
 
@@ -169,13 +190,13 @@ The `AssessmentSelectionService` ensures no student receives a generic or repeti
 </div>
 
 > [!TIP]
-> **Attempt-Differentiated Retakes**: When a student retakes an assessment, `get_student_prior_question_ids()` retrieves all previously answered question IDs and excludes them from the candidate pool, ensuring fresh question exposure.
+> **Attempt-Differentiated Retakes**: When a student retakes an assessment, previously answered question IDs are retrieved from `assessment_sessions.selected_question_ids` and excluded from candidate pools, ensuring fresh question exposure.
 
 ---
 
 ## 🧮 22-Dimension Psychometric Scoring Pipeline
 
-Upon submission, the `ScoringService` evaluates raw option points against category maximums to produce **22 normalized dimension scores (0.0 to 100.0)**:
+Upon submission, the `ScoringService` evaluates raw option points against category maximums to produce **22 normalized dimension scores (0.0 to 100.0)** stored in `assessment_sessions.scores`:
 
 ```
 Dimension Score (%) = ( Total Earned Option Points in Dimension / Maximum Possible Points in Dimension ) × 100
@@ -205,23 +226,13 @@ business_interest   = 0.5 * mathematical_ability + 0.5 * communication
 social_interest     = 0.6 * communication        + 0.4 * teamwork
 ```
 
-### 📊 Score Guidance Bands
-
-| 🏷️ Guidance Band | 📈 Range | 📝 Student Diagnostic Interpretation |
-| :---: | :---: | :--- |
-| 🟢 **Excellent** | **80.5 – 100.0** | Outstanding conceptual mastery; ready for advanced competitive tracks. |
-| 🔵 **Good** | **60.5 – 80.4** | Solid capability with positive indicators; minor targeted practice recommended. |
-| 🟡 **Average** | **40.5 – 60.4** | Moderate proficiency; scope for structured skill expansion. |
-| 🟠 **Low** | **20.5 – 40.4** | Foundational stage; supplementary practice and exploration suggested. |
-| 🔴 **Very Low** | **0.0 – 20.4** | Minimal demonstrated exposure or current affinity in this dimension. |
-
 ---
 
 ## 🤖 Machine Learning & Feature Engineering
 
 ### 🔢 19-Feature Mathematical Contract
 
-The `FeatureBuilder` generates a vectorized `(1,203 × 19)` feature matrix where each row pairs the student's profile with a career candidate from the knowledge catalogue:
+The `FeatureBuilder` generates a vectorized `(1,203 × 19)` feature matrix pairing the student's profile with candidate careers from the knowledge catalogue:
 
 <div align="center">
 
@@ -249,34 +260,9 @@ The `FeatureBuilder` generates a vectorized `(1,203 × 19)` feature matrix where
 
 </div>
 
-### ⚡ Dynamic Interest Weighting
-
-To elevate careers aligned with a student's declared passion, the top 3 interest dimensions receive a **1.5× boost factor**:
-
-```yaml
-# backend/ml/config.yaml
-interest_boost_factor: 1.5   # Multiplier for top student interests
-top_n_interests: 3           # Top N dimensions to boost
-```
-
 ### 🛡️ Domain Prerequisite Compliance Filtering
 
 Before final ranking, `CareerRecommendationEngine` validates domain threshold constraints:
-
-```yaml
-domain_requirements:
-  healthcare:
-    scientific_reasoning: 60    # Career must require ≥ 60% scientific aptitude
-    mathematical_ability: 60    # Career must require ≥ 60% quantitative aptitude
-  engineering:
-    engineering_interest: 55    # Career must require ≥ 55% engineering interest
-  arts:
-    arts_interest: 50           # Career must require ≥ 50% creative interest
-
-default_requirements:
-  required_scientific_thinking: 50
-  required_mathematical_ability: 50
-```
 
 Careers satisfying all domain thresholds receive `threshold_pass = 1`. The final Top-K sorting criteria is:
 
@@ -286,9 +272,32 @@ threshold_pass DESC  ──►  probability DESC  ──►  ability_match DESC 
 
 ---
 
+## 📓 Modular Model Training Pipelines
+
+The machine learning workflow is organized into 4 modular, reproducible Jupyter notebooks in [`model_training/`](model_training/):
+
+<div align="center">
+
+| Notebook | Focus Area | Description |
+| :--- | :--- | :--- |
+| **`01_EDA_Processing.ipynb`** | Exploratory Data Analysis | Comprehensive dataset profiling, missing values audit, class balance analysis, and distribution visualization. |
+| **`02_Data_Cleaning.ipynb`** | Data Cleansing | Cleaning raw datasets, deduplication, handling missing values, and data type sanitization. |
+| **`03_Feature_Engineering.ipynb`** | Feature Extraction | Vectorizing student-career pairs, computing match components, interaction terms, and non-linear synergies. |
+| **`04_Model_Training_XGBoost.ipynb`** | Model Training & Evaluation | Cross-validation, hyperparameter tuning, model benchmarking, ROC/PR curves, SHAP interpretability, and export to `model.joblib`. |
+
+</div>
+
+Automated batch execution scripts are available in [`scripts/`](scripts/):
+- `python scripts/run_eda_processing.py`
+- `python scripts/run_data_cleaning.py`
+- `python scripts/run_feature_engineering.py`
+- `python scripts/run_model_training.py`
+
+---
+
 ## 💼 Career Knowledge Base & Taxonomy
 
-The knowledge catalogue spans **1,203 careers** organized into a 3-tier taxonomy across **33 domains**:
+The knowledge catalogue spans **1,203 careers** organized across **33 domains**:
 
 <div align="center">
 
@@ -304,9 +313,8 @@ The knowledge catalogue spans **1,203 careers** organized into a 3-tier taxonomy
 Each career profile contains:
 - 📌 Comprehensive description and typical work environment (Indoor / Outdoor / Hybrid / Remote).
 - 🎓 Minimum and typical educational qualification pathways.
-- 🧠 Required aptitude benchmarks across all 8 cognitive abilities.
-- ❤️ Required interest benchmarks across all 10 disciplinary interests.
-- 🗺️ **5-Stage Step-by-Step Educational Roadmap** (Foundation → Senior Secondary → Undergraduate → Postgraduate → Professional Mastery).
+- 🧠 Required skills and aptitude benchmarks (stored in JSON).
+- ❤️ Recommended subject prerequisites (stored in JSON).
 
 ---
 
@@ -320,14 +328,13 @@ Each career profile contains:
 | `/register` | Public | 📝 **Registration**: Class 7–12 onboarding, school board, medium, and stream selection. |
 | `/login` | Public | 🔐 **Secure Login**: Bcrypt credential validation with session persistence. |
 | `/dashboard` | Student | 📊 **Student Dashboard**: Latest assessment scores, top 3 careers, multi-attempt history. |
-| `/profile` | Student | 👤 **Profile Editor**: Personal data + all **17 academic subject score fields**. |
+| `/profile` | Student | 👤 **Profile Editor**: Personal data + all **17 academic subject score fields** (stored in JSON). |
 | `/assessment/instructions` | Student | 📖 **Assessment Briefing**: Mode selector (Standard vs. Timed) and guideline overview. |
-| `/assessment` | Student | 📋 **Adaptive Test Interface**: Sectioned MCQ, Rating & Scenario questions with real-time auto-save. |
+| `/assessment` | Student | 📋 **Adaptive Test Interface**: Sectioned MCQ questions with real-time auto-save. |
 | `/assessment/review` | Student | 🔍 **Answer Review**: Visual answer sheet summary prior to final ML submission. |
-| `/assessment/results/<id>` | Student | 📊 **Results Hub**: Interactive Radar Chart (Chart.js), score band pills, and Top-10 career matches. |
+| `/assessment/results/<id>` | Student | 📊 **Results Hub**: Interactive Radar Chart (Chart.js), score band pills, and Top-5 career recommendations. |
 | `/careers` | Public | 🔍 **Career Explorer**: Full-text search, domain/cluster/education/environment multi-filters. |
 | `/careers/<id>` | Public | 💼 **Career Detail**: Skill requirements, academic prerequisites, and career outlook. |
-| `/careers/<id>/roadmap` | Public | 🗺️ **Interactive Roadmap**: 5-stage milestone progression with recommended degrees. |
 | `/admin/` | Admin | 🛠️ **Admin Dashboard**: System metrics, user counts, completed tests, recent sessions. |
 | `/admin/users` | Admin | 👥 **Student Directory**: Student search, attempt history audits, and profile inspection. |
 | `/admin/questions` | Admin | ❓ **Question Bank Manager**: Filter questions by class, section, difficulty, and skill category. |
@@ -349,7 +356,7 @@ Each career profile contains:
 | ![GET](https://img.shields.io/badge/GET-61AFFE?style=flat-square) | `/api/questions/<class_level>` | Public | `class_level` (7–12), `?stream=PCM` | Returns adaptive question list for class cohort |
 | ![POST](https://img.shields.io/badge/POST-49CC90?style=flat-square) | `/api/assessment/start` | Student | `{}` | Initializes session, records selected question IDs |
 | ![POST](https://img.shields.io/badge/POST-49CC90?style=flat-square) | `/api/assessment/answer` | Student | `{ "assessment_id": 1, "question_id": 12, "selected_option": "B" }` | Real-time answer auto-save with timestamps |
-| ![POST](https://img.shields.io/badge/POST-49CC90?style=flat-square) | `/api/assessment/submit` | Student | `{ "assessment_id": 1 }` | Finalizes session → triggers Scoring + CatBoost Top-K |
+| ![POST](https://img.shields.io/badge/POST-49CC90?style=flat-square) | `/api/assessment/submit` | Student | `{ "assessment_id": 1 }` | Finalizes session → triggers Scoring + XGBoost Top-5 |
 | ![GET](https://img.shields.io/badge/GET-61AFFE?style=flat-square) | `/api/assessment/<id>/scores` | Student | None | Returns 22-dimension normalized score dictionary |
 | ![GET](https://img.shields.io/badge/GET-61AFFE?style=flat-square) | `/api/assessment/<id>/profile` | Student | None | Synthesized profile (strengths, growth areas, radar data) |
 
@@ -362,12 +369,11 @@ Each career profile contains:
 
 | Method | Endpoint | Access | Payload / Params | Response Description |
 | :---: | :--- | :---: | :--- | :--- |
-| ![GET](https://img.shields.io/badge/GET-61AFFE?style=flat-square) | `/api/careers` | Public | `?q=robotics&domain_id=3&page=1` | Paginated search across 1,203 careers |
-| ![GET](https://img.shields.io/badge/GET-61AFFE?style=flat-square) | `/api/careers/<id>` | Public | None | Career profile with skills, subjects, and roadmap |
-| ![GET](https://img.shields.io/badge/GET-61AFFE?style=flat-square) | `/api/careers/domains` | Public | None | List of all 33 career domains |
-| ![POST](https://img.shields.io/badge/POST-49CC90?style=flat-square) | `/api/recommendations` | Public | `{ "session_id": 1 }` OR raw profile payload | Evaluates 1,203 careers and returns Top-K matches |
+| ![GET](https://img.shields.io/badge/GET-61AFFE?style=flat-square) | `/api/careers` | Public | `?q=robotics&domain=Engineering&page=1` | Paginated search across 1,203 careers |
+| ![GET](https://img.shields.io/badge/GET-61AFFE?style=flat-square) | `/api/careers/<id>` | Public | None | Career profile with skills, subjects, and description |
+| ![POST](https://img.shields.io/badge/POST-49CC90?style=flat-square) | `/api/recommendations` | Public | `{ "session_id": 1 }` OR raw profile payload | Evaluates 1,203 careers and returns Top-5 matches |
 | ![GET](https://img.shields.io/badge/GET-61AFFE?style=flat-square) | `/api/recommendations/<assessment_id>` | Student | None | Returns saved recommendations for a completed session |
-| ![POST](https://img.shields.io/badge/POST-49CC90?style=flat-square) | `/api/predictions` | Public | `{ "features": [ { ...19 cols... } ] }` | Direct CatBoost inference on feature row array |
+| ![POST](https://img.shields.io/badge/POST-49CC90?style=flat-square) | `/api/predictions` | Public | `{ "features": [ { ...19 cols... } ] }` | Direct XGBoost inference on feature row array |
 | ![GET](https://img.shields.io/badge/GET-61AFFE?style=flat-square) | `/api/health` | Public | None | System status (DB, Model, Preprocessor, Catalogue) |
 | ![GET](https://img.shields.io/badge/GET-61AFFE?style=flat-square) | `/api/model/info` | Public | None | Model metadata: algorithm, version, features, accuracy |
 
@@ -380,34 +386,42 @@ Each career profile contains:
 
 | Method | Endpoint | Access | Payload / Params | Response Description |
 | :---: | :--- | :---: | :--- | :--- |
-| ![GET](https://img.shields.io/badge/GET-61AFFE?style=flat-square) | `/api/student/profile` | Student | None | Current student profile + 17 academic subject marks |
-| ![PUT](https://img.shields.io/badge/PUT-FCA130?style=flat-square) | `/api/student/profile` | Student | `{ "first_name": "...", "academic_scores": { ... } }` | Updates profile records and recalculates overall percentage |
+| ![GET](https://img.shields.io/badge/GET-61AFFE?style=flat-square) | `/api/student/profile` | Student | None | Current student profile + academic subject marks |
+| ![PUT](https://img.shields.io/badge/PUT-FCA130?style=flat-square) | `/api/student/profile` | Student | `{ "first_name": "...", "academic_scores": { ... } }` | Updates profile records in JSON format |
 
 </details>
 
 ---
 
-## 🗄️ Database Architecture
+## 🗄️ Streamlined 6-Table Database Architecture
 
-The system utilizes **MySQL 8.x** with 18 relational tables initialized via [`setup.sql`](file:///d:/Personalized-Career-Recommendation-System-Using-Machine-Learning/setup.sql):
+The database was streamlined from 18 legacy tables into **6 core, highly-optimized relational tables** initialized via [`database/setup.sql`](database/setup.sql):
 
 ```mermaid
 erDiagram
-    USERS ||--|| STUDENTS : "authenticates"
-    STUDENTS ||--o{ ACADEMIC_SCORES : "maintains"
-    STUDENTS ||--o{ ASSESSMENT_SESSIONS : "undertakes"
-    ASSESSMENT_SESSIONS ||--o{ STUDENT_ANSWERS : "records"
-    ASSESSMENT_SESSIONS ||--|| ASSESSMENT_SCORES : "computes"
-    ASSESSMENT_SESSIONS ||--o{ CAREER_RECOMMENDATIONS : "generates"
-    QUESTION_SECTIONS ||--o{ QUESTIONS : "contains"
-    QUESTIONS ||--o{ QUESTION_OPTIONS : "offers"
-    CAREER_DOMAINS ||--o{ CAREER_SUBDOMAINS : "subdivides"
-    CAREER_SUBDOMAINS ||--o{ CAREER_CLUSTERS : "clusters"
-    CAREER_DOMAINS ||--o{ CAREERS : "categorizes"
-    CAREERS ||--o{ CAREER_SKILLS : "requires"
-    CAREERS ||--o{ CAREER_SUBJECTS : "prescribes"
-    CAREERS ||--o{ CAREER_EDUCATION : "outlines"
+    users ||--o| students : "has profile (1:0..1)"
+    students ||--o{ assessment_sessions : "undertakes (1:0..*)"
+    assessment_sessions ||--o{ career_recommendations : "produces (1:0..*)"
+    careers ||--o{ career_recommendations : "referenced in (1:0..*)"
+    assessment_sessions }o..o{ questions : "selects from"
 ```
+
+<div align="center">
+
+| Table Name | Primary Role | Key Columns & JSON Structures |
+| :--- | :--- | :--- |
+| **`users`** | Authentication & RBAC | `id`, `username`, `email`, `password_hash`, `role` (`student`/`admin`), timestamps |
+| **`students`** | Student Demographics | `id`, `user_id` (FK), `student_code`, `class_level` [7-12], `stream`, `board`, `medium`, **`academic_scores` (JSON)** |
+| **`questions`** | Adaptive Question Bank | `id`, `question_code`, `question_text`, `section`, `class_min`, `class_max`, `difficulty`, `skill_category`, `stream_specific`, **`options` (JSON)** |
+| **`assessment_sessions`** | Test Sessions & Psychometrics | `id`, `student_id` (FK), `status`, `current_question`, `selected_question_ids`, **`answers` (JSON)**, **`scores` (JSON)** |
+| **`careers`** | Occupational Knowledge Base | `id`, `career_code`, `career_name`, `domain`, `subdomain`, `cluster`, `description`, `minimum_education`, **`required_skills` (JSON)**, **`recommended_subjects` (JSON)** |
+| **`career_recommendations`** | ML Recommendation Outputs | `id`, `assessment_id` (FK), `career_id` (FK), `rank_position` [1-5], `score`, `recommendation_reason`, `strengths`, `skill_gaps` |
+
+</div>
+
+> [!TIP]
+> **Why 6 Tables?**
+> By utilizing standard MySQL 8.x `JSON` attributes for flexible sub-entities (options, answers, academic scores, skills, and psychometric scores), the database eliminates unnecessary table joins, simplifies migrations, dramatically boosts query performance, and guarantees strict relational integrity.
 
 ---
 
@@ -415,7 +429,7 @@ erDiagram
 
 PathFinder enforces software security and data privacy safeguards:
 
-- 🛡️ **Zero Identity Leakage to ML Models**: `student_id`, `user_id`, and `career_id` are explicitly stripped from feature matrices (`assert 'student_id' not in df.columns`), ensuring the CatBoost model predicts purely on psychometric and academic attributes.
+- 🛡️ **Zero Identity Leakage to ML Models**: `student_id`, `user_id`, and `career_id` are explicitly stripped from feature matrices (`assert 'student_id' not in df.columns`), ensuring the XGBoost model predicts purely on psychometric and academic attributes.
 - 🔑 **Cryptographic Password Storage**: User passwords are encrypted using `Flask-Bcrypt` (adaptive salted Blowfish). Plaintext passwords are never stored or logged.
 - 🍪 **Session Hardening**: Sessions use `HTTPOnly`, `SameSite=Lax`, signed cookies with 24-hour expiration (`PERMANENT_SESSION_LIFETIME = 86400`).
 - 🛡️ **SQL Injection Prevention**: 100% of database interactions occur via SQLAlchemy ORM parameterized queries; raw string concatenation is forbidden.
@@ -427,7 +441,7 @@ PathFinder enforces software security and data privacy safeguards:
 ## ⚙️ Installation & Deployment Guide
 
 > [!IMPORTANT]
-> **Prerequisites**: Python 3.10+, MySQL Server 8.0+, and the trained CatBoost model artifacts in `backend/ml/models/`.
+> **Prerequisites**: Python 3.10+, MySQL Server 8.0+, and the trained XGBoost model artifacts in `backend/ml/models/`.
 
 ### 1️⃣ Clone & Virtual Environment Setup
 
@@ -467,13 +481,13 @@ FLASK_ENV=development
 
 ### 3️⃣ Initialize Database & Seed Master Data
 
-Execute the unified `setup.sql` script into MySQL:
+Execute the streamlined `setup.sql` script into MySQL:
 
 ```bash
-mysql -u root -p < setup.sql
+mysql -u root -p career_recommendation_db < database/setup.sql
 ```
 
-> **Seeded Content**: Creates 18 tables · 413 questions · 1,805 options · 1,203 careers · 33 domains · demo accounts.
+> **Seeded Content**: Creates 6 core tables · 413 psychometric questions · 1,203 careers across 33 domains · demo accounts.
 
 ### 4️⃣ Start Application
 
@@ -513,7 +527,7 @@ python -m unittest discover -s tests -v
 
 ```
 ----------------------------------------------------------------------
-Ran 83 tests in ~18s
+Ran 83 tests in ~16s
 
 OK (83 passed, 0 failures)
 ```
@@ -523,9 +537,9 @@ OK (83 passed, 0 failures)
 | 🧪 Test Module | 🔢 Tests | 🔍 Verification Area |
 | :--- | :---: | :--- |
 | `test_ml_model_loading` | 3 | Artifact existence, singleton `ModelLoader`, missing file exception handling |
-| `test_ml_prediction` | 4 | Feature vector formatting, CatBoost probability distribution, thresholding |
+| `test_ml_prediction` | 4 | Feature vector formatting, XGBoost probability distribution, thresholding |
 | `test_ml_feature_builder` | 2 | `calculate_ability_match`, `calculate_interest_match`, alias mapping |
-| `test_ml_recommendation` | 3 | 1,203-career catalogue loading, Top-K extraction, response schema |
+| `test_ml_recommendation` | 3 | 1,203-career catalogue loading, Top-5 extraction, response schema |
 | `test_ml_concurrency_and_performance` | 2 | Multi-threaded concurrent recommendation stress testing (5 & 10 threads) |
 | `test_ml_integrity_and_security` | 3 | SHA-256 model checksums, `.gitignore` secret exclusion, path traversal protection |
 | `test_ml_api_endpoints` | 5 | `/api/health`, `/api/model/info`, `/api/predictions`, `/api/recommendations` |
@@ -536,11 +550,11 @@ OK (83 passed, 0 failures)
 | `test_student_profile_and_baseline` | 3 | Profile synthesis, strength/growth area generation, correlated baseline scoring |
 | `test_questionnaire_validation_comprehensive` | 5 | Bounds validation: Class [7-12], Marks [0-100], Rating [1-5], sensitive field blocks |
 | `test_auth` | 3 | Student registration, username/email login, session logout |
-| `test_e2e_real_student_flow` | 4 | End-to-end user journey: Register → Profile → Assess → Submit → Top-K Results |
+| `test_e2e_real_student_flow` | 4 | End-to-end user journey: Register → Profile → Assess → Submit → Top-5 Results |
 | `test_admin_and_user_history` | 5 | Admin audit trails, student attempt history, per-question answer inspection |
 | `test_admin` | 3 | Admin route authorization guards, dashboard statistics aggregation |
 | `test_assessment` | 3 | Assessment initialization, question delivery pagination, progress tracking |
-| `test_career` | 2 | Career explorer search rendering, career detail profiles, roadmap views |
+| `test_career` | 2 | Career explorer search rendering, career detail profiles |
 | `test_career_import` | 9 | CSV knowledge base ingestion, domain mapping, duplicate handling |
 | **TOTAL** | **83** | **100% Passing — Full System Reliability Guaranteed** |
 
@@ -556,8 +570,8 @@ OK (83 passed, 0 failures)
 | :---: | :--- |
 | 🐍 **Backend Core** | **Python 3.10+**, **Flask 3.0+**, Flask-SQLAlchemy, Flask-Login, Flask-Bcrypt, Flask-WTF |
 | 🗄️ **Database & ORM** | **MySQL 8.x**, SQLAlchemy 2.0, `mysql-connector-python`, `PyMySQL` |
-| 🤖 **Machine Learning** | **CatBoost 1.2+** (Champion), **scikit-learn 1.4+**, **pandas 2.1+**, **numpy 1.24+**, **joblib 1.3+** |
-| 📊 **Analysis & Ensembles** | **XGBoost 2.0+**, **LightGBM 4.3+**, **SHAP 0.45+**, **matplotlib 3.8+**, **seaborn 0.13+** |
+| 🤖 **Machine Learning** | **XGBoost 2.0+** (Champion), **scikit-learn 1.4+**, **pandas 2.1+**, **numpy 1.24+**, **joblib 1.3+** |
+| 📊 **Analysis & Ensembles** | **SHAP 0.45+**, **matplotlib 3.8+**, **seaborn 0.13+** |
 | 🎨 **Frontend & Visuals** | **Jinja2**, **Bootstrap 5.3**, **Bootstrap Icons**, **Chart.js** (Radar & Bar Aptitude Visualizations) |
 | 🔐 **Security & Cryptography** | **Bcrypt** Password Hashing, **CSRF Protection**, HTTPOnly Session Cookies |
 | 🧪 **Quality Assurance** | Python **`unittest`**, In-Memory SQLite Test Database Isolation |
@@ -570,7 +584,7 @@ OK (83 passed, 0 failures)
 
 [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
-[![CatBoost](https://img.shields.io/badge/CatBoost-00ADD8?style=for-the-badge&logo=python&logoColor=white)](https://catboost.ai/)
+[![XGBoost](https://img.shields.io/badge/XGBoost-FF6600?style=for-the-badge&logo=xgboost&logoColor=white)](https://xgboost.readthedocs.io/)
 [![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap%205-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)](https://getbootstrap.com/)
 
