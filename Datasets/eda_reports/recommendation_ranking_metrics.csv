@@ -1,0 +1,6 @@
+Metric,Score,Target_Achieved
+Hit@1 (Top-1 Recommendation Match),93.19%,YES
+Hit@3 (Top-3 Recommendation Match),99.80%,YES
+Hit@5 (Top-5 Recommendation Match),100.00%,YES
+MRR (Mean Reciprocal Rank),0.9636,YES
+NDCG@5 (Discounted Cumulative Gain),0.9469,YES

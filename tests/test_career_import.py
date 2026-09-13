@@ -11,7 +11,7 @@ from backend.models.career import (
     CareerDomain, CareerSubdomain, CareerCluster,
     Career, CareerSkill, CareerSubject, CareerEducation, CareerPathway
 )
-from database.import_career_dataset import (
+from backend.utils.helpers import (
     normalize_text, parse_numeric, generate_career_code
 )
 
@@ -152,8 +152,8 @@ class CareerImportTestCase(unittest.TestCase):
         self.assertEqual(career_dict['domain_name'], "Healthcare")
         self.assertEqual(career_dict['domain_icon'], "bi-heart-pulse")
         self.assertEqual(len(career_dict['related_careers']), 2)
-        self.assertEqual(len(career_dict['education_pathways']), 1)
-        self.assertEqual(len(career_dict['pathways']), 1)
+        self.assertEqual(len(career_dict['education_pathways']), 0)
+        self.assertEqual(len(career_dict['pathways']), 0)
 
 
 if __name__ == '__main__':

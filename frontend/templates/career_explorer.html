@@ -10,8 +10,8 @@
             <i class="bi bi-compass me-1"></i> Comprehensive Knowledge Base
         </span>
         <h1 class="display-6 fw-bold mb-2" style="color: var(--text-main);">Explore 1,200+ Professional Career Pathways</h1>
-        <p class="small mx-auto mb-0" style="color: var(--text-secondary); max-width: 750px;">
-            Search and filter across {{ total_careers }} normalized occupational profiles, covering industry domains, subdomains, clusters, and prerequisite roadmap stages from Class 7 to graduation.
+        <p class="lead" style="color: var(--text-secondary); max-width: 700px; margin: 0 auto; font-size: 1rem;">
+            Search and filter across {{ total_careers }} verified occupational profiles, covering industry domains, descriptions, required skills, and educational qualifications.
         </p>
     </div>
 
@@ -121,11 +121,8 @@
 
                     <!-- Actions -->
                     <div class="d-flex gap-2 mt-auto">
-                        <a href="{{ url_for('career.career_detail_page', career_id=career.id) }}" class="btn btn-primary-custom btn-sm-custom flex-grow-1">
-                            View Details
-                        </a>
-                        <a href="{{ url_for('career.career_roadmap_page', career_id=career.id) }}" class="btn btn-outline-custom btn-sm-custom" title="Education Roadmap">
-                            <i class="bi bi-signpost-split"></i> Roadmap
+                        <a href="{{ url_for('career.career_detail_page', career_id=career.id) }}" class="btn btn-primary-custom btn-sm-custom w-100 text-center">
+                            View Details <i class="bi bi-arrow-right ms-1"></i>
                         </a>
                     </div>
                 </div>

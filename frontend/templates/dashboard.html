@@ -60,7 +60,7 @@
                     {% if latest_session and latest_session.status == 'completed' %}
                         Evaluated across cognitive aptitudes and interests against 1,206 career knowledge profiles with 95.97% ML accuracy.
                     {% elif latest_session and latest_session.status == 'in_progress' %}
-                        Complete the remaining questions to unlock your ranked career recommendations and milestone roadmap.
+                        Complete the remaining questions to unlock your ranked career recommendations and personalized insights.
                     {% else %}
                         Discover your strengths through quick, age-appropriate questions tailored for Class {{ student.class_level if student else '7-12' }}.
                     {% endif %}
@@ -69,7 +69,7 @@
             <div class="col-lg-4 text-lg-end">
                 {% if latest_session and latest_session.status == 'completed' %}
                     <a href="{{ url_for('assessment.results_page', assessment_id=latest_session.id) }}" class="btn btn-primary-custom">
-                        <i class="bi bi-award-fill me-1"></i> View Results & Roadmap
+                        <i class="bi bi-award-fill me-1"></i> View Career Recommendations
                     </a>
                 {% elif latest_session and latest_session.status == 'in_progress' %}
                     <a href="{{ url_for('assessment.assessment_page', session_id=latest_session.id) }}" class="btn btn-primary-custom">

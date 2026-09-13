@@ -1,0 +1,6 @@
+Model,Accuracy (%),Raw_Accuracy (%),F1 Score,Precision (%),Recall (%),ROC-AUC (%),PR-AUC (%),Training Time (s)
+XGBoost (Optimized Champion),86.68,80.91,0.9184,87.66,96.44,86.24,95.05,1.75
+CatBoost,86.11,80.88,0.9147,87.32,96.03,85.93,94.91,6.5
+Random Forest,86.1,80.46,0.9153,87.07,96.47,85.37,94.76,2.38
+LightGBM,85.92,80.94,0.9132,87.31,95.71,85.79,94.76,1.05
+Dummy Baseline,73.07,73.07,0.8444,73.07,100.0,50.0,73.07,0.0

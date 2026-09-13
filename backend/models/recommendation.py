@@ -24,6 +24,15 @@ class CareerRecommendation(db.Model):
     # Relationships
     career = db.relationship('Career')
 
+    def __init__(self, **kwargs):
+        if 'rank' in kwargs and 'rank_position' not in kwargs:
+            kwargs['rank_position'] = kwargs.pop('rank')
+        if 'match_score' in kwargs and 'score' not in kwargs:
+            kwargs['score'] = kwargs.pop('match_score')
+        if 'fit_reason' in kwargs and 'recommendation_reason' not in kwargs:
+            kwargs['recommendation_reason'] = kwargs.pop('fit_reason')
+        super().__init__(**kwargs)
+
     @hybrid_property
     def rank(self):
         return self.rank_position
@@ -31,6 +40,22 @@ class CareerRecommendation(db.Model):
     @rank.setter
     def rank(self, val):
         self.rank_position = val
+
+    @hybrid_property
+    def match_score(self):
+        return self.score
+
+    @match_score.setter
+    def match_score(self, val):
+        self.score = val
+
+    @hybrid_property
+    def fit_reason(self):
+        return self.recommendation_reason
+
+    @fit_reason.setter
+    def fit_reason(self, val):
+        self.recommendation_reason = val
 
     def to_dict(self):
         return {

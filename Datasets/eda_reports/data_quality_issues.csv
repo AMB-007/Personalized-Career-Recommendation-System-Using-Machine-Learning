@@ -1,0 +1,6 @@
+Issue_Category,Dataset,Count,Severity,Remediation
+Duplicate Rows,Student_Assessment_RAW,10,High,Drop duplicates keep='first'
+Duplicate Rows,Student_Career_Compatibility_RAW,150,High,Drop duplicates keep='first'
+Dirty Casing/Whitespace,Both (stream column),1386,Medium,Apply .str.strip().str.title() normalization
+Out-of-Bounds Score,Student_Career_Compatibility_RAW,25,High,Clip to max 100.0 or exclude as feature (Leakage Prevention)
+Target Leakage Risk,Student_Career_Compatibility_RAW,50000,Critical,DO NOT use compatibility_score as an input feature for predicting compatibility_label

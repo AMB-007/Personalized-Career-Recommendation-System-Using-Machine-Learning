@@ -322,30 +322,6 @@
         </div>
     </div>
 
-    <!-- 5-Stage Educational Progression Roadmaps Accordion -->
-    {% if top_1.progression_stages and top_1.progression_stages|length > 0 %}
-    <div class="card-custom p-4 mb-5">
-        <h4 class="fw-bold mb-3" style="color: var(--text-main);"><i class="bi bi-signpost-split text-primary me-2"></i>5-Stage Career Progression Roadmap</h4>
-        <div class="accordion" id="roadmapAccordion">
-            {% for step in top_1.progression_stages %}
-            <div class="accordion-item card-subtle mb-2 border-0 rounded-2">
-                <h2 class="accordion-header" id="heading{{ step.stage_number }}">
-                    <button class="accordion-button {% if not loop.first %}collapsed{% endif %} bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ step.stage_number }}" aria-expanded="{{ 'true' if loop.first else 'false' }}" aria-controls="collapse{{ step.stage_number }}" style="color: var(--text-main);">
-                        <span class="badge-custom badge-primary-custom me-2">Stage {{ step.stage_number }}</span>
-                        <strong>{{ step.stage_name }}</strong>
-                    </button>
-                </h2>
-                <div id="collapse{{ step.stage_number }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}" aria-labelledby="heading{{ step.stage_number }}" data-bs-parent="#roadmapAccordion">
-                    <div class="accordion-body pt-0 small" style="color: var(--text-secondary);">
-                        {{ step.description }}
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-
     <!-- Model Transparency & Metric Explanation -->
     <div class="card-custom p-4">
         <div class="row align-items-center g-4">

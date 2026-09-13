@@ -76,3 +76,87 @@ def api_error(message="An error occurred", status_code=400, errors=None, code="B
     if errors:
         payload['details'] = errors
     return jsonify(payload), status_code
+
+
+# -------------------------------------------------------------------
+# Data Normalization & Formatting Helpers
+# -------------------------------------------------------------------
+
+DOMAIN_CODES = {
+    'Technology': 'TECH',
+    'Information Technology': 'IT',
+    'Healthcare': 'HLTH',
+    'Medicine': 'MED',
+    'Engineering': 'ENG',
+    'Pure Science': 'SCI',
+    'Research': 'RES',
+    'Business': 'BUS',
+    'Finance': 'FIN',
+    'Law': 'LAW',
+    'Arts': 'ART',
+    'Design': 'DES',
+    'Media': 'MEDA',
+    'Government': 'GOV',
+    'Agriculture': 'AGR',
+    'Environment': 'ENV',
+    'Sports': 'SPT',
+    'Hospitality': 'HOSP',
+    'Aviation': 'AVI',
+    'Manufacturing': 'MFG',
+    'Construction': 'CONS',
+    'Skilled Trades': 'TRD',
+    'Transportation': 'TRN',
+    'Psychology and Social Sciences': 'PSY',
+    'Psychology And Social Sciences': 'PSY',
+    'Education': 'EDU',
+    'Biotechnology': 'BIO',
+    'Pharmaceuticals': 'PHAR',
+    'Defence and Security': 'DEF',
+    'Defence And Security': 'DEF',
+    'Fashion': 'FASH',
+    'Food': 'FOOD',
+    'Real Estate': 'REST',
+    'Emerging Careers': 'EMG',
+    'Interdisciplinary': 'INT'
+}
+
+
+def normalize_text(text: str) -> str:
+    """Cleans and standardizes text strings with proper title casing and standard acronyms."""
+    if not text:
+        return ''
+    cleaned = ' '.join(str(text).strip().split())
+    words = cleaned.split()
+    result = []
+    for w in words:
+        upper = w.upper()
+        lower = w.lower()
+        if upper in ['AI', 'IT', 'UI', 'UX', 'CAD', 'CAM', 'VFX', '3D', '2D', 'CA', 'IAS', 'IPS', 'IFS', 'GIS', 'CFO', 'CEO', 'CTO', 'SOC', 'SEO', 'NEET', 'JEE', 'CLAT', 'UPSC', 'MBBS', 'BCA', 'MCA', 'BBA', 'MBA']:
+            result.append(upper)
+        elif lower in ['and', '&', 'of', 'in', 'the', 'for', 'to', 'with', 'on', 'at', 'by', 'a', 'an']:
+            result.append(lower if len(result) > 0 else w.capitalize())
+        else:
+            result.append(w.capitalize())
+    return ' '.join(result)
+
+
+def parse_numeric(value, default=0) -> int:
+    """Safely converts numeric values to integer bounded 0..5."""
+    try:
+        val = int(round(float(value)))
+        return max(0, min(5, val))
+    except (ValueError, TypeError):
+        return default
+
+
+def generate_career_code(domain_name: str, cid_raw: str, index: int) -> str:
+    """Generates a deterministic, standard career code."""
+    import re
+    prefix = DOMAIN_CODES.get(domain_name, 'GEN')
+    clean_cid = re.sub(r'[^0-9A-Za-z]', '', str(cid_raw or ''))
+    if clean_cid.startswith('CID'):
+        clean_cid = clean_cid[3:]
+    if clean_cid:
+        return f"CAR-{prefix}-{clean_cid}"
+    return f"CAR-{prefix}-{index:04d}"
+

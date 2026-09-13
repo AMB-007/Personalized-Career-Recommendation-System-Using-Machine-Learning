@@ -1,7 +1,7 @@
 """
 Career Knowledge Base, Explorer, and Recommendations Routes.
 Enables exploring career domains, viewing detailed skill/subject requirements,
-tracing education roadmaps, and executing XGBoost ML recommendation predictions.
+and executing XGBoost ML recommendation predictions.
 """
 
 from flask import Blueprint, render_template, request, jsonify, abort
@@ -105,15 +105,6 @@ def career_detail_page(career_id: int):
         career=career_dict,
         related_careers=related_list
     )
-
-
-@career_bp.route('/careers/<int:career_id>/roadmap')
-def career_roadmap_page(career_id):
-    career_dict = CareerService.get_career_by_id(career_id)
-    if not career_dict:
-        abort(404)
-
-    return render_template('roadmap.html', career=career_dict)
 
 
 # ------------------------------------------------------------

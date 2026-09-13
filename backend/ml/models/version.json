@@ -1,8 +1,12 @@
 {
-  "version": "V9.5-Champion",
-  "champion_model": "CatBoost",
-  "model_accuracy": "86.22%",
-  "f1_score": "0.9154",
-  "roc_auc": "92.14%",
-  "created": "2026-08-30T12:00:00Z"
+  "version": "V10.0-XGBoost-Champion",
+  "champion_model": "XGBoost",
+  "model_accuracy": "86.68%",
+  "raw_accuracy": "80.91%",
+  "f1_score": "0.9184",
+  "roc_auc": "86.24%",
+  "hit_at_1": "93.19%",
+  "hit_at_5": "100.00%",
+  "mrr": "0.9636",
+  "created": "2026-09-12T22:29:01Z"
 }

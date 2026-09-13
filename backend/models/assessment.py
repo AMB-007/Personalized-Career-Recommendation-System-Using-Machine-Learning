@@ -1,9 +1,273 @@
+"""
+Student Assessment Session Model for MySQL Database.
+Stores assessment sessions, student answers, and cognitive ability scores directly in 'assessment_sessions' (Table 4 of 6),
+eliminating redundant 1:1 separate assessment_scores and student_answers tables.
+"""
+
 from datetime import datetime, timezone
+from sqlalchemy.orm.attributes import flag_modified
 from backend.extensions import db
 
 
+class AssessmentScoreProxy:
+    """Compatibility proxy for cognitive ability & interest scores stored in JSON."""
+    COGNITIVE_FIELDS = [
+        'mathematical_ability', 'logical_reasoning', 'scientific_reasoning',
+        'problem_solving', 'analytical_ability', 'communication', 'creativity',
+        'digital_ability', 'learning_ability', 'memory', 'observation',
+        'spatial_ability', 'practical_ability', 'teamwork', 'leadership'
+    ]
+    INTEREST_FIELDS = [
+        'technology_interest', 'science_interest', 'healthcare_interest',
+        'business_interest', 'creative_interest', 'research_interest', 'social_interest'
+    ]
+
+    def __init__(self, data=None, session=None):
+        self._data = dict(data) if isinstance(data, dict) else {}
+        self._session = session
+        self.assessment_id = session.id if session else 1
+
+    def __getattr__(self, name):
+        if name.startswith('_'):
+            raise AttributeError(name)
+        if name in self._data:
+            return self._data[name]
+        return 0.0
+
+    def __setattr__(self, name, value):
+        if name.startswith('_') or name == 'assessment_id':
+            super().__setattr__(name, value)
+        else:
+            self._data[name] = float(value) if value is not None else 0.0
+            if self._session is not None:
+                self._session.scores_data = dict(self._data)
+
+    def to_dict(self):
+        cog = {k: round(float(self._data.get(k, 0.0)), 1) for k in self.COGNITIVE_FIELDS}
+        intr = {k: round(float(self._data.get(k, 0.0)), 1) for k in self.INTEREST_FIELDS}
+        return {
+            'id': self._session.id if self._session else 1,
+            'assessment_id': self._session.id if self._session else 1,
+            'cognitive_scores': cog,
+            'interest_scores': intr,
+            'created_at': self._session.created_at.isoformat() if self._session and self._session.created_at else None
+        }
+
+    def __repr__(self):
+        return f"<AssessmentScore for Assessment {self.assessment_id}>"
+
+
+class StudentAnswer:
+    """Compatibility interface for individual student answer records."""
+    def __init__(self, data_or_session_id=None, **kwargs):
+        self.__dict__['_initialized'] = False
+
+        if isinstance(data_or_session_id, dict):
+            data = dict(data_or_session_id)
+            data.update(kwargs)
+        elif data_or_session_id is not None and not kwargs.get('assessment_id'):
+            data = dict(kwargs)
+            data['assessment_id'] = data_or_session_id
+        else:
+            data = dict(kwargs)
+
+        self.id = data.get('id', 1)
+        self.assessment_id = data.get('assessment_id', 1)
+        self.question_id = data.get('question_id', 1)
+        self.selected_option_id = data.get('selected_option_id')
+        self.selected_option = data.get('selected_option')
+        self.answer_text = data.get('answer_text') or self.selected_option
+        num_v = data.get('numeric_value')
+        self.numeric_value = float(num_v) if num_v is not None else None
+        tt = data.get('time_taken_seconds', 0)
+        self.time_taken_seconds = int(tt) if tt else 0
+
+        ans_at = data.get('answered_at')
+        if isinstance(ans_at, datetime):
+            self.answered_at = ans_at.isoformat()
+        else:
+            self.answered_at = str(ans_at) if ans_at else datetime.now(timezone.utc).isoformat()
+
+        self.__dict__['_initialized'] = True
+        self._sync()
+
+    def _sync(self):
+        if not self.__dict__.get('_initialized'):
+            return
+        if self.assessment_id and self.question_id and db.session:
+            try:
+                sess = db.session.get(AssessmentSession, self.assessment_id)
+                if sess:
+                    current_answers = dict(sess.answers_data or {})
+                    current_answers[str(self.question_id)] = self.to_dict()
+                    sess.answers_data = current_answers
+                    flag_modified(sess, 'answers_data')
+            except Exception:
+                pass
+
+    def __setattr__(self, name, value):
+        super().__setattr__(name, value)
+        if not name.startswith('_'):
+            self._sync()
+
+    @property
+    def question(self):
+        from backend.models.question import Question
+        return db.session.get(Question, self.question_id) if db.session and self.question_id else None
+
+    @property
+    def option(self):
+        q = self.question
+        if q:
+            for opt in q.options:
+                if self.selected_option_id and opt.id == self.selected_option_id:
+                    return opt
+                if self.selected_option and opt.option_value == self.selected_option:
+                    return opt
+        return None
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'assessment_id': self.assessment_id,
+            'question_id': self.question_id,
+            'selected_option_id': self.selected_option_id,
+            'selected_option': self.selected_option,
+            'answer_text': self.answer_text,
+            'numeric_value': self.numeric_value,
+            'time_taken_seconds': self.time_taken_seconds,
+            'answered_at': str(self.answered_at)
+        }
+
+    class _Query:
+        @staticmethod
+        def filter_by(assessment_id=None, question_id=None, **kwargs):
+            class _AnsResult:
+                def __init__(self, a_id, q_id):
+                    self.a_id = a_id
+                    self.q_id = q_id
+
+                def first(self):
+                    if not self.a_id or not db.session:
+                        return None
+                    try:
+                        sess = db.session.get(AssessmentSession, self.a_id)
+                        if not sess:
+                            return None
+                        ans_map = sess.answers_data if isinstance(sess.answers_data, dict) else {}
+                        if self.q_id is not None:
+                            item = ans_map.get(str(self.q_id))
+                            if item:
+                                if isinstance(item, dict):
+                                    return StudentAnswer(item)
+                                return StudentAnswer(assessment_id=self.a_id, question_id=int(self.q_id), selected_option=str(item))
+                            return None
+                        for qid, item in ans_map.items():
+                            if isinstance(item, dict):
+                                return StudentAnswer(item)
+                            return StudentAnswer(assessment_id=self.a_id, question_id=int(qid), selected_option=str(item))
+                        return None
+                    except Exception:
+                        return None
+
+                def all(self):
+                    if not self.a_id or not db.session:
+                        return []
+                    try:
+                        sess = db.session.get(AssessmentSession, self.a_id)
+                        if not sess:
+                            return []
+                        ans_map = sess.answers_data if isinstance(sess.answers_data, dict) else {}
+                        if self.q_id is not None:
+                            item = ans_map.get(str(self.q_id))
+                            if item:
+                                if isinstance(item, dict):
+                                    return [StudentAnswer(item)]
+                                return [StudentAnswer(assessment_id=self.a_id, question_id=int(self.q_id), selected_option=str(item))]
+                            return []
+                        res = []
+                        for qid, item in ans_map.items():
+                            if isinstance(item, dict):
+                                res.append(StudentAnswer(item))
+                            else:
+                                res.append(StudentAnswer(assessment_id=self.a_id, question_id=int(qid) if str(qid).isdigit() else 1, selected_option=str(item)))
+                        return res
+                    except Exception:
+                        return []
+
+                def count(self):
+                    if not self.a_id or not db.session:
+                        return 0
+                    try:
+                        sess = db.session.get(AssessmentSession, self.a_id)
+                        if not sess:
+                            return 0
+                        ans_map = sess.answers_data if isinstance(sess.answers_data, dict) else {}
+                        if self.q_id is not None:
+                            return 1 if str(self.q_id) in ans_map else 0
+                        return len(ans_map)
+                    except Exception:
+                        return 0
+
+                def __iter__(self):
+                    return iter(self.all())
+
+            return _AnsResult(assessment_id, question_id)
+
+        @staticmethod
+        def all():
+            return []
+
+    query = _Query()
+
+    def __repr__(self):
+        return f"<StudentAnswer Q{self.question_id}: {self.selected_option}>"
+
+
+# Alias for backward compatibility
+StudentAnswerProxy = StudentAnswer
+
+
+class AnswersCollectionProxy:
+    """Query-like collection proxy for student answers in an assessment session."""
+    def __init__(self, answers_dict=None, session=None):
+        self._answers = dict(answers_dict) if isinstance(answers_dict, dict) else {}
+        self._session = session
+
+    def all(self):
+        res = []
+        for q_id, a_data in self._answers.items():
+            qid_int = int(q_id) if str(q_id).isdigit() else 1
+            if isinstance(a_data, dict):
+                res.append(StudentAnswer(assessment_id=self._session.id if self._session else 1, question_id=qid_int, **a_data))
+            else:
+                res.append(StudentAnswer(assessment_id=self._session.id if self._session else 1, question_id=qid_int, selected_option=str(a_data)))
+        return res
+
+    def count(self):
+        return len(self._answers)
+
+    def filter_by(self, question_id=None, **kwargs):
+        class _FilterRes:
+            def __init__(self, parent, q_id):
+                self.parent = parent
+                self.q_id = str(q_id)
+            def first(self):
+                if self.q_id in self.parent._answers:
+                    item = self.parent._answers[self.q_id]
+                    qid_int = int(self.q_id) if str(self.q_id).isdigit() else 1
+                    if isinstance(item, dict):
+                        return StudentAnswer(assessment_id=self.parent._session.id if self.parent._session else 1, question_id=qid_int, **item)
+                    return StudentAnswer(assessment_id=self.parent._session.id if self.parent._session else 1, question_id=qid_int, selected_option=str(item))
+                return None
+        return _FilterRes(self, question_id)
+
+    def __iter__(self):
+        return iter(self.all())
+
+
 class AssessmentSession(db.Model):
-    """Student assessment session state and progress in MySQL."""
+    """Student assessment session state and progress in MySQL (Table 4 of 6)."""
     __tablename__ = 'assessment_sessions'
 
     id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), primary_key=True, autoincrement=True)
@@ -18,12 +282,39 @@ class AssessmentSession(db.Model):
     current_question = db.Column(db.Integer, default=0)
     completion_percentage = db.Column(db.Float, default=0.0)
     selected_question_ids = db.Column(db.Text, nullable=True)
+    answers_data = db.Column('answers', db.JSON, default=dict)
+    scores_data = db.Column('scores', db.JSON, default=dict)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
 
     # Relationships
-    answers = db.relationship('StudentAnswer', backref='session', lazy='dynamic', cascade='all, delete-orphan')
-    scores = db.relationship('AssessmentScore', backref='session', uselist=False, cascade='all, delete-orphan')
     recommendations = db.relationship('CareerRecommendation', backref='session', lazy='dynamic', cascade='all, delete-orphan')
+
+    @property
+    def scores(self):
+        return AssessmentScoreProxy(self.scores_data or {}, self)
+
+    @scores.setter
+    def scores(self, val):
+        if isinstance(val, dict):
+            self.scores_data = dict(val)
+        elif isinstance(val, AssessmentScoreProxy):
+            self.scores_data = dict(val._data)
+        elif isinstance(val, AssessmentScore):
+            self.scores_data = dict(val.to_dict().get('cognitive_scores', {}))
+            self.scores_data.update(val.to_dict().get('interest_scores', {}))
+        else:
+            self.scores_data = {}
+
+    @property
+    def answers(self):
+        return AnswersCollectionProxy(self.answers_data or {}, self)
+
+    @answers.setter
+    def answers(self, val):
+        if isinstance(val, dict):
+            self.answers_data = dict(val)
+        else:
+            self.answers_data = {}
 
     def to_dict(self):
         return {
@@ -42,110 +333,75 @@ class AssessmentSession(db.Model):
         return f"<AssessmentSession {self.id} - Student {self.student_id} ({self.status})>"
 
 
-class StudentAnswer(db.Model):
-    """Answers submitted by students during assessment sessions in MySQL."""
-    __tablename__ = 'student_answers'
-
-    id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), primary_key=True, autoincrement=True)
-    assessment_id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), db.ForeignKey('assessment_sessions.id', ondelete='CASCADE'), nullable=False, index=True)
-    question_id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), db.ForeignKey('questions.id', ondelete='RESTRICT'), nullable=False, index=True)
-    selected_option_id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), db.ForeignKey('question_options.id', ondelete='SET NULL'), nullable=True)
-    selected_option = db.Column(db.Text, nullable=True)
-    answer_text = db.Column(db.Text, nullable=True)
-    numeric_value = db.Column(db.Float, nullable=True)
-    time_taken_seconds = db.Column(db.Integer, default=0)
-    answered_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-
-    # Composite Unique Constraint: one answer per question per assessment
-    __table_args__ = (
-        db.UniqueConstraint('assessment_id', 'question_id', name='uq_assessment_question'),
-    )
-
-    # Relationships
-    question = db.relationship('Question')
-    option = db.relationship('QuestionOption')
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'assessment_id': self.assessment_id,
-            'question_id': self.question_id,
-            'selected_option_id': self.selected_option_id,
-            'selected_option': self.selected_option,
-            'answer_text': self.answer_text,
-            'numeric_value': self.numeric_value,
-            'time_taken_seconds': self.time_taken_seconds,
-            'answered_at': self.answered_at.isoformat() if self.answered_at else None
-        }
+# -------------------------------------------------------------------
+# Compatibility Proxy Classes (Non-table classes for backward compatibility)
+# -------------------------------------------------------------------
 
 
-class AssessmentScore(db.Model):
-    """Normalized multi-dimensional assessment scores (0-100 scale) in MySQL."""
-    __tablename__ = 'assessment_scores'
+class AssessmentScore:
+    """Compatibility interface for assessment scores without a separate database table."""
+    def __init__(self, assessment_id=None, **kwargs):
+        self.assessment_id = assessment_id
+        self._data = dict(kwargs)
 
-    id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), primary_key=True, autoincrement=True)
-    assessment_id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), db.ForeignKey('assessment_sessions.id', ondelete='CASCADE'), nullable=False, unique=True)
+        if assessment_id and db.session:
+            try:
+                sess = db.session.get(AssessmentSession, assessment_id)
+                if sess:
+                    current = dict(sess.scores_data or {})
+                    current.update(self._data)
+                    sess.scores_data = current
+            except Exception:
+                pass
 
-    # Cognitive & Aptitude abilities (0-100 scale)
-    mathematical_ability = db.Column(db.Float, default=0.0)
-    logical_reasoning = db.Column(db.Float, default=0.0)
-    scientific_reasoning = db.Column(db.Float, default=0.0)
-    problem_solving = db.Column(db.Float, default=0.0)
-    analytical_ability = db.Column(db.Float, default=0.0)
-    communication = db.Column(db.Float, default=0.0)
-    creativity = db.Column(db.Float, default=0.0)
-    digital_ability = db.Column(db.Float, default=0.0)
-    learning_ability = db.Column(db.Float, default=0.0)
-    memory = db.Column(db.Float, default=0.0)
-    observation = db.Column(db.Float, default=0.0)
-    spatial_ability = db.Column(db.Float, default=0.0)
-    practical_ability = db.Column(db.Float, default=0.0)
-    teamwork = db.Column(db.Float, default=0.0)
-    leadership = db.Column(db.Float, default=0.0)
+    def __getattr__(self, name):
+        if name.startswith('_'):
+            raise AttributeError(name)
+        return self._data.get(name, 0.0)
 
-    # Interest dimensions (0-100 scale)
-    technology_interest = db.Column(db.Float, default=0.0)
-    science_interest = db.Column(db.Float, default=0.0)
-    healthcare_interest = db.Column(db.Float, default=0.0)
-    business_interest = db.Column(db.Float, default=0.0)
-    creative_interest = db.Column(db.Float, default=0.0)
-    research_interest = db.Column(db.Float, default=0.0)
-    social_interest = db.Column(db.Float, default=0.0)
-
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    def __setattr__(self, name, value):
+        if name in ('assessment_id', '_data'):
+            super().__setattr__(name, value)
+        else:
+            self._data[name] = float(value) if value is not None else 0.0
+            if self.assessment_id and db.session:
+                try:
+                    sess = db.session.get(AssessmentSession, self.assessment_id)
+                    if sess:
+                        current = dict(sess.scores_data or {})
+                        current[name] = self._data[name]
+                        sess.scores_data = current
+                except Exception:
+                    pass
 
     def to_dict(self):
+        cog = {k: round(float(self._data.get(k, 0.0)), 1) for k in AssessmentScoreProxy.COGNITIVE_FIELDS}
+        intr = {k: round(float(self._data.get(k, 0.0)), 1) for k in AssessmentScoreProxy.INTEREST_FIELDS}
         return {
-            'id': self.id,
+            'id': 1,
             'assessment_id': self.assessment_id,
-            'cognitive_scores': {
-                'mathematical_ability': round(self.mathematical_ability, 1),
-                'logical_reasoning': round(self.logical_reasoning, 1),
-                'scientific_reasoning': round(self.scientific_reasoning, 1),
-                'problem_solving': round(self.problem_solving, 1),
-                'analytical_ability': round(self.analytical_ability, 1),
-                'communication': round(self.communication, 1),
-                'creativity': round(self.creativity, 1),
-                'digital_ability': round(self.digital_ability, 1),
-                'learning_ability': round(self.learning_ability, 1),
-                'memory': round(self.memory, 1),
-                'observation': round(self.observation, 1),
-                'spatial_ability': round(self.spatial_ability, 1),
-                'practical_ability': round(self.practical_ability, 1),
-                'teamwork': round(self.teamwork, 1),
-                'leadership': round(self.leadership, 1)
-            },
-            'interest_scores': {
-                'technology_interest': round(self.technology_interest, 1),
-                'science_interest': round(self.science_interest, 1),
-                'healthcare_interest': round(self.healthcare_interest, 1),
-                'business_interest': round(self.business_interest, 1),
-                'creative_interest': round(self.creative_interest, 1),
-                'research_interest': round(self.research_interest, 1),
-                'social_interest': round(self.social_interest, 1)
-            },
-            'created_at': self.created_at.isoformat() if self.created_at else None
+            'cognitive_scores': cog,
+            'interest_scores': intr,
+            'created_at': datetime.now(timezone.utc).isoformat()
         }
+
+    class _Query:
+        @staticmethod
+        def filter_by(assessment_id=None, **kwargs):
+            class _QueryResult:
+                def __init__(self, a_id):
+                    self.a_id = a_id
+                def first(self):
+                    if not self.a_id or not db.session:
+                        return None
+                    try:
+                        sess = db.session.get(AssessmentSession, self.a_id)
+                        return sess.scores if sess else None
+                    except Exception:
+                        return None
+            return _QueryResult(assessment_id)
+
+    query = _Query()
 
     def __repr__(self):
         return f"<AssessmentScore for Assessment {self.assessment_id}>"

@@ -56,25 +56,35 @@ class CareerService:
                 (Career.career_name.ilike(sq)) |
                 (Career.description.ilike(sq)) |
                 (Career.related_careers.ilike(sq)) |
-                (Career.subjects.any(CareerSubject.subject_name.ilike(sq))) |
-                (Career.skills.any(CareerSkill.skill_name.ilike(sq)))
+                (Career.domain_name.ilike(sq)) |
+                (Career.subdomain_val.ilike(sq)) |
+                (Career.cluster_val.ilike(sq))
             )
 
         if domain_id:
             try:
-                query = query.filter(Career.domain_id == int(domain_id))
+                from backend.models.career import _DOMAIN_REGISTRY
+                d_name = _DOMAIN_REGISTRY.get(int(domain_id))
+                if d_name:
+                    query = query.filter(Career.domain_name == d_name)
             except (ValueError, TypeError):
                 pass
 
         if subdomain_id:
             try:
-                query = query.filter(Career.subdomain_id == int(subdomain_id))
+                from backend.models.career import _SUBDOMAIN_REGISTRY
+                sub_name = _SUBDOMAIN_REGISTRY.get(int(subdomain_id))
+                if sub_name:
+                    query = query.filter(Career.subdomain_val == sub_name)
             except (ValueError, TypeError):
                 pass
 
         if cluster_id:
             try:
-                query = query.filter(Career.cluster_id == int(cluster_id))
+                from backend.models.career import _CLUSTER_REGISTRY
+                clu_name = _CLUSTER_REGISTRY.get(int(cluster_id))
+                if clu_name:
+                    query = query.filter(Career.cluster_val == clu_name)
             except (ValueError, TypeError):
                 pass
 
@@ -84,7 +94,7 @@ class CareerService:
         if work_environment and work_environment != 'all':
             query = query.filter(Career.work_environment.ilike(f"%{work_environment}%"))
 
-        query = query.order_by(Career.domain_id.asc(), Career.career_name.asc())
+        query = query.order_by(Career.domain_name.asc(), Career.career_name.asc())
 
         if page and per_page:
             pagination = query.paginate(page=page, per_page=per_page, error_out=False)

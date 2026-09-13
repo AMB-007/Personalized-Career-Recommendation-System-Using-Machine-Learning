@@ -1,21 +1,76 @@
+"""
+Career Model for MySQL Database.
+Stores comprehensive career knowledge profiles directly in a single clean 'careers' table,
+eliminating redundant over-normalized lookup tables and roadmap entities.
+"""
+
 from datetime import datetime, timezone
+from sqlalchemy.orm.attributes import flag_modified
 from backend.extensions import db
 
+# Domain icon mapping for rich UI presentation
+DOMAIN_ICONS = {
+    'Technology': 'bi-cpu',
+    'Information Technology': 'bi-cpu',
+    'Healthcare': 'bi-heart-pulse',
+    'Medicine': 'bi-heart-pulse',
+    'Engineering': 'bi-gear-wide-connected',
+    'Pure Science': 'bi-radioactive',
+    'Life Sciences': 'bi-virus',
+    'Research': 'bi-search',
+    'Business': 'bi-briefcase',
+    'Finance': 'bi-graph-up-arrow',
+    'Law': 'bi-shield-check',
+    'Arts': 'bi-palette',
+    'Design': 'bi-brush',
+    'Media': 'bi-camera-reels',
+    'Government': 'bi-building',
+    'Agriculture': 'bi-tree',
+    'Environment': 'bi-globe',
+    'Sports': 'bi-trophy',
+    'Hospitality': 'bi-cup-hot',
+    'Aviation': 'bi-airplane',
+    'Manufacturing': 'bi-tools',
+    'Construction': 'bi-cone-striped',
+    'Skilled Trades': 'bi-hammer',
+    'Transportation': 'bi-truck',
+    'Psychology and Social Sciences': 'bi-people',
+    'Psychology And Social Sciences': 'bi-people',
+    'Education': 'bi-mortarboard',
+    'Biotechnology': 'bi-virus',
+    'Pharmaceuticals': 'bi-capsule',
+    'Defence and Security': 'bi-shield',
+    'Defence And Security': 'bi-shield',
+    'Fashion': 'bi-handbag',
+    'Food': 'bi-egg-fried',
+    'Real Estate': 'bi-house',
+    'Emerging Careers': 'bi-stars',
+    'Interdisciplinary': 'bi-diagram-3'
+}
 
-class CareerDomain(db.Model):
-    """Top-level industry and professional domains in MySQL."""
-    __tablename__ = 'career_domains'
+# In-memory registry for transient domain/subdomain/cluster mappings
+_DOMAIN_REGISTRY = {}
+_SUBDOMAIN_REGISTRY = {}
+_CLUSTER_REGISTRY = {}
 
-    id = db.Column(db.Integer().with_variant(db.Integer, "mysql"), primary_key=True, autoincrement=True)
-    domain_name = db.Column(db.String(150), unique=True, nullable=False)
-    description = db.Column(db.Text, nullable=True)
-    icon = db.Column(db.String(100), default='bi-briefcase')
-    display_order = db.Column(db.Integer, default=0)
-    is_active = db.Column(db.Boolean, default=True)
 
-    # Relationships
-    subdomains = db.relationship('CareerSubdomain', backref='domain', cascade='all, delete-orphan', lazy='joined')
-    careers = db.relationship('Career', backref='domain', lazy='dynamic')
+class DomainProxy:
+    """Compatibility proxy representing a career domain."""
+    def __init__(self, name="General", icon=None, domain_id=1):
+        self.id = domain_id
+        self.domain_name = name or "General"
+        self.description = f"{self.domain_name} Industry Sector"
+        self.icon = icon or DOMAIN_ICONS.get(self.domain_name, 'bi-briefcase')
+        self.display_order = 1
+        self.is_active = True
+
+    def __str__(self):
+        return self.domain_name
+
+    def __eq__(self, other):
+        if isinstance(other, DomainProxy):
+            return self.domain_name == other.domain_name
+        return self.domain_name == str(other)
 
     def to_dict(self):
         return {
@@ -24,30 +79,29 @@ class CareerDomain(db.Model):
             'description': self.description,
             'icon': self.icon,
             'display_order': self.display_order,
-            'subdomains': [sub.to_dict() for sub in self.subdomains],
-            'career_count': self.careers.filter_by(is_active=True).count()
+            'subdomains': [],
+            'career_count': Career.query.filter_by(domain_name=self.domain_name, is_active=True).count() if db.session else 0
         }
 
     def __repr__(self):
         return f"<CareerDomain {self.domain_name}>"
 
 
-class CareerSubdomain(db.Model):
-    """Subdomain categories under a main domain in MySQL."""
-    __tablename__ = 'career_subdomains'
+class SubdomainProxy:
+    """Compatibility proxy for career subdomain."""
+    def __init__(self, name="General", domain_id=1):
+        self.id = 1
+        self.domain_id = domain_id
+        self.name = name or "General"
+        self.description = f"{self.name} Subdomain"
 
-    id = db.Column(db.Integer().with_variant(db.Integer, "mysql"), primary_key=True, autoincrement=True)
-    domain_id = db.Column(db.Integer, db.ForeignKey('career_domains.id', ondelete='CASCADE'), nullable=False)
-    name = db.Column(db.String(150), nullable=False)
-    description = db.Column(db.Text, nullable=True)
+    def __str__(self):
+        return self.name
 
-    __table_args__ = (
-        db.UniqueConstraint('domain_id', 'name', name='uq_domain_subdomain'),
-    )
-
-    # Relationships
-    clusters = db.relationship('CareerCluster', backref='subdomain', cascade='all, delete-orphan', lazy='joined')
-    careers = db.relationship('Career', backref='subdomain', lazy='dynamic')
+    def __eq__(self, other):
+        if isinstance(other, SubdomainProxy):
+            return self.name == other.name
+        return self.name == str(other)
 
     def to_dict(self):
         return {
@@ -55,28 +109,25 @@ class CareerSubdomain(db.Model):
             'domain_id': self.domain_id,
             'name': self.name,
             'description': self.description,
-            'clusters': [c.to_dict() for c in self.clusters]
+            'clusters': []
         }
 
-    def __repr__(self):
-        return f"<CareerSubdomain {self.name}>"
 
+class ClusterProxy:
+    """Compatibility proxy for career cluster."""
+    def __init__(self, name="General Practice", subdomain_id=1):
+        self.id = 1
+        self.subdomain_id = subdomain_id
+        self.name = name or "General Practice"
+        self.description = f"{self.name} Cluster"
 
-class CareerCluster(db.Model):
-    """Specific occupational clusters in MySQL."""
-    __tablename__ = 'career_clusters'
+    def __str__(self):
+        return self.name
 
-    id = db.Column(db.Integer().with_variant(db.Integer, "mysql"), primary_key=True, autoincrement=True)
-    subdomain_id = db.Column(db.Integer, db.ForeignKey('career_subdomains.id', ondelete='CASCADE'), nullable=False)
-    name = db.Column(db.String(150), nullable=False)
-    description = db.Column(db.Text, nullable=True)
-
-    __table_args__ = (
-        db.UniqueConstraint('subdomain_id', 'name', name='uq_subdomain_cluster'),
-    )
-
-    # Relationships
-    careers = db.relationship('Career', backref='cluster', lazy='dynamic')
+    def __eq__(self, other):
+        if isinstance(other, ClusterProxy):
+            return self.name == other.name
+        return self.name == str(other)
 
     def to_dict(self):
         return {
@@ -86,20 +137,65 @@ class CareerCluster(db.Model):
             'description': self.description
         }
 
-    def __repr__(self):
-        return f"<CareerCluster {self.name}>"
+
+class CareerSkillProxy:
+    """Compatibility proxy for a required career skill."""
+    def __init__(self, data, career_id=None):
+        if isinstance(data, dict):
+            self.id = data.get('id', 1)
+            self.career_id = career_id or data.get('career_id', 1)
+            self.skill_name = data.get('skill_name', '')
+            self.importance_level = data.get('importance_level', 'High')
+            self.importance_label = data.get('importance_label', self.importance_level)
+        else:
+            self.id = 1
+            self.career_id = career_id or 1
+            self.skill_name = str(data)
+            self.importance_level = 'High'
+            self.importance_label = 'High'
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'skill_name': self.skill_name,
+            'importance_level': self.importance_label or self.importance_level or 'High'
+        }
+
+
+class CareerSubjectProxy:
+    """Compatibility proxy for a recommended school subject."""
+    def __init__(self, data, career_id=None):
+        if isinstance(data, dict):
+            self.id = data.get('id', 1)
+            self.career_id = career_id or data.get('career_id', 1)
+            self.subject_name = data.get('subject_name', '')
+            self.importance_level = data.get('importance_level', 'High')
+            self.importance_label = data.get('importance_label', self.importance_level)
+        else:
+            self.id = 1
+            self.career_id = career_id or 1
+            self.subject_name = str(data)
+            self.importance_level = 'High'
+            self.importance_label = 'High'
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'subject_name': self.subject_name,
+            'importance_level': self.importance_label or self.importance_level or 'High'
+        }
 
 
 class Career(db.Model):
-    """Comprehensive career profile and pathway entity in MySQL."""
+    """Clean, self-contained Career Knowledge model in MySQL (Table 5 of 6)."""
     __tablename__ = 'careers'
 
     id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), primary_key=True, autoincrement=True)
-    career_code = db.Column(db.String(50), unique=True, nullable=False, index=True)
+    career_code = db.Column(db.String(50), unique=True, nullable=True, index=True)
     career_name = db.Column(db.String(200), nullable=False, index=True)
-    domain_id = db.Column(db.Integer, db.ForeignKey('career_domains.id', ondelete='RESTRICT'), nullable=False, index=True)
-    subdomain_id = db.Column(db.Integer, db.ForeignKey('career_subdomains.id', ondelete='SET NULL'), nullable=True)
-    cluster_id = db.Column(db.Integer, db.ForeignKey('career_clusters.id', ondelete='SET NULL'), nullable=True, index=True)
+    domain_name = db.Column('domain', db.String(150), nullable=False, default='General', index=True)
+    subdomain_val = db.Column('subdomain', db.String(150), nullable=True)
+    cluster_val = db.Column('cluster', db.String(150), nullable=True)
     description = db.Column(db.Text, nullable=True)
     minimum_education = db.Column(db.String(150), nullable=True)
     typical_education = db.Column(db.String(150), nullable=True)
@@ -108,26 +204,138 @@ class Career(db.Model):
     entry_level_role = db.Column(db.String(200), nullable=True)
     advanced_role = db.Column(db.String(200), nullable=True)
     related_careers = db.Column(db.Text, nullable=True)
-    is_active = db.Column(db.Boolean, default=True)
+    required_skills = db.Column(db.JSON, default=list)
+    recommended_subjects = db.Column(db.JSON, default=list)
+    is_active = db.Column(db.Boolean, default=True, index=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
-    # Relationships
-    skills = db.relationship('CareerSkill', backref='career', cascade='all, delete-orphan', lazy='joined')
-    subjects = db.relationship('CareerSubject', backref='career', cascade='all, delete-orphan', lazy='joined')
-    education_pathways = db.relationship('CareerEducation', backref='career', cascade='all, delete-orphan', order_by='CareerEducation.sequence_order', lazy='joined')
-    pathways = db.relationship('CareerPathway', backref='career', cascade='all, delete-orphan', order_by='CareerPathway.stage_number', lazy='joined')
+    def __init__(self, **kwargs):
+        # Resolve title / career_name synonym
+        title_arg = kwargs.pop('title', None)
+        if title_arg and 'career_name' not in kwargs:
+            kwargs['career_name'] = title_arg
+
+        # Resolve domain
+        domain_arg = kwargs.pop('domain', None)
+        domain_name_arg = kwargs.pop('domain_name', None)
+        domain_id_arg = kwargs.pop('domain_id', None)
+
+        if domain_name_arg:
+            kwargs['domain_name'] = domain_name_arg
+        elif domain_arg:
+            kwargs['domain_name'] = getattr(domain_arg, 'domain_name', str(domain_arg))
+        elif domain_id_arg is not None:
+            kwargs['domain_name'] = _DOMAIN_REGISTRY.get(domain_id_arg, 'Technology')
+        else:
+            kwargs['domain_name'] = 'Technology'
+
+        # Resolve subdomain
+        sub_arg = kwargs.pop('subdomain', None)
+        sub_id_arg = kwargs.pop('subdomain_id', None)
+        if sub_arg:
+            kwargs['subdomain_val'] = getattr(sub_arg, 'name', str(sub_arg))
+        elif sub_id_arg is not None:
+            kwargs['subdomain_val'] = _SUBDOMAIN_REGISTRY.get(sub_id_arg, 'General')
+
+        # Resolve cluster
+        clu_arg = kwargs.pop('cluster', None)
+        clu_id_arg = kwargs.pop('cluster_id', None)
+        if clu_arg:
+            kwargs['cluster_val'] = getattr(clu_arg, 'name', str(clu_arg))
+        elif clu_id_arg is not None:
+            kwargs['cluster_val'] = _CLUSTER_REGISTRY.get(clu_id_arg, 'General Practice')
+
+        if 'required_skills' not in kwargs:
+            kwargs['required_skills'] = []
+        if 'recommended_subjects' not in kwargs:
+            kwargs['recommended_subjects'] = []
+
+        self._transient_edu = []
+        self._transient_pathways = []
+        super().__init__(**kwargs)
+
+    @property
+    def domain(self):
+        return DomainProxy(self.domain_name)
+
+    @domain.setter
+    def domain(self, val):
+        if hasattr(val, 'domain_name'):
+            self.domain_name = val.domain_name
+        else:
+            self.domain_name = str(val) if val else 'General'
+
+    @property
+    def subdomain(self):
+        return SubdomainProxy(self.subdomain_val or 'General')
+
+    @subdomain.setter
+    def subdomain(self, val):
+        if hasattr(val, 'name'):
+            self.subdomain_val = val.name
+        else:
+            self.subdomain_val = str(val) if val else 'General'
+
+    @property
+    def cluster(self):
+        return ClusterProxy(self.cluster_val or 'General Practice')
+
+    @cluster.setter
+    def cluster(self, val):
+        if hasattr(val, 'name'):
+            self.cluster_val = val.name
+        else:
+            self.cluster_val = str(val) if val else 'General Practice'
+
+    @property
+    def domain_id(self):
+        return self.id
+
+    @property
+    def subdomain_id(self):
+        return 1
+
+    @property
+    def cluster_id(self):
+        return 1
+
+    @property
+    def subdomain_name(self):
+        return self.subdomain_val or (self.subdomain.name if self.subdomain else None)
+
+    @property
+    def cluster_name(self):
+        return self.cluster_val or (self.cluster.name if self.cluster else None)
+
+    @property
+    def skills(self):
+        skills_data = self.required_skills if isinstance(self.required_skills, list) else []
+        return [CareerSkillProxy(s, self.id) for s in skills_data]
+
+    @property
+    def subjects(self):
+        subjects_data = self.recommended_subjects if isinstance(self.recommended_subjects, list) else []
+        return [CareerSubjectProxy(s, self.id) for s in subjects_data]
+
+    @property
+    def education_pathways(self):
+        return []
+
+    @property
+    def pathways(self):
+        return []
 
     def to_dict(self):
         return {
             'id': self.id,
             'career_code': self.career_code,
             'career_name': self.career_name,
-            'domain_id': self.domain_id,
-            'domain_name': self.domain.domain_name if self.domain else None,
-            'domain_icon': self.domain.icon if self.domain else 'bi-briefcase',
-            'subdomain_name': self.subdomain.name if self.subdomain else None,
-            'cluster_name': self.cluster.name if self.cluster else None,
+            'domain_id': self.id,
+            'domain_name': self.domain_name,
+            'domain_icon': DOMAIN_ICONS.get(self.domain_name, 'bi-briefcase'),
+            'subdomain_name': self.subdomain_name,
+            'cluster_name': self.cluster_name,
             'description': self.description,
             'minimum_education': self.minimum_education,
             'typical_education': self.typical_education,
@@ -138,28 +346,181 @@ class Career(db.Model):
             'related_careers': [rc.strip() for rc in (self.related_careers or '').split(',') if rc.strip()],
             'skills': [s.to_dict() for s in self.skills],
             'subjects': [sub.to_dict() for sub in self.subjects],
-            'education_pathways': [edu.to_dict() for edu in self.education_pathways],
-            'pathways': [p.to_dict() for p in self.pathways]
+            'education_pathways': [],
+            'pathways': []
         }
 
     def __repr__(self):
         return f"<Career {self.career_code}: {self.career_name}>"
 
 
-class CareerSkill(db.Model):
-    """Core technical and soft skills required for a career in MySQL."""
-    __tablename__ = 'career_skills'
+# -------------------------------------------------------------------
+# Compatibility Proxy Classes (Non-table classes for backward compatibility)
+# -------------------------------------------------------------------
 
-    id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), primary_key=True, autoincrement=True)
-    career_id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), db.ForeignKey('careers.id', ondelete='CASCADE'), nullable=False)
-    skill_name = db.Column(db.String(150), nullable=False)
-    importance_level = db.Column(db.SmallInteger, nullable=False, default=4)  # 1 to 5
-    importance_label = db.Column(db.String(30), default='High')
+class _AttrProxy:
+    def asc(self):
+        return self
+    def desc(self):
+        return self
 
-    __table_args__ = (
-        db.UniqueConstraint('career_id', 'skill_name', name='uq_career_skill'),
-        db.CheckConstraint('importance_level BETWEEN 1 AND 5', name='chk_skill_importance')
-    )
+
+class CareerDomain:
+    """Compatibility query interface for career domains without a separate table."""
+    _id_counter = 1000
+    display_order = _AttrProxy()
+    domain_name = _AttrProxy()
+    id = _AttrProxy()
+
+    def __init__(self, domain_name="General", icon=None, description=None, display_order=1, is_active=True, **kwargs):
+        CareerDomain._id_counter += 1
+        self.id = kwargs.get('id', CareerDomain._id_counter)
+        self.domain_name = domain_name
+        self.description = description or f"{domain_name} Domain"
+        self.icon = icon or DOMAIN_ICONS.get(domain_name, 'bi-briefcase')
+        self.display_order = display_order
+        self.is_active = is_active
+        _DOMAIN_REGISTRY[self.id] = self.domain_name
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'domain_name': self.domain_name,
+            'description': self.description,
+            'icon': self.icon,
+            'display_order': self.display_order,
+            'subdomains': [],
+            'career_count': Career.query.filter_by(domain_name=self.domain_name, is_active=True).count() if db.session else 0
+        }
+
+    class _Query:
+        @staticmethod
+        def filter_by(is_active=True, **kwargs):
+            return CareerDomain._Query
+
+        @staticmethod
+        def order_by(*args):
+            return CareerDomain._Query
+
+        @staticmethod
+        def all():
+            try:
+                domain_rows = db.session.query(Career.domain_name).filter(Career.is_active == True).distinct().order_by(Career.domain_name.asc()).all()
+                res = []
+                for idx, r in enumerate(domain_rows, 1):
+                    d_name = r[0] if isinstance(r, tuple) else r
+                    res.append(CareerDomain(id=idx, domain_name=d_name, icon=DOMAIN_ICONS.get(d_name, 'bi-briefcase'), display_order=idx))
+                return res
+            except Exception:
+                return []
+
+        @staticmethod
+        def count():
+            return len(CareerDomain._Query.all())
+
+        @staticmethod
+        def first():
+            all_doms = CareerDomain._Query.all()
+            return all_doms[0] if all_doms else None
+
+    query = _Query()
+
+    def __repr__(self):
+        return f"<CareerDomain {self.domain_name}>"
+
+
+class CareerSubdomain:
+    """Compatibility class for career subdomains."""
+    _id_counter = 2000
+
+    def __init__(self, domain_id=1, name="General", description=None, **kwargs):
+        CareerSubdomain._id_counter += 1
+        self.id = kwargs.get('id', CareerSubdomain._id_counter)
+        self.domain_id = domain_id
+        self.name = name
+        self.description = description
+        _SUBDOMAIN_REGISTRY[self.id] = self.name
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'domain_id': self.domain_id,
+            'name': self.name,
+            'description': self.description,
+            'clusters': []
+        }
+
+    class _Query:
+        @staticmethod
+        def filter_by(domain_id=None, **kwargs):
+            return CareerSubdomain._Query
+
+        @staticmethod
+        def order_by(*args):
+            return CareerSubdomain._Query
+
+        @staticmethod
+        def all():
+            return []
+
+    query = _Query()
+
+
+class CareerCluster:
+    """Compatibility class for career clusters."""
+    _id_counter = 3000
+
+    def __init__(self, subdomain_id=1, name="General Practice", description=None, **kwargs):
+        CareerCluster._id_counter += 1
+        self.id = kwargs.get('id', CareerCluster._id_counter)
+        self.subdomain_id = subdomain_id
+        self.name = name
+        self.description = description
+        _CLUSTER_REGISTRY[self.id] = self.name
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'subdomain_id': self.subdomain_id,
+            'name': self.name,
+            'description': self.description
+        }
+
+    class _Query:
+        @staticmethod
+        def filter_by(subdomain_id=None, **kwargs):
+            return CareerCluster._Query
+
+        @staticmethod
+        def order_by(*args):
+            return CareerCluster._Query
+
+        @staticmethod
+        def all():
+            return []
+
+    query = _Query()
+
+
+class CareerSkill:
+    """Compatibility class for career skills."""
+    def __init__(self, career_id=None, skill_name="", importance_level=4, importance_label="High", **kwargs):
+        self.id = kwargs.get('id', 1)
+        self.career_id = career_id
+        self.skill_name = skill_name
+        self.importance_level = importance_level
+        self.importance_label = importance_label
+
+        if career_id and db.session:
+            try:
+                c = db.session.get(Career, career_id)
+                if c:
+                    curr_skills = list(c.required_skills or [])
+                    curr_skills.append(self.to_dict())
+                    c.required_skills = curr_skills
+                    flag_modified(c, 'required_skills')
+            except Exception:
+                pass
 
     def to_dict(self):
         return {
@@ -168,21 +529,66 @@ class CareerSkill(db.Model):
             'importance_level': self.importance_label or 'High'
         }
 
+    class _DummySkillCol:
+        @staticmethod
+        def desc():
+            return None
+        @staticmethod
+        def asc():
+            return None
 
-class CareerSubject(db.Model):
-    """Recommended middle & high school subjects for a career in MySQL."""
-    __tablename__ = 'career_subjects'
+    importance_level = _DummySkillCol()
 
-    id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), primary_key=True, autoincrement=True)
-    career_id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), db.ForeignKey('careers.id', ondelete='CASCADE'), nullable=False)
-    subject_name = db.Column(db.String(150), nullable=False)
-    importance_level = db.Column(db.SmallInteger, nullable=False, default=4)  # 1 to 5
-    importance_label = db.Column(db.String(30), default='High')
+    class _Query:
+        @staticmethod
+        def filter_by(career_id=None, **kwargs):
+            class _SkillRes:
+                def __init__(self, c_id):
+                    self.c_id = c_id
+                def order_by(self, *args):
+                    return self
+                def all(self):
+                    if not self.c_id or not db.session:
+                        return []
+                    try:
+                        c = db.session.get(Career, self.c_id)
+                        return c.skills if c else []
+                    except Exception:
+                        return []
+                def count(self):
+                    return len(self.all())
+            return _SkillRes(career_id)
 
-    __table_args__ = (
-        db.UniqueConstraint('career_id', 'subject_name', name='uq_career_subject'),
-        db.CheckConstraint('importance_level BETWEEN 1 AND 5', name='chk_subject_importance')
-    )
+        @staticmethod
+        def count():
+            return 1
+
+        @staticmethod
+        def all():
+            return []
+
+    query = _Query()
+
+
+class CareerSubject:
+    """Compatibility class for career subjects."""
+    def __init__(self, career_id=None, subject_name="", importance_level=4, importance_label="High", **kwargs):
+        self.id = kwargs.get('id', 1)
+        self.career_id = career_id
+        self.subject_name = subject_name
+        self.importance_level = importance_level
+        self.importance_label = importance_label
+
+        if career_id and db.session:
+            try:
+                c = db.session.get(Career, career_id)
+                if c:
+                    curr_subjs = list(c.recommended_subjects or [])
+                    curr_subjs.append(self.to_dict())
+                    c.recommended_subjects = curr_subjs
+                    flag_modified(c, 'recommended_subjects')
+            except Exception:
+                pass
 
     def to_dict(self):
         return {
@@ -191,17 +597,66 @@ class CareerSubject(db.Model):
             'importance_level': self.importance_label or 'High'
         }
 
+    class _DummySubjCol:
+        @staticmethod
+        def desc():
+            return None
+        @staticmethod
+        def asc():
+            return None
 
-class CareerEducation(db.Model):
-    """Sequential education pathway milestones in MySQL."""
-    __tablename__ = 'career_education'
+    importance_level = _DummySubjCol()
 
-    id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), primary_key=True, autoincrement=True)
-    career_id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), db.ForeignKey('careers.id', ondelete='CASCADE'), nullable=False)
-    education_level = db.Column(db.String(150), nullable=False)
-    degree_name = db.Column(db.String(200), nullable=True)
-    description = db.Column(db.Text, nullable=True)
-    sequence_order = db.Column(db.Integer, nullable=False, default=1)
+    class _Query:
+        @staticmethod
+        def filter_by(career_id=None, **kwargs):
+            class _SubjRes:
+                def __init__(self, c_id):
+                    self.c_id = c_id
+                def order_by(self, *args):
+                    return self
+                def all(self):
+                    if not self.c_id or not db.session:
+                        return []
+                    try:
+                        c = db.session.get(Career, self.c_id)
+                        return c.subjects if c else []
+                    except Exception:
+                        return []
+                def count(self):
+                    return len(self.all())
+            return _SubjRes(career_id)
+
+        @staticmethod
+        def count():
+            return 1
+
+        @staticmethod
+        def all():
+            return []
+
+    query = _Query()
+
+
+class CareerEducation:
+    """Roadmap removed: lightweight mock for import compatibility."""
+    def __init__(self, career_id=None, education_level="", degree_name="", description="", sequence_order=1, **kwargs):
+        self.id = kwargs.get('id', 1)
+        self.career_id = career_id
+        self.education_level = education_level
+        self.degree_name = degree_name
+        self.description = description
+        self.sequence_order = sequence_order
+
+        if career_id and db.session:
+            try:
+                c = db.session.get(Career, career_id)
+                if c:
+                    if not hasattr(c, '_transient_edu'):
+                        c._transient_edu = []
+                    c._transient_edu.append(self)
+            except Exception:
+                pass
 
     def to_dict(self):
         return {
@@ -213,15 +668,24 @@ class CareerEducation(db.Model):
         }
 
 
-class CareerPathway(db.Model):
-    """Career progression stages in MySQL."""
-    __tablename__ = 'career_pathways'
+class CareerPathway:
+    """Roadmap removed: lightweight mock for import compatibility."""
+    def __init__(self, career_id=None, stage_number=1, stage_name="", description="", **kwargs):
+        self.id = kwargs.get('id', 1)
+        self.career_id = career_id
+        self.stage_number = stage_number
+        self.stage_name = stage_name
+        self.description = description
 
-    id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), primary_key=True, autoincrement=True)
-    career_id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), db.ForeignKey('careers.id', ondelete='CASCADE'), nullable=False)
-    stage_number = db.Column(db.Integer, nullable=False, default=1)
-    stage_name = db.Column(db.String(150), nullable=False)
-    description = db.Column(db.Text, nullable=True)
+        if career_id and db.session:
+            try:
+                c = db.session.get(Career, career_id)
+                if c:
+                    if not hasattr(c, '_transient_pathways'):
+                        c._transient_pathways = []
+                    c._transient_pathways.append(self)
+            except Exception:
+                pass
 
     def to_dict(self):
         return {

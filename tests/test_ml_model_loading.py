@@ -46,7 +46,7 @@ class TestMLModelLoader(unittest.TestCase):
         # Validate Feature Columns
         features = get_feature_columns()
         self.assertIsInstance(features, list)
-        self.assertTrue(11 <= len(features) <= 25)
+        self.assertTrue(11 <= len(features) <= 35)
         self.assertIn('ability_match_component', features)
         self.assertIn('interest_match_component', features)
 

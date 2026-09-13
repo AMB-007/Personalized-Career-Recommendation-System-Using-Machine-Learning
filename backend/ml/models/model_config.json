@@ -1,13 +1,18 @@
 {
-  "model": "CatBoost",
+  "model": "XGBoost",
   "best_params": {
-    "iterations": 1000,
-    "depth": 6,
-    "learning_rate": 0.04,
-    "random_seed": 42,
-    "eval_metric": "Logloss"
+    "n_estimators": 850,
+    "max_depth": 4,
+    "learning_rate": 0.03,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "gamma": 0.1,
+    "reg_alpha": 0.2,
+    "reg_lambda": 1.2,
+    "random_state": 42,
+    "eval_metric": "logloss"
   },
-  "threshold": 0.50,
+  "threshold": 0.5,
   "confidence_margin": 0.15,
   "target": "compatibility_label",
   "student_id": "student_id",

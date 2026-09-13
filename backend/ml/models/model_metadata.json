@@ -1,9 +1,12 @@
 {
-  "model_version": "V9.5-LeakFree-HighAccuracy",
-  "algorithm": "CatBoost",
-  "accuracy": 86.22,
-  "f1_score": 0.9154,
-  "roc_auc": 86.04,
+  "model_name": "PathFinder Career Compatibility Classifier",
+  "model_version": "V10.0-XGBoost-Champion",
+  "algorithm": "XGBoost",
+  "accuracy": 86.68,
+  "f1_score": 0.9184,
+  "roc_auc": 86.24,
+  "precision": 87.66,
+  "recall": 96.44,
   "features_count": 19,
-  "trained_at": "2026-08-30 18:57:57"
+  "trained_at": "2026-09-12 22:29:01"
 }

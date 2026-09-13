@@ -206,17 +206,9 @@ class RecommendationService:
                 for sub in CareerSubject.query.filter_by(career_id=c.id).order_by(CareerSubject.importance_level.desc()).all()
             ]
 
-            # Fetch education milestones
-            edu_milestones = [
-                {'level': e.education_level, 'degree': e.degree_name, 'description': e.description, 'sequence': e.sequence_order}
-                for e in CareerEducation.query.filter_by(career_id=c.id).order_by(CareerEducation.sequence_order.asc()).all()
-            ]
-
-            # Fetch progression stages
-            pathway_stages = [
-                {'stage_number': p.stage_number, 'stage_name': p.stage_name, 'description': p.description}
-                for p in CareerPathway.query.filter_by(career_id=c.id).order_by(CareerPathway.stage_number.asc()).all()
-            ]
+            # Roadmaps are eliminated
+            edu_milestones = []
+            pathway_stages = []
 
             detailed_list.append({
                 'rank': r.rank_position,

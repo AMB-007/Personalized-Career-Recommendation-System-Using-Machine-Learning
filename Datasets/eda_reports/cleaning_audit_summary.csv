@@ -1,0 +1,3 @@
+Dataset,Raw_Rows,Clean_Rows,Duplicates_Removed,Total_Columns,Pre_Cleaning_Nulls,Post_Cleaning_Nulls,Status
+Student_Assessment,10000,9950,50,122,78506,0,PASSED - PRODUCTION READY
+Student_Career_Compatibility,50000,49789,211,15,1000,0,PASSED - PRODUCTION READY

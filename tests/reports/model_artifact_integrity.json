@@ -1,16 +1,16 @@
 {
   "files": {
     "model.joblib": {
-      "sha256": "106e67f3dcf13180c1fdb89c460e14d05d72fff3fe05404cc4a57b615517e3c6",
-      "size_bytes": 1126530
+      "sha256": "e046d88b8144c29fa323bc2cfd214bb7d33973e40085d4a6a5dea0d206c149a6",
+      "size_bytes": 1430228
     },
     "preprocessor.joblib": {
-      "sha256": "7aabb1f3a48ec1469c225d468e48c672390e81802a15d62650cf3713ef04682e",
-      "size_bytes": 64812
+      "sha256": "fe8f1f35dcb9b3b3a6d887e3c572d2523176eaba7978bdefe8e927fa1b4e48ac",
+      "size_bytes": 45037
     },
     "model_metadata.json": {
-      "sha256": "042590dda2127c16b3fecef213964855debcb3dc909f47db8e48ef99008c0f2a",
-      "size_bytes": 212
+      "sha256": "de9b3790db0c1974559e393622a2ca632f3c57b64d9a26272ea70aa066524bf7",
+      "size_bytes": 313
     },
     "career_knowledge_requirements.csv": {
       "sha256": "f116b73cfd3d82967c632a46ea7ca7d1c17c18222d5a804fa1cd929750883228",

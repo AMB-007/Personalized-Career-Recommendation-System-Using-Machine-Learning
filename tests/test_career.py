@@ -57,7 +57,7 @@ class CareerTestCase(unittest.TestCase):
         self.assertEqual(detail['career_code'], "CAR-TEST-01")
         self.assertEqual(len(detail['skills']), 1)
         self.assertEqual(detail['skills'][0]['skill_name'], "Python")
-        self.assertEqual(len(detail['education_pathways']), 1)
+        self.assertEqual(len(detail['education_pathways']), 0)
 
 
 if __name__ == '__main__':

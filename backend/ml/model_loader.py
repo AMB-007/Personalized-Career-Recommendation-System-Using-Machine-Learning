@@ -156,6 +156,11 @@ class ModelLoader:
 
     def is_loaded(self) -> bool:
         """Returns True if artifacts are loaded and ready for inference."""
+        if not self._is_loaded:
+            try:
+                self.load()
+            except Exception:
+                return False
         return self._is_loaded
 
 
