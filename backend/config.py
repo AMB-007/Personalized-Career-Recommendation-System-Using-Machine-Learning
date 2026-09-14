@@ -23,7 +23,7 @@ def build_mysql_uri():
         return db_url
 
     user = os.getenv('DB_USER', 'root')
-    password = os.getenv('DB_PASSWORD', '')
+    password = os.getenv('DB_PASSWORD', 'abc123')
     host = os.getenv('DB_HOST', 'localhost')
     port = os.getenv('DB_PORT', '3306')
     db_name = os.getenv('DB_NAME', 'career_recommendation_db')

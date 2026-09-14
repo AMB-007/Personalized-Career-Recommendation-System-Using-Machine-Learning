@@ -112,7 +112,7 @@ class TestQuestionBankIntegrity(unittest.TestCase):
         res_q = self.cursor.fetchone()
         self.assertEqual(res_q['total_q'], len(self.questions), "MySQL active question count mismatch.")
 
-        self.cursor.execute("SELECT COUNT(*) AS total_opt FROM question_options;")
+        self.cursor.execute("SELECT SUM(JSON_LENGTH(options)) AS total_opt FROM questions WHERE is_active = 1;")
         res_opt = self.cursor.fetchone()
         expected_opts = sum(len(q.get('options', [])) for q in self.questions)
         self.assertEqual(res_opt['total_opt'], expected_opts, "MySQL option count mismatch.")

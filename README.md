@@ -468,7 +468,7 @@ Create a `.env` file in the root directory:
 DB_HOST=localhost
 DB_PORT=3306
 DB_USER=root
-DB_PASSWORD=your_mysql_password
+DB_PASSWORD=abc123
 DB_NAME=career_recommendation_db
 DB_DRIVER=mysqlconnector
 
