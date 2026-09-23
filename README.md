@@ -1,5 +1,13 @@
 # PathFinder — Personalized Career Recommendation System
 
+![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-3.x-000000?style=for-the-badge&logo=flask&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-8.x-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
+![LightGBM](https://img.shields.io/badge/LightGBM-Champion-9ACD32?style=for-the-badge&logo=lightgbm&logoColor=white)
+![scikit-learn](https://img.shields.io/badge/scikit--learn-1.4+-F7931E?style=for-the-badge&logo=scikitlearn&logoColor=white)
+![SHAP](https://img.shields.io/badge/SHAP-Explainability-FF6B6B?style=for-the-badge)
+![Jupyter](https://img.shields.io/badge/Jupyter-Notebook-F37626?style=for-the-badge&logo=jupyter&logoColor=white)
+
 A machine learning–powered web application that recommends the most suitable careers to students based on their aptitude, interests, and academic profile. Students complete a short adaptive assessment, and the system ranks compatible careers using a trained LightGBM classifier.
 
 ---
@@ -17,19 +25,22 @@ A machine learning–powered web application that recommends the most suitable c
 
 | Layer | Technology |
 |---|---|
-| **Backend** | Python 3.11+, Flask 3.x |
-| **Database** | MySQL 8.x via SQLAlchemy |
-| **ML Engine** | LightGBM (champion), XGBoost, Random Forest |
-| **ML Toolkit** | scikit-learn, SHAP, pandas, numpy |
-| **Frontend** | Jinja2 templates, Vanilla CSS, JavaScript |
-| **Auth** | Flask-Login, Flask-Bcrypt |
-| **Notebook** | Jupyter (`model_training/model_90plus.ipynb`) |
+| **Backend** | ![Flask](https://img.shields.io/badge/Flask-000000?style=flat-square&logo=flask&logoColor=white) ![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white) |
+| **Database** | ![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=flat-square&logo=mysql&logoColor=white) ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-CC2927?style=flat-square&logo=databricks&logoColor=white) |
+| **ML Models** | ![LightGBM](https://img.shields.io/badge/LightGBM-9ACD32?style=flat-square) ![XGBoost](https://img.shields.io/badge/XGBoost-FF6600?style=flat-square) ![RandomForest](https://img.shields.io/badge/Random_Forest-228B22?style=flat-square) |
+| **ML Toolkit** | ![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=flat-square&logo=scikitlearn&logoColor=white) ![pandas](https://img.shields.io/badge/pandas-150458?style=flat-square&logo=pandas&logoColor=white) ![numpy](https://img.shields.io/badge/numpy-013243?style=flat-square&logo=numpy&logoColor=white) |
+| **Explainability** | ![SHAP](https://img.shields.io/badge/SHAP-FF6B6B?style=flat-square) |
+| **Frontend** | ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white) ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white) ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black) |
+| **Auth** | ![Flask-Login](https://img.shields.io/badge/Flask--Login-00B4D8?style=flat-square) ![Bcrypt](https://img.shields.io/badge/Bcrypt-6C757D?style=flat-square) |
+| **Notebook** | ![Jupyter](https://img.shields.io/badge/Jupyter-F37626?style=flat-square&logo=jupyter&logoColor=white) |
 
-### ML Model Performance
+---
+
+## ML Model Performance
 
 | Model | Accuracy | F1-Score | ROC-AUC | Train Time |
 |---|---|---|---|---|
-| **LightGBM** *(Champion)* | **91.59%** | **0.9417** | **97.13%** | 21.4s |
+| 🏆 **LightGBM** *(Champion)* | **91.59%** | **0.9417** | **97.13%** | 21.4s |
 | XGBoost | 91.35% | 0.9401 | 97.16% | 20.7s |
 | Random Forest | 90.74% | 0.9341 | 97.01% | 172.7s |
 
@@ -121,7 +132,7 @@ Open your browser at **http://127.0.0.1:5000**
 
 ## ML Notebook
 
-The complete machine learning pipeline is documented in [`model_training/model_90plus.ipynb`](model_training/model_90plus.ipynb), covering:
+The complete machine learning pipeline is in [`model_training/model_90plus.ipynb`](model_training/model_90plus.ipynb), covering:
 
 1. Dataset ingestion & EDA (14 visualisation figures)
 2. Label engineering with weighted z-score composite
@@ -134,17 +145,6 @@ To retrain from scratch:
 ```bash
 python scripts/run_model_training.py
 ```
-
----
-
-## UML Architecture Diagrams
-
-| Diagram | Preview |
-|---|:---:|
-| Use Case Diagram | ![](figures/use_case_diagram.png) |
-| Activity Diagram | ![](figures/activity_diagram.png) |
-| Sequence Diagram | ![](figures/sequence_diagram.png) |
-| Class Diagram | ![](figures/class_diagram.png) |
 
 ---
 
