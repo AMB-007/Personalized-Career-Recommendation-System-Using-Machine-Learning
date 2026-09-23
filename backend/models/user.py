@@ -13,11 +13,73 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.Enum('student', 'admin', name='user_role_enum'), nullable=False, default='student', index=True)
+
+    # Student Profile Demographics (Unified Table 1 of 5)
+    student_code = db.Column(db.String(50), unique=True, nullable=True, index=True)
+    first_name = db.Column(db.String(100), nullable=True)
+    last_name = db.Column(db.String(100), nullable=True)
+    age = db.Column(db.SmallInteger, nullable=True)
+    gender = db.Column(db.String(30), nullable=True)
+    class_level = db.Column(db.SmallInteger, nullable=True, index=True)
+    board = db.Column(db.String(100), nullable=True, default='CBSE', index=True)
+    medium = db.Column(db.String(50), nullable=True, default='English')
+    stream = db.Column(db.String(100), nullable=True, default='General', index=True)
+    academic_scores_data = db.Column('academic_scores', db.JSON, default=dict)
+
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
-    # Relationships
-    student = db.relationship('Student', backref='user', uselist=False, cascade='all, delete-orphan')
+    def __new__(cls, *args, **kwargs):
+        user_id = kwargs.get('user_id')
+        if user_id and db.session:
+            existing = db.session.get(User, user_id)
+            if existing:
+                for k, v in kwargs.items():
+                    if k != 'user_id' and hasattr(existing, k):
+                        setattr(existing, k, v)
+                return existing
+        return super().__new__(cls)
+
+    def __init__(self, **kwargs):
+        kwargs.pop('user_id', None)
+        super().__init__(**kwargs)
+
+    # Backwards compatibility properties
+    @property
+    def student(self):
+        """Returns self for code referencing current_user.student."""
+        return self
+
+    @property
+    def user(self):
+        """Returns self for code referencing student.user."""
+        return self
+
+    @property
+    def user_id(self):
+        return self.id
+
+    @property
+    def full_name(self) -> str:
+        name = f"{self.first_name or ''} {self.last_name or ''}".strip()
+        return name if name else self.username
+
+    @property
+    def academic_scores(self):
+        from backend.models.student import AcademicScoreProxy
+        return AcademicScoreProxy(self.academic_scores_data or {}, self)
+
+    @academic_scores.setter
+    def academic_scores(self, value):
+        from backend.models.student import AcademicScoreProxy, AcademicScore
+        if isinstance(value, dict):
+            self.academic_scores_data = dict(value)
+        elif isinstance(value, AcademicScoreProxy):
+            self.academic_scores_data = dict(value._data)
+        elif isinstance(value, AcademicScore):
+            self.academic_scores_data = dict(value.to_dict())
+        else:
+            self.academic_scores_data = {}
 
     def set_password(self, password: str):
         """Hash and set user password."""
@@ -76,13 +138,26 @@ class User(UserMixin, db.Model):
         return self.role == 'admin'
 
     def to_dict(self):
-        return {
+        d = {
             'id': self.id,
+            'user_id': self.id,
             'username': self.username,
             'email': self.email,
             'role': self.role,
+            'student_code': self.student_code,
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'full_name': self.full_name,
+            'age': self.age,
+            'gender': self.gender,
+            'class_level': self.class_level,
+            'board': self.board,
+            'medium': self.medium,
+            'stream': self.stream,
+            'academic_scores': self.academic_scores.to_dict() if self.academic_scores else {},
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
+        return d
 
     def __repr__(self):
         return f"<User {self.username} ({self.role})>"

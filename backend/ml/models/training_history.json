@@ -1,20 +1,40 @@
 {
-  "champion_model": "XGBoost",
-  "final_metrics": {
-    "accuracy": 0.8668,
-    "raw_accuracy": 0.8091,
-    "f1_score": 0.9184,
-    "precision": 0.8766,
-    "recall": 0.9644,
-    "roc_auc": 0.8624,
-    "pr_auc": 0.9505
+  "champion_model": "LightGBM",
+  "benchmark_comparison": {
+    "Random Forest": {
+      "Accuracy": 0.9074,
+      "Precision": 0.9504,
+      "Recall": 0.9183,
+      "F1-Score": 0.9341,
+      "ROC-AUC": 0.9701,
+      "Train_Time_s": 172.74
+    },
+    "LightGBM": {
+      "Accuracy": 0.9159,
+      "Precision": 0.9334,
+      "Recall": 0.9501,
+      "F1-Score": 0.9417,
+      "ROC-AUC": 0.9713,
+      "Train_Time_s": 21.43
+    },
+    "XGBoost": {
+      "Accuracy": 0.9135,
+      "Precision": 0.9303,
+      "Recall": 0.9501,
+      "F1-Score": 0.9401,
+      "ROC-AUC": 0.9716,
+      "Train_Time_s": 20.66
+    }
   },
-  "ranking_metrics": {
-    "Hit@1": 0.9603,
-    "Hit@3": 0.998,
-    "Hit@5": 1.0,
-    "Hit@10": 1.0,
-    "MRR": 0.9781,
-    "NDCG@5": 0.9469
-  }
+  "final_metrics": {
+    "accuracy": 0.9159,
+    "raw_accuracy": 0.9159,
+    "f1_score": 0.9417,
+    "precision": 0.9334,
+    "recall": 0.9501,
+    "roc_auc": 0.9713
+  },
+  "training_version": "V17.0",
+  "trained_at": "2026-09-23T08:50:00Z",
+  "label_engineering": "Weighted z-score composite with Gaussian noise (seed=42)"
 }

@@ -6,6 +6,8 @@ eliminating redundant over-normalized question_sections and question_options tab
 
 from datetime import datetime, timezone
 from sqlalchemy.orm.attributes import flag_modified
+from sqlalchemy import case
+from sqlalchemy.ext.hybrid import hybrid_property
 from backend.extensions import db
 
 
@@ -110,7 +112,6 @@ class Question(db.Model):
     id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), primary_key=True, autoincrement=True)
     question_code = db.Column(db.String(50), unique=True, nullable=False, index=True)
     question_text = db.Column(db.Text, nullable=False)
-    section_id = db.Column(db.Integer, nullable=False, default=1, index=True)
     section = db.Column(db.String(100), nullable=False, default='General', index=True)
     question_type = db.Column(db.String(50), nullable=False, default='MCQ')
     class_min = db.Column(db.SmallInteger, nullable=False, default=7, index=True)
@@ -118,27 +119,39 @@ class Question(db.Model):
     difficulty = db.Column(db.String(20), default='Medium')
     skill_category = db.Column(db.String(100), nullable=True, index=True)
     stream_specific = db.Column(db.String(50), nullable=True, default='All')
-    is_required = db.Column(db.Boolean, default=True)
     display_order = db.Column(db.Integer, default=0)
-    explanation = db.Column(db.Text, nullable=True)
     options_data = db.Column('options', db.JSON, nullable=False, default=list)
     is_active = db.Column(db.Boolean, default=True, index=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
+    @hybrid_property
+    def section_id(self):
+        return _SECTION_NAME_TO_ID.get((self.section or '').lower(), 1)
+
+    @section_id.expression
+    def section_id(cls):
+        whens = [(cls.section == name, s_id) for s_id, name in _DEFAULT_SECTIONS.items()]
+        return case(*whens, else_=1)
+
+    @property
+    def is_required(self):
+        return True
+
+    @property
+    def explanation(self):
+        return None
+
     def __init__(self, **kwargs):
-        # Handle section_id and section name resolution
+        # Clean obsolete/dropped args
         sec_id = kwargs.pop('section_id', None)
         sec_name = kwargs.pop('section_name', None)
         sec = kwargs.pop('section', None)
+        kwargs.pop('is_required', None)
+        kwargs.pop('explanation', None)
         options = kwargs.pop('options', None)
 
-        if sec_id is not None:
-            kwargs['section_id'] = int(sec_id)
-            kwargs['section'] = sec or sec_name or _SECTION_ID_TO_NAME.get(int(sec_id), 'General')
-        else:
-            final_name = sec or sec_name or 'General'
-            kwargs['section'] = final_name
-            kwargs['section_id'] = _SECTION_NAME_TO_ID.get(final_name.lower(), 1)
+        final_name = sec or sec_name or (_SECTION_ID_TO_NAME.get(int(sec_id), 'General') if sec_id is not None else 'General')
+        kwargs['section'] = final_name
 
         if options is not None:
             if isinstance(options, list):

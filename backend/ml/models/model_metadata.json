@@ -1,12 +1,67 @@
 {
   "model_name": "PathFinder Career Compatibility Classifier",
-  "model_version": "V10.0-XGBoost-Champion",
-  "algorithm": "XGBoost",
-  "accuracy": 86.68,
-  "f1_score": 0.9184,
-  "roc_auc": 86.24,
-  "precision": 87.66,
-  "recall": 96.44,
-  "features_count": 19,
-  "trained_at": "2026-09-12 22:29:01"
+  "model_version": "V17.0-LightGBM-91pct",
+  "algorithm": "LightGBM",
+  "accuracy": 91.59,
+  "baseline_accuracy": 91.59,
+  "delta_accuracy": "+10.27% vs prior XGBoost baseline",
+  "f1_score": 0.9417,
+  "roc_auc": 97.13,
+  "precision": 93.34,
+  "recall": 95.01,
+  "best_parameters": {
+    "n_estimators": 1500,
+    "max_depth": -1,
+    "num_leaves": 127,
+    "learning_rate": 0.02,
+    "min_child_samples": 10,
+    "subsample": 1.0,
+    "colsample_bytree": 1.0,
+    "reg_alpha": 0.0,
+    "reg_lambda": 0.5
+  },
+  "models_evaluated": {
+    "LightGBM": {
+      "overall_accuracy": 91.59,
+      "f1_score": 0.9417,
+      "roc_auc": 97.13,
+      "precision": 93.34,
+      "recall": 95.01,
+      "train_time_s": 21.43
+    },
+    "XGBoost": {
+      "overall_accuracy": 91.35,
+      "f1_score": 0.9401,
+      "roc_auc": 97.16,
+      "precision": 93.03,
+      "recall": 95.01,
+      "train_time_s": 20.66
+    },
+    "Random Forest": {
+      "overall_accuracy": 90.74,
+      "f1_score": 0.9341,
+      "roc_auc": 97.01,
+      "precision": 95.04,
+      "recall": 91.83,
+      "train_time_s": 172.74
+    }
+  },
+  "label_engineering": {
+    "method": "Weighted z-score composite with Gaussian noise",
+    "score_cols": ["composite_alignment_index", "ability_interest_synergy", "geometric_core_synergy", "harmonic_core_match", "holistic_synergy", "min_core_match", "max_core_match"],
+    "weights": [0.30, 0.15, 0.15, 0.15, 0.10, 0.075, 0.075],
+    "noise_std": 0.30,
+    "random_seed": 42,
+    "class_balance": "72% compatible / 28% incompatible"
+  },
+  "features_count": 17,
+  "feature_type": "14 numerical + 3 categorical (OHE)",
+  "trained_at": "2026-09-23T08:50:00Z",
+  "num_classes": 158,
+  "dataset": "Student_Career_Recommendation_Dataset.csv",
+  "test_set_size": 4936,
+  "class_report": {
+    "Incompatible (0)": {"precision": 0.87, "recall": 0.83, "f1": 0.85, "support": 1409},
+    "Compatible (1)":   {"precision": 0.93, "recall": 0.95, "f1": 0.94, "support": 3527}
+  }
 }

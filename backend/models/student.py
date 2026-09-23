@@ -1,15 +1,15 @@
 """
-Student Profile Model for MySQL Database.
-Stores student educational demographics and academic marks directly in 'students' (Table 2 of 6),
-eliminating redundant 1:1 separate academic_scores table.
+Student Profile Compatibility Interface for MySQL Database.
+Consolidated directly into 'users' (Table 1 of 5), eliminating redundant 'students' table.
+Provides full backwards compatibility for Student model, AcademicScoreProxy, and AcademicScore.
 """
 
-from datetime import datetime, timezone
 from backend.extensions import db
+from backend.models.user import User
 
 
 class AcademicScoreProxy:
-    """Compatibility proxy for student academic subject marks stored in JSON."""
+    """Compatibility proxy for student academic subject marks stored in JSON on User."""
     def __init__(self, data=None, student=None):
         self._data = dict(data) if isinstance(data, dict) else {}
         self._student = student
@@ -76,67 +76,8 @@ class AcademicScoreProxy:
         return f"<AcademicScore overall={self.overall_percentage}%>"
 
 
-class Student(db.Model):
-    """Student profile model storing demographics and academic scores in MySQL (Table 2 of 6)."""
-    __tablename__ = 'students'
-
-    id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, unique=True, index=True)
-    student_code = db.Column(db.String(50), unique=True, nullable=False, index=True)
-    first_name = db.Column(db.String(100), nullable=False)
-    last_name = db.Column(db.String(100), nullable=True)
-    age = db.Column(db.SmallInteger, nullable=True)
-    gender = db.Column(db.String(30), nullable=True)
-    class_level = db.Column(db.SmallInteger, nullable=False, index=True)  # 7 to 12
-    board = db.Column(db.String(100), nullable=True, index=True)  # CBSE, ICSE, State Board, IB, Cambridge
-    medium = db.Column(db.String(50), nullable=True)  # English, Malayalam, Hindi, etc.
-    stream = db.Column(db.String(100), nullable=True, default='General', index=True)
-    academic_scores_data = db.Column('academic_scores', db.JSON, default=dict)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
-
-    # Relationships
-    assessments = db.relationship('AssessmentSession', backref='student', lazy='dynamic', cascade='all, delete-orphan')
-
-    @property
-    def academic_scores(self):
-        return AcademicScoreProxy(self.academic_scores_data or {}, self)
-
-    @academic_scores.setter
-    def academic_scores(self, value):
-        if isinstance(value, dict):
-            self.academic_scores_data = dict(value)
-        elif isinstance(value, AcademicScoreProxy):
-            self.academic_scores_data = dict(value._data)
-        elif isinstance(value, AcademicScore):
-            self.academic_scores_data = dict(value.to_dict())
-        else:
-            self.academic_scores_data = {}
-
-    @property
-    def full_name(self) -> str:
-        return f"{self.first_name} {self.last_name or ''}".strip()
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'user_id': self.user_id,
-            'student_code': self.student_code,
-            'first_name': self.first_name,
-            'last_name': self.last_name,
-            'full_name': self.full_name,
-            'age': self.age,
-            'gender': self.gender,
-            'class_level': self.class_level,
-            'board': self.board,
-            'medium': self.medium,
-            'stream': self.stream,
-            'academic_scores': self.academic_scores.to_dict(),
-            'created_at': self.created_at.isoformat() if self.created_at else None
-        }
-
-    def __repr__(self):
-        return f"<Student {self.student_code} - Class {self.class_level}>"
+# Student is an alias to User (Table 1 of 5), providing complete compatibility
+Student = User
 
 
 class _DummyScoreColumn:
@@ -158,10 +99,10 @@ class AcademicScore:
         if 'overall_percentage' not in self._data:
             self._data['overall_percentage'] = kwargs.get('overall_percentage', 75.0)
 
-        # If student exists in session, attach directly
+        # If user/student exists in session, attach directly
         if student_id and db.session:
             try:
-                st = db.session.get(Student, student_id)
+                st = db.session.get(User, student_id)
                 if st:
                     current = dict(st.academic_scores_data or {})
                     current.update(self._data)
@@ -181,7 +122,7 @@ class AcademicScore:
             self._data[name] = value
             if self.student_id and db.session:
                 try:
-                    st = db.session.get(Student, self.student_id)
+                    st = db.session.get(User, self.student_id)
                     if st:
                         current = dict(st.academic_scores_data or {})
                         current[name] = value
@@ -205,7 +146,7 @@ class AcademicScore:
                     if not self.s_id or not db.session:
                         return None
                     try:
-                        st = db.session.get(Student, self.s_id)
+                        st = db.session.get(User, self.s_id)
                         return st.academic_scores if st else None
                     except Exception:
                         return None

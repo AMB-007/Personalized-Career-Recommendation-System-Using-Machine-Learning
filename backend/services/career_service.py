@@ -55,7 +55,6 @@ class CareerService:
             query = query.filter(
                 (Career.career_name.ilike(sq)) |
                 (Career.description.ilike(sq)) |
-                (Career.related_careers.ilike(sq)) |
                 (Career.domain_name.ilike(sq)) |
                 (Career.subdomain_val.ilike(sq)) |
                 (Career.cluster_val.ilike(sq))
@@ -90,9 +89,6 @@ class CareerService:
 
         if education_level and education_level != 'all':
             query = query.filter(Career.minimum_education.ilike(f"%{education_level}%"))
-
-        if work_environment and work_environment != 'all':
-            query = query.filter(Career.work_environment.ilike(f"%{work_environment}%"))
 
         query = query.order_by(Career.domain_name.asc(), Career.career_name.asc())
 

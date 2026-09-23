@@ -44,3 +44,8 @@ logs/
 unwanted files and folders/
 catboost_info/
 
+# Large ML model binaries (tracked via Git LFS or stored separately)
+# backend/ml/models/model.joblib
+# model_training/model.joblib
+# model_training/preprocessor.joblib
+

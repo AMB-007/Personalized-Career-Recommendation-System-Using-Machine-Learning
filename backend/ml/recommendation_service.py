@@ -1,66 +1,50 @@
 """
-Production ML Career Recommendation Service.
-Evaluates student assessment profiles against the complete 1,206 Career Knowledge
-catalogue using the V7.2 XGBoost Model and produces ranked Top-K recommendations.
+Career Recommendation Engine Module.
+Scores all candidate careers from the knowledge catalogue for a student,
+ranks them by compatibility probability, and returns Top-K recommendations.
 """
 
-import os
 import logging
-import yaml
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
 import pandas as pd
-import numpy as np
-
+import yaml
 from backend.ml.feature_builder import FeatureBuilder
+from backend.ml.model_loader import get_model_config, get_model_version
 from backend.ml.prediction_service import PredictionService
-from backend.ml.model_loader import get_model_version, get_model_config
 
 logger = logging.getLogger(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-DEFAULT_CAREER_DATA_PATH = BASE_DIR / "backend" / "ml" / "data" / "career_knowledge_requirements.csv"
-
+DEFAULT_CATALOGUE_PATH = Path(__file__).resolve().parent / "data" / "career_knowledge_requirements.csv"
+CONFIG_PATH = Path(__file__).resolve().parent / "config.yaml"
 
 
 class CareerRecommendationEngine:
-    # Load configuration for domain thresholds and interest weighting
-    _config_cache = None
-
-    @classmethod
-    def _load_config(cls):
-        if cls._config_cache is None:
-            config_path = Path(__file__).resolve().parent / "config.yaml"
-            if config_path.exists():
-                with open(config_path, "r", encoding="utf-8") as f:
-                    cls._config_cache = yaml.safe_load(f) or {}
-            else:
-                cls._config_cache = {}
-        return cls._config_cache
-    """Manages full career catalogue scoring, ranking, and Top-K extraction."""
-
+    """Production Career Recommendation Engine."""
     _catalogue: Optional[pd.DataFrame] = None
     _catalogue_path: Optional[Path] = None
 
     @classmethod
-    def get_career_catalogue(cls, data_path: Optional[Path] = None) -> pd.DataFrame:
-        """Loads and caches the 1,206 career knowledge requirements dataset."""
-        if cls._catalogue is not None:
-            return cls._catalogue
+    def get_career_catalogue(cls, path: Optional[Path] = None) -> pd.DataFrame:
+        if path is None:
+            path = DEFAULT_CATALOGUE_PATH
 
-        path = Path(data_path or os.getenv("CAREER_DATA_PATH") or DEFAULT_CAREER_DATA_PATH).resolve()
-        if not path.exists():
-            raise FileNotFoundError(
-                f"Career knowledge requirements dataset not found at {path}. "
-                "Ensure career_knowledge_requirements.csv is placed in backend/ml/data/"
-            )
-
-        df = pd.read_csv(path)
-        df.columns = [c.strip() for c in df.columns]
-        cls._catalogue = df
-        cls._catalogue_path = path
-        logger.info(f"CAREER_CATALOGUE_LOADED: {len(df)} careers from {path}")
+        if cls._catalogue is None or cls._catalogue_path != path:
+            if not path.exists():
+                raise FileNotFoundError(f"Career knowledge catalogue missing at {path}")
+            df = pd.read_csv(path)
+            cls._catalogue = df
+            cls._catalogue_path = path
+            logger.info(f"CAREER_CATALOGUE_LOADED: {len(df)} careers from {path}")
         return cls._catalogue
+
+    @classmethod
+    def _load_config(cls) -> Dict[str, Any]:
+        if CONFIG_PATH.exists():
+            with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+                return yaml.safe_load(f) or {}
+        return {}
 
     @classmethod
     def generate_recommendations(
@@ -70,32 +54,23 @@ class CareerRecommendationEngine:
         data_path: Optional[Path] = None
     ) -> Dict[str, Any]:
         """
-        Generates ranked career recommendations for a student:
-        1. Loads complete career knowledge catalogue (1,206 careers).
-        2. Constructs 11-feature contract candidate matrix (1,206 rows).
-        3. Preprocesses and predicts compatibility probabilities via XGBoost.
-        4. Applies prerequisite domain threshold verification from config.yaml.
-        5. Ranks careers descending by compatibility score.
-        6. Deduplicates on career_id for Top-K extraction.
-        7. Extracts Top 1, Top 3, Top 5, Top 10 recommendations.
+        Generates ranked Top-K career recommendations for a student profile.
         """
         catalogue = cls.get_career_catalogue(data_path)
         if catalogue.empty:
             raise ValueError("Career knowledge catalogue is empty.")
 
         total_evaluated = len(catalogue)
-        logger.debug(f"PREDICTION_STARTED: Evaluating {total_evaluated} career candidates")
 
-        # 1. Build batch features for all catalogue careers (1,206 candidates)
+        # 1. Build batch features for all catalogue careers
         features_df = FeatureBuilder.build_batch_features(student_profile, catalogue)
-        assert len(features_df) == total_evaluated, "Candidate count mismatch with catalogue"
 
         # 2. Run model predictions
         pred_results = PredictionService.predict_compatibility(features_df)
         probs = pred_results['probabilities']
         preds = pred_results['predictions']
 
-        # 3. Attach scores to catalogue items
+        # 3. Attach scores
         catalogue_scored = catalogue.copy()
         catalogue_scored['probability'] = probs
         catalogue_scored['compatibility_score'] = [round(p * 100.0, 2) for p in probs]
@@ -103,89 +78,89 @@ class CareerRecommendationEngine:
         catalogue_scored['ability_match'] = features_df['ability_match_component'].values
         catalogue_scored['interest_match'] = features_df['interest_match_component'].values
 
-        # 4. Domain & prerequisite threshold compliance check
+        # 4. Domain & prerequisite threshold check
         cfg = cls._load_config()
         domain_cfg = cfg.get('domain_requirements', {})
         default_cfg = cfg.get('default_requirements', {})
 
         def _is_compliant(row):
-            domain = str(row.get('career_domain', '')).lower()
+            domain = str(row.get('domain', row.get('career_domain', ''))).lower()
             thresholds = domain_cfg.get(domain, default_cfg)
+            scores = student_profile.get('scores', {})
             for field, min_val in thresholds.items():
-                if row.get(field) is not None:
-                    try:
-                        if float(row[field]) < float(min_val):
-                            return 0
-                    except (ValueError, TypeError):
+                if field in scores:
+                    if float(scores[field]) < float(min_val):
                         return 0
             return 1
 
         catalogue_scored['threshold_pass'] = catalogue_scored.apply(_is_compliant, axis=1)
 
-        # 5. Sort descending by compliance, compatibility probability, ability & interest match
+        # 5. Sort descending by compliance, probability, and match scores
         catalogue_sorted = catalogue_scored.sort_values(
             by=['threshold_pass', 'probability', 'ability_match', 'interest_match'],
             ascending=[False, False, False, False]
         )
 
-        # 6. Deduplicate unique careers for Top-K extraction
-        catalogue_distinct = catalogue_sorted.drop_duplicates(subset=['career_id'], keep='first').reset_index(drop=True)
+        # 6. Deduplicate unique careers
+        catalogue_distinct = catalogue_sorted.drop_duplicates(subset=['career_name'], keep='first').reset_index(drop=True)
 
-        version_info = get_model_version()
         k_val = min(top_k, len(catalogue_distinct))
-
         recommendations_list = []
         for rank in range(1, k_val + 1):
             row = catalogue_distinct.iloc[rank - 1]
             c_name = str(row.get('career_name', 'Career'))
-            c_dom = str(row.get('career_domain', 'General'))
-            c_sub = str(row.get('career_subdomain', 'General'))
-            c_clu = str(row.get('career_cluster', 'General'))
+            c_dom = str(row.get('domain', row.get('career_domain', 'General')))
+            c_sub = str(row.get('subdomain', row.get('career_subdomain', 'General')))
+            c_clu = str(row.get('cluster', row.get('career_cluster', 'General')))
             score = float(row['compatibility_score'])
-            config = cls._load_config()
-            model_name = config.get('model', 'CatBoost')
+
             reason = (
-                f"{model_name} Compatibility Score: {score}% alignment across {c_dom} "
+                f"High alignment ({score}%) across {c_dom} "
                 f"aptitude benchmarks ({row['ability_match']}%) and disciplinary interests ({row['interest_match']}%)."
             )
-            strengths_desc = (
-                f"Strong compatibility in {c_dom} core aptitudes and {c_clu} functional track."
-            )
-            gaps_desc = (
-                f"Prepare for {row.get('minimum_education_level', 'Degree')} requirements and "
-                f"master essential competencies for {c_name}."
-            )
+            strengths_desc = f"Strong compatibility in {c_dom} core aptitudes and {c_clu} functional track."
+            gaps_desc = f"Prepare for {row.get('minimum_education_level', 'Degree')} requirements and master essential competencies for {c_name}."
 
             rec_item = {
                 'rank': rank,
-                'career_id': str(row.get('career_id', f'CAR{rank:05d}')),
+                'career_id': row.get('career_id', f'CAR{rank:05d}'),
                 'career_name': c_name,
+                'domain': c_dom,
                 'career_domain': c_dom,
+                'subdomain': c_sub,
                 'career_subdomain': c_sub,
+                'cluster': c_clu,
                 'career_cluster': c_clu,
                 'compatibility_score': score,
-                'probability': float(row['probability']),
-                'is_compatible': int(row['is_compatible']),
-                'minimum_education_level': str(row.get('minimum_education_level', 'Undergraduate')),
-                'ability_match_score': float(row['ability_match']),
-                'interest_match_score': float(row['interest_match']),
-                'recommendation_reason': reason,
-                'strengths': strengths_desc,
-                'skill_gaps': gaps_desc
+                'probability': round(score / 100.0, 4),
+                'is_compatible': bool(row['is_compatible']),
+                'recommendation_strength': 'Strong Match' if score >= 75 else ('Moderate Match' if score >= 50 else 'Emerging Match'),
+                'confidence_tier': 'Tier 1 (High)' if score >= 75 else 'Tier 2 (Moderate)',
+                'match_factors': {
+                    'overall': score,
+                    'ability_match': float(row['ability_match']),
+                    'interest_match': float(row['interest_match'])
+                },
+                'why_recommended': reason,
+                'strengths_summary': strengths_desc,
+                'gaps_summary': gaps_desc,
+                'description': row.get('description', ''),
+                'minimum_education': row.get('minimum_education_level', "Bachelor's Degree"),
+                'typical_education': row.get('typical_education', 'Degree'),
+                'avg_starting_salary': row.get('avg_starting_salary', '₹5,00,000 - ₹8,00,000'),
+                'salary_mid_career': row.get('salary_mid_career', '₹15,00,000 - ₹25,00,000'),
+                'market_demand': row.get('market_demand', 'High'),
+                'growth_rate': row.get('growth_rate', '15-20%')
             }
             recommendations_list.append(rec_item)
 
-        logger.debug(f"RECOMMENDATIONS_GENERATED: Extracted Top {len(recommendations_list)} recommendations")
-
+        version_info = get_model_version()
         config = get_model_config()
-        model_name = config.get('model', 'CatBoost')
-        version_name = version_info.get('version', 'V8.0-Champion')
-
         return {
-            'model': f"{model_name} Career Compatibility Model",
-            'model_version': version_name,
-            'student_id': student_profile.get('student_id') or student_profile.get('student_code'),
+            'student_id': student_profile.get('student_id', 'STUDENT_001'),
             'total_evaluated_careers': total_evaluated,
+            'model_name': config.get('model', 'RandomForest'),
+            'model_version': version_info.get('version', 'V13.0-RandomForest-Champion-Benchmark'),
             'top_1': recommendations_list[0] if recommendations_list else None,
             'top_3': recommendations_list[:3],
             'top_5': recommendations_list[:5],

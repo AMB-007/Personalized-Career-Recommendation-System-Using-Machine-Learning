@@ -95,15 +95,11 @@ def register_page():
             flash('An account with this email or username already exists. Please login.', 'warning')
             return redirect(url_for('auth.login_page'))
 
-        # Create user & student profile
-        user = User(username=data['username'], email=data['email'], role='student')
-        user.set_password(data['password'])
-        db.session.add(user)
-        db.session.flush()
-
-        student = Student(
-            user_id=user.id,
-            student_code=f"STU-{data['class_level']}-{user.id:04d}",
+        # Create unified user & student profile (Table 1 of 5)
+        user = User(
+            username=data['username'],
+            email=data['email'],
+            role='student',
             first_name=data['first_name'],
             last_name=data['last_name'],
             age=int(data['age']) if data['age'] else (int(data['class_level']) + 5),
@@ -111,18 +107,19 @@ def register_page():
             class_level=int(data['class_level']),
             board=data.get('board'),
             medium=data.get('medium'),
-            stream=data.get('stream', 'General')
+            stream=data.get('stream', 'General'),
+            academic_scores_data={}
         )
-        db.session.add(student)
+        user.set_password(data['password'])
+        db.session.add(user)
         db.session.flush()
 
-        # Initialize academic score row for student
-        academic = AcademicScore(student_id=student.id, overall_percentage=None)
-        db.session.add(academic)
+        # Set student code using generated user.id
+        user.student_code = f"STU-{data['class_level']}-{user.id:04d}"
         db.session.commit()
 
         login_user(user)
-        logger.info(f"New student registration: {user.username} (Class {student.class_level})")
+        logger.info(f"New student registration: {user.username} (Class {user.class_level})")
         flash('Registration successful! Please fill in your academic scores to prepare your career assessment.', 'success')
         return redirect(url_for('student.profile_page', onboarding=1))
 

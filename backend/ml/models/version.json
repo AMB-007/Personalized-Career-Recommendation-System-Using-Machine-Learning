@@ -1,12 +1,6 @@
 {
-  "version": "V10.0-XGBoost-Champion",
-  "champion_model": "XGBoost",
-  "model_accuracy": "86.68%",
-  "raw_accuracy": "80.91%",
-  "f1_score": "0.9184",
-  "roc_auc": "86.24%",
-  "hit_at_1": "93.19%",
-  "hit_at_5": "100.00%",
-  "mrr": "0.9636",
-  "created": "2026-09-12T22:29:01Z"
+  "version": "V17.0-LightGBM-91pct",
+  "trained_at": "2026-09-23T08:54:00Z",
+  "status": "production_ready",
+  "accuracy": 91.59
 }

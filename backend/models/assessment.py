@@ -271,7 +271,7 @@ class AssessmentSession(db.Model):
     __tablename__ = 'assessment_sessions'
 
     id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), primary_key=True, autoincrement=True)
-    student_id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), db.ForeignKey('students.id', ondelete='CASCADE'), nullable=False, index=True)
+    student_id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
     status = db.Column(
         db.Enum('not_started', 'in_progress', 'completed', 'abandoned', name='session_status_enum'),
         default='not_started',
@@ -287,7 +287,12 @@ class AssessmentSession(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
 
     # Relationships
+    student = db.relationship('User', foreign_keys=[student_id], backref=db.backref('assessments', lazy='dynamic', cascade='all, delete-orphan'))
     recommendations = db.relationship('CareerRecommendation', backref='session', lazy='dynamic', cascade='all, delete-orphan')
+
+    @property
+    def user(self):
+        return self.student
 
     @property
     def scores(self):

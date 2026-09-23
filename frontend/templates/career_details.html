@@ -72,51 +72,50 @@
                 </div>
             </div>
 
-            <!-- Career Progression Summary -->
+            <!-- Market Demand & Compensation -->
             <div class="card-custom p-4">
-                <h4 class="fw-bold mb-3" style="color: var(--text-main);"><i class="bi bi-graph-up-arrow text-success me-2"></i> Career Growth & Roles</h4>
+                <h4 class="fw-bold mb-3" style="color: var(--text-main);"><i class="bi bi-graph-up-arrow text-success me-2"></i> Industry Demand & Compensation</h4>
                 <div class="row g-3">
                     <div class="col-md-6">
                         <div class="card-subtle p-3">
-                            <div class="small text-uppercase fw-bold mb-1" style="color: var(--text-muted);">Entry-Level Role</div>
-                            <h6 class="fw-bold mb-0" style="color: var(--text-main);">{{ career.entry_level_role or 'Junior Specialist' }}</h6>
+                            <div class="small text-uppercase fw-bold mb-1" style="color: var(--text-muted);">Market Demand</div>
+                            <h6 class="fw-bold text-success mb-0">{{ career.market_demand or 'High Growth' }}</h6>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="card-subtle p-3">
-                            <div class="small text-uppercase fw-bold mb-1" style="color: var(--text-muted);">Advanced / Senior Role</div>
-                            <h6 class="fw-bold text-primary mb-0">{{ career.advanced_role or 'Principal Director' }}</h6>
+                            <div class="small text-uppercase fw-bold mb-1" style="color: var(--text-muted);">Projected Growth Rate</div>
+                            <h6 class="fw-bold text-primary mb-0">{{ career.growth_rate or '12-15% annually' }}</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card-subtle p-3">
+                            <div class="small text-uppercase fw-bold mb-1" style="color: var(--text-muted);">Avg. Starting Salary</div>
+                            <h6 class="fw-bold mb-0" style="color: var(--text-main);">{{ career.avg_starting_salary or '₹4.5L - ₹6.5L / yr' }}</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card-subtle p-3">
+                            <div class="small text-uppercase fw-bold mb-1" style="color: var(--text-muted);">Mid-Career Potential</div>
+                            <h6 class="fw-bold text-success mb-0">{{ career.salary_mid_career or '₹12L - ₹20L / yr' }}</h6>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Right: Education & Work Environment Sidebar -->
+        <!-- Right: Education Profile Sidebar -->
         <div class="col-lg-5">
             <!-- Education Profile -->
             <div class="card-custom p-4 mb-4">
                 <h5 class="fw-bold mb-3" style="color: var(--text-main);"><i class="bi bi-mortarboard text-primary me-2"></i> Education Overview</h5>
                 <div class="mb-3">
                     <span class="small d-block" style="color: var(--text-secondary);">Minimum Degree Required:</span>
-                    <strong class="fs-6" style="color: var(--text-main);">{{ career.minimum_education }}</strong>
+                    <strong class="fs-6" style="color: var(--text-main);">{{ career.minimum_education or 'Bachelor\'s Degree' }}</strong>
                 </div>
                 <div>
                     <span class="small d-block" style="color: var(--text-secondary);">Typical Qualification Pathway:</span>
-                    <strong class="fs-6" style="color: var(--text-main);">{{ career.typical_education }}</strong>
-                </div>
-            </div>
-
-            <!-- Work Environment & Style -->
-            <div class="card-custom p-4 mb-4">
-                <h5 class="fw-bold mb-3" style="color: var(--text-main);"><i class="bi bi-building text-secondary me-2"></i> Work Setting & Style</h5>
-                <div class="mb-3">
-                    <span class="small d-block" style="color: var(--text-secondary);">Typical Setting:</span>
-                    <span class="badge-custom badge-neutral-custom mt-1">{{ career.work_environment }}</span>
-                </div>
-                <div>
-                    <span class="small d-block" style="color: var(--text-secondary);">Work Approach:</span>
-                    <span class="badge-custom badge-neutral-custom mt-1">{{ career.work_style }}</span>
+                    <strong class="fs-6" style="color: var(--text-main);">{{ career.typical_education or 'Higher Secondary + Specialized Degree' }}</strong>
                 </div>
             </div>
 

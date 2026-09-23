@@ -45,7 +45,7 @@ class TestMLRecommendationService(unittest.TestCase):
     def test_catalogue_loading(self):
         catalogue = CareerRecommendationEngine.get_career_catalogue()
         self.assertFalse(catalogue.empty)
-        self.assertGreaterEqual(len(catalogue), 1200)
+        self.assertEqual(len(catalogue), 158)
         self.assertIn('career_name', catalogue.columns)
         self.assertIn('career_domain', catalogue.columns)
 

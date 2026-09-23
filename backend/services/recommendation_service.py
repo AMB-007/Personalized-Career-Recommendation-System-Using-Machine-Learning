@@ -81,47 +81,13 @@ class RecommendationService:
                 'db_id': c.id,
                 'career_code': c.career_code,
                 'career_name': c.career_name,
-                'career_domain': c.domain.domain_name if c.domain else 'General',
-                'career_subdomain': c.subdomain.name if c.subdomain else 'General',
-                'career_cluster': c.cluster.name if c.cluster else 'General',
+                'career_domain': c.domain_name or (c.domain.domain_name if c.domain else 'General'),
+                'career_subdomain': c.subdomain_val or (c.subdomain.name if c.subdomain else 'General'),
+                'career_cluster': c.cluster_val or (c.cluster.name if c.cluster else 'General'),
                 'minimum_education_level': c.minimum_education or 'Undergraduate',
-                # Map domain/skills to required abilities/interests if available
-                'required_mathematical_ability': 50.0,
-                'required_logical_reasoning': 50.0,
-                'required_scientific_thinking': 50.0,
-                'required_problem_solving': 50.0,
-                'required_analytical_thinking': 50.0,
-                'required_communication': 50.0,
-                'required_creativity': 50.0,
-                'required_digital_ability': 50.0,
-                'required_technology_interest': 50.0,
-                'required_engineering_interest': 50.0,
-                'required_healthcare_interest': 50.0,
-                'required_business_interest': 50.0,
-                'required_finance_interest': 50.0,
-                'required_arts_interest': 50.0,
-                'required_design_interest': 50.0,
-                'required_research_interest': 50.0,
-                'required_environment_interest': 50.0,
-                'required_agriculture_interest': 50.0,
             })
 
         db_career_df = pd.DataFrame(db_career_rows)
-
-        # Also merge with full 1,206 career knowledge catalogue requirements if matched by name
-        try:
-            full_catalogue = CareerRecommendationEngine.get_career_catalogue()
-            if not full_catalogue.empty:
-                cat_by_name = {str(row['career_name']).strip().lower(): row for _, row in full_catalogue.iterrows()}
-                for idx, r in db_career_df.iterrows():
-                    cname = str(r['career_name']).strip().lower()
-                    if cname in cat_by_name:
-                        cat_row = cat_by_name[cname]
-                        for k in cat_row.index:
-                            if k.startswith('required_'):
-                                db_career_df.at[idx, k] = float(cat_row[k])
-        except Exception:
-            pass
 
         # Build feature DataFrame for DB careers
         feat_df = FeatureBuilder.build_batch_features(student_profile, db_career_df)
@@ -159,11 +125,21 @@ class RecommendationService:
                 f"Focus on {row['minimum_education_level']} prerequisites and specialized skill development for {c_name}."
             )
 
+            prob_val = float(row.get('probability', score_val / 100.0))
+            is_dec_val = bool(abs(prob_val - 0.50) >= 0.27)
+            breakdown_dict = {
+                'ability_match': float(row.get('ability_match', 0.0)),
+                'interest_match': float(row.get('interest_match', 0.0))
+            }
+
             rec_entry = CareerRecommendation(
                 assessment_id=session.id,
                 career_id=c_id,
                 rank_position=rank,
                 score=score_val,
+                is_decisive=is_dec_val,
+                probability=prob_val,
+                match_breakdown=breakdown_dict,
                 recommendation_reason=reason_str,
                 strengths=strengths_str,
                 skill_gaps=gaps_str
@@ -222,10 +198,12 @@ class RecommendationService:
                 'description': c.description,
                 'minimum_education': c.minimum_education,
                 'typical_education': c.typical_education,
-                'work_environment': c.work_environment,
-                'work_style': c.work_style,
-                'entry_level_role': c.entry_level_role,
-                'advanced_role': c.advanced_role,
+                'market_demand': getattr(c, 'market_demand', 'High'),
+                'growth_rate': getattr(c, 'growth_rate', '10-15%'),
+                'avg_starting_salary': getattr(c, 'avg_starting_salary', 'Competitive'),
+                'is_decisive': getattr(r, 'is_decisive', False),
+                'probability': getattr(r, 'probability', None),
+                'match_breakdown': getattr(r, 'match_breakdown', {}) or {},
                 'strengths': r.strengths,
                 'skill_gaps': r.skill_gaps,
                 'recommendation_reason': r.recommendation_reason,

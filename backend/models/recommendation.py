@@ -11,10 +11,13 @@ class CareerRecommendation(db.Model):
     assessment_id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), db.ForeignKey('assessment_sessions.id', ondelete='CASCADE'), nullable=False, index=True)
     career_id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), db.ForeignKey('careers.id', ondelete='CASCADE'), nullable=False)
     rank_position = db.Column(db.Integer, nullable=False, default=1, index=True)
-    score = db.Column(db.Float, nullable=True)  # Match score / probability (0.0 to 100.0)
+    score = db.Column(db.Float, nullable=True)  # Match score percentage (0.0 to 100.0)
+    is_decisive = db.Column(db.Boolean, default=False, index=True)  # Calibrated high confidence (>90% accuracy)
+    probability = db.Column(db.Float, nullable=True)  # Raw ML model probability (0.0 to 1.0)
     recommendation_reason = db.Column(db.Text, nullable=True)
     strengths = db.Column(db.Text, nullable=True)
     skill_gaps = db.Column(db.Text, nullable=True)
+    match_breakdown = db.Column(db.JSON, nullable=True)  # Ability, Interest, Academic, Learning match components
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     __table_args__ = (
@@ -69,6 +72,9 @@ class CareerRecommendation(db.Model):
             'description': self.career.description if self.career else None,
             'rank': self.rank_position,
             'score': round(self.score, 1) if self.score is not None else 0.0,
+            'is_decisive': bool(self.is_decisive) if self.is_decisive is not None else False,
+            'probability': round(self.probability, 4) if self.probability is not None else None,
+            'match_breakdown': self.match_breakdown or {},
             'recommendation_reason': self.recommendation_reason,
             'strengths': self.strengths,
             'skill_gaps': self.skill_gaps,

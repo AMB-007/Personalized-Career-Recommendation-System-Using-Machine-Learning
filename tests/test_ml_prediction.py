@@ -24,8 +24,6 @@ class TestMLPredictionService(unittest.TestCase):
             'compatibility_score': 74.5,
             'career_name': 'Counsellor',
             'career_domain': 'Technology',
-            'career_subdomain': 'Track 5',
-            'career_cluster': 'Cluster 25',
             'stream': 'Science-PCB'
         }]
 

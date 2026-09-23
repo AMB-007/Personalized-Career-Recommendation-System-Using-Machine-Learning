@@ -60,21 +60,21 @@ def manage_users():
     search = request.args.get('search', '').strip()
     class_filter = request.args.get('class_level', type=int)
 
-    query = Student.query.join(User)
+    query = User.query.filter(User.role == 'student')
 
     if search:
         query = query.filter(
-            (Student.first_name.ilike(f"%{search}%")) |
-            (Student.last_name.ilike(f"%{search}%")) |
-            (Student.student_code.ilike(f"%{search}%")) |
+            (User.first_name.ilike(f"%{search}%")) |
+            (User.last_name.ilike(f"%{search}%")) |
+            (User.student_code.ilike(f"%{search}%")) |
             (User.email.ilike(f"%{search}%")) |
             (User.username.ilike(f"%{search}%"))
         )
 
     if class_filter:
-        query = query.filter(Student.class_level == class_filter)
+        query = query.filter(User.class_level == class_filter)
 
-    students = query.order_by(Student.created_at.desc()).all()
+    students = query.order_by(User.created_at.desc()).all()
 
     # Build stats per student
     student_records = []

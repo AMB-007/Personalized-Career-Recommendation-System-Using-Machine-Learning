@@ -1,107 +1,89 @@
 """
-Production ML Prediction Service Module.
-Executes preprocessing and CatBoost champion compatibility model inference.
-Strictly decoupled from database operations.
+Prediction Service Module.
+Executes batch model inference with feature engineering and confidence calculation.
 """
 
-from typing import Dict, List, Any, Union
+from typing import Any, Dict, Union, List
 import numpy as np
 import pandas as pd
-from backend.ml.model_loader import (
-    get_model,
-    get_preprocessor,
-    get_feature_columns,
-    get_model_config,
-    get_model_version,
-    ModelArtifactError
-)
+from backend.ml.model_loader import ModelLoader, get_model, get_preprocessor, get_model_config, get_model_version
 
 
 class PredictionService:
-    """Coordinates preprocessing and model scoring for career compatibility vectors."""
+    """Manages feature transformation and model predictions."""
+
+    REQUIRED_BASE_COLS = [
+        'age', 'class', 'ability_match_component', 'interest_match_component',
+        'academic_match_component', 'learning_match_component', 'career_name'
+    ]
 
     @classmethod
-    def predict_compatibility(
-        cls,
-        feature_df: Union[pd.DataFrame, List[Dict[str, Any]]]
-    ) -> Dict[str, Any]:
+    def predict_compatibility(cls, features_data: Union[pd.DataFrame, List[Dict[str, Any]], Dict[str, Any]]) -> Dict[str, Any]:
         """
-        Executes end-to-end ML inference on prepared candidate feature rows:
-        1. Validates required feature columns.
-        2. Applies preprocessor.joblib (imputation + scaling + encoding).
-        3. Runs model.joblib (XGBoost Classifier).
-        4. Applies decision threshold.
-        5. Returns structured compatibility probabilities and predictions.
+        Transforms input feature matrix and predicts compatibility probabilities.
         """
-        if isinstance(feature_df, list):
-            feature_df = pd.DataFrame(feature_df)
+        if isinstance(features_data, list):
+            df = pd.DataFrame(features_data)
+        elif isinstance(features_data, dict):
+            df = pd.DataFrame([features_data])
+        elif isinstance(features_data, pd.DataFrame):
+            df = features_data.copy()
+        else:
+            raise ValueError("Unsupported features format. Expected DataFrame or list of dicts.")
 
-        if not isinstance(feature_df, pd.DataFrame) or feature_df.empty:
-            raise ValueError("Feature input must be a non-empty DataFrame or list of dicts.")
+        # Check required columns
+        missing = [col for col in cls.REQUIRED_BASE_COLS if col not in df.columns]
+        if missing:
+            raise ValueError(f"Missing required feature columns: {missing}")
 
-        # Graceful auto-computation of engineered alignment features if base features provided
-        if 'ability_match_component' in feature_df.columns:
-            a_val = feature_df['ability_match_component'].fillna(50.0).astype(float)
-            i_val = feature_df.get('interest_match_component', pd.Series(50.0, index=feature_df.index)).fillna(50.0).astype(float)
-            ac_val = feature_df.get('academic_match_component', pd.Series(80.0, index=feature_df.index)).fillna(80.0).astype(float)
-            l_val = feature_df.get('learning_match_component', pd.Series(50.0, index=feature_df.index)).fillna(50.0).astype(float)
+        # Compute engineered features if not already present
+        if 'composite_alignment_index' not in df.columns:
+            a = pd.to_numeric(df['ability_match_component'], errors='coerce').fillna(75.0)
+            i = pd.to_numeric(df['interest_match_component'], errors='coerce').fillna(75.0)
+            ac = pd.to_numeric(df['academic_match_component'], errors='coerce').fillna(75.0)
 
-            if 'composite_alignment_index' not in feature_df.columns:
-                feature_df['composite_alignment_index'] = np.round(0.45 * a_val + 0.35 * i_val + 0.10 * ac_val + 0.10 * l_val, 2)
-            if 'ability_interest_synergy' not in feature_df.columns:
-                feature_df['ability_interest_synergy'] = np.round((a_val * i_val) / 100.0, 2)
-            if 'ability_interest_gap' not in feature_df.columns:
-                feature_df['ability_interest_gap'] = np.round(np.abs(a_val - i_val), 2)
-            if 'min_core_match' not in feature_df.columns:
-                feature_df['min_core_match'] = np.minimum(a_val, i_val)
-            if 'max_core_match' not in feature_df.columns:
-                feature_df['max_core_match'] = np.maximum(a_val, i_val)
-            if 'harmonic_core_match' not in feature_df.columns:
-                feature_df['harmonic_core_match'] = np.round(2.0 * (a_val * i_val) / (a_val + i_val + 1e-5), 2)
-            if 'geometric_core_synergy' not in feature_df.columns:
-                feature_df['geometric_core_synergy'] = np.round(np.sqrt(np.maximum(0.0, a_val * i_val)), 2)
-            if 'holistic_synergy' not in feature_df.columns:
-                feature_df['holistic_synergy'] = np.round((a_val * i_val * ac_val * l_val) ** 0.25, 2)
+            df['composite_alignment_index'] = (a * 0.40) + (i * 0.35) + (ac * 0.25)
+            df['ability_interest_synergy'] = np.sqrt(np.maximum(a * i, 0.0))
+            df['ability_interest_gap'] = np.abs(a - i)
+            df['min_core_match'] = np.minimum(np.minimum(a, i), ac)
+            df['max_core_match'] = np.maximum(np.maximum(a, i), ac)
+            df['harmonic_core_match'] = 3.0 / (1.0/np.maximum(a, 1.0) + 1.0/np.maximum(i, 1.0) + 1.0/np.maximum(ac, 1.0))
+            df['geometric_core_synergy'] = np.power(np.maximum(a * i * ac, 0.0), 1.0/3.0)
+            df['holistic_synergy'] = (df['composite_alignment_index'] + df['ability_interest_synergy'] + df['harmonic_core_match'] + df['geometric_core_synergy']) / 4.0
 
-        required_features = get_feature_columns()
-        missing_cols = [c for c in required_features if c not in feature_df.columns]
-        if missing_cols:
-            raise ValueError(f"Feature schema violation: Missing required columns: {missing_cols}")
-
-        # Ensure correct column ordering
-        x_in = feature_df[required_features].copy()
-
-        # 1. Transform using trained preprocessor (NEVER fit on inference data)
-        preprocessor = get_preprocessor()
-        try:
-            x_trans = np.asarray(preprocessor.transform(x_in), dtype=np.float32)
-        except Exception as e:
-            raise RuntimeError(f"Preprocessing transformation failed: {str(e)}") from e
-
-        # 2. Score with trained Champion ML model
-        model = get_model()
-        config = get_model_config()
-        version_info = get_model_version()
-        threshold = float(config.get('threshold', 0.50))
-
-        try:
-            if hasattr(model, "predict_proba"):
-                proba = model.predict_proba(x_trans)[:, 1]
+        # Ensure default categorical columns if missing
+        for cat in ['stream', 'career_domain', 'career_name']:
+            if cat not in df.columns:
+                df[cat] = 'General'
             else:
-                raw_pred = model.predict(x_trans)
-                proba = raw_pred.astype(float)
+                df[cat] = df[cat].astype(str).str.strip().str.title().replace(['Nan', 'None', '?', ''], 'General')
 
-            proba_list = [round(float(p), 6) for p in proba]
-            pred_list = [int(p >= threshold) for p in proba]
+        model = get_model()
+        preprocessor = get_preprocessor()
+        config = get_model_config()
 
-            return {
-                "model": config.get("model", "CatBoost"),
-                "version": version_info.get("version", "V9.5"),
-                "threshold": threshold,
-                "count": len(proba_list),
-                "probabilities": proba_list,
-                "predictions": pred_list
-            }
+        # Transform features
+        X_proc = preprocessor.transform(df)
 
-        except Exception as e:
-            raise RuntimeError(f"ML model inference execution failed: {str(e)}") from e
+        # Predict probabilities
+        probs = model.predict_proba(X_proc)[:, 1]
+
+        threshold = float(config.get('threshold', 0.5))
+        margin = float(config.get('confidence_margin', 0.27))
+
+        predictions = []
+        for p in probs:
+            if p >= (threshold + margin):
+                predictions.append(1)
+            elif p <= (threshold - margin):
+                predictions.append(0)
+            else:
+                predictions.append(1 if p >= threshold else 0)
+
+        return {
+            'probabilities': [round(float(p), 4) for p in probs],
+            'predictions': predictions,
+            'threshold': threshold,
+            'version': ModelLoader.get_model_version().get('version', 'V13.0'),
+            'count': len(probs)
+        }

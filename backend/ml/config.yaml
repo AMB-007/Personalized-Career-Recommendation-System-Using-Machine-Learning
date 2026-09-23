@@ -1,24 +1,25 @@
-# backend/ml/config.yaml
-# Configuration for the career recommendation engine.
-# Domain‑specific minimum thresholds (values are percentages 0‑100).
-# If a career's required value is below the threshold, it will be filtered out.
+model:
+  name: "XGBoost"
+  version: "V12.0-XGBoost-Champion-FinalDatasetRaw"
+  threshold: 0.5
+  confidence_margin: 0.27
 
 domain_requirements:
-  healthcare:
-    scientific_reasoning: 60
-    mathematical_ability: 60
-  engineering:
-    engineering_interest: 55
-  arts:
-    arts_interest: 50
+  "information technology":
+    logical_reasoning: 60.0
+    problem_solving: 55.0
+  "engineering":
+    mathematical_ability: 60.0
+    scientific_reasoning: 55.0
+  "finance & commerce":
+    mathematical_ability: 55.0
+    analytical_ability: 55.0
+  "healthcare & life sciences":
+    scientific_reasoning: 60.0
+    learning_ability: 55.0
+  "arts & creative design":
+    creativity: 60.0
+    spatial_ability: 55.0
 
-# Interest‑weighting parameters
-# Top N interests (by student score) receive a boost factor.
-interest_boost_factor: 1.5
-top_n_interests: 3
-# Default global thresholds applied when a domain is not explicitly listed.
-# Default global thresholds applied when a domain is not explicitly listed.
 default_requirements:
-  required_scientific_thinking: 50
-  required_mathematical_ability: 50
-
+  learning_ability: 40.0

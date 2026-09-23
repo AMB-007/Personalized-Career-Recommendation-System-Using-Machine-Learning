@@ -148,9 +148,17 @@ def results_page(assessment_id):
         flash('You are not authorized to view results of another student.', 'danger')
         return redirect(url_for('student.dashboard'))
 
+    # Fetch recommendations, or auto-generate on the fly if missing for completed session
+    detailed_recommendations = RecommendationService.get_detailed_career_explanations(session.id)
+    if not detailed_recommendations and session.status == 'completed':
+        try:
+            RecommendationService.generate_recommendations_for_session(session, top_k=5)
+            detailed_recommendations = RecommendationService.get_detailed_career_explanations(session.id)
+        except Exception as e:
+            logger.error(f"Failed to auto-generate recommendations on results view for session {session.id}: {e}")
+
     # Generate full student profile
     student_profile = StudentProfileService.generate_student_profile(session.id)
-    detailed_recommendations = RecommendationService.get_detailed_career_explanations(session.id)
 
     return render_template(
         'results.html',

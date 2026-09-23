@@ -199,11 +199,10 @@ class Career(db.Model):
     description = db.Column(db.Text, nullable=True)
     minimum_education = db.Column(db.String(150), nullable=True)
     typical_education = db.Column(db.String(150), nullable=True)
-    work_environment = db.Column(db.String(200), nullable=True)
-    work_style = db.Column(db.String(200), nullable=True)
-    entry_level_role = db.Column(db.String(200), nullable=True)
-    advanced_role = db.Column(db.String(200), nullable=True)
-    related_careers = db.Column(db.Text, nullable=True)
+    market_demand = db.Column(db.String(50), default='High')
+    growth_rate = db.Column(db.String(50), default='10-15%')
+    avg_starting_salary = db.Column(db.String(100), default='₹4,00,000 - ₹6,00,000')
+    salary_mid_career = db.Column(db.String(100), default='₹12,00,000 - ₹18,00,000')
     required_skills = db.Column(db.JSON, default=list)
     recommended_subjects = db.Column(db.JSON, default=list)
     is_active = db.Column(db.Boolean, default=True, index=True)
@@ -250,6 +249,13 @@ class Career(db.Model):
             kwargs['required_skills'] = []
         if 'recommended_subjects' not in kwargs:
             kwargs['recommended_subjects'] = []
+
+        # Pop dropped roadmap/unwanted fields gracefully if provided in legacy tests/seeds
+        kwargs.pop('work_environment', None)
+        kwargs.pop('work_style', None)
+        kwargs.pop('entry_level_role', None)
+        kwargs.pop('advanced_role', None)
+        kwargs.pop('related_careers', None)
 
         self._transient_edu = []
         self._transient_pathways = []
@@ -339,15 +345,15 @@ class Career(db.Model):
             'description': self.description,
             'minimum_education': self.minimum_education,
             'typical_education': self.typical_education,
-            'work_environment': self.work_environment,
-            'work_style': self.work_style,
-            'entry_level_role': self.entry_level_role,
-            'advanced_role': self.advanced_role,
-            'related_careers': [rc.strip() for rc in (self.related_careers or '').split(',') if rc.strip()],
+            'market_demand': self.market_demand,
+            'growth_rate': self.growth_rate,
+            'avg_starting_salary': self.avg_starting_salary,
+            'salary_mid_career': self.salary_mid_career,
             'skills': [s.to_dict() for s in self.skills],
             'subjects': [sub.to_dict() for sub in self.subjects],
             'education_pathways': [],
-            'pathways': []
+            'pathways': [],
+            'related_careers': []
         }
 
     def __repr__(self):
