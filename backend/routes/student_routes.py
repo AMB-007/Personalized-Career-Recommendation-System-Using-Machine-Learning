@@ -27,7 +27,7 @@ def dashboard():
         return redirect(url_for('main.index'))
 
     # Fetch all sessions in reverse chronological order
-    all_sessions = AssessmentSession.query.filter_by(student_id=student.id).order_by(AssessmentSession.created_at.desc()).all()
+    all_sessions = AssessmentSession.query.filter_by(student_id=student.id).order_by(AssessmentSession.started_at.desc(), AssessmentSession.id.desc()).all()
     latest_session = all_sessions[0] if all_sessions else None
 
     # Build rich attempt history objects with top career recommendation for each completed session

@@ -129,8 +129,61 @@ DOMAIN_PROFILES = {
 }
 
 
+SPECIFIC_ROLE_PROFILES = {
+    # Information Technology & Data
+    'ai engineer': (['logical_reasoning', 'mathematical_ability', 'digital_ability', 'problem_solving'], ['technology_interest', 'research_interest']),
+    'data scientist': (['analytical_ability', 'mathematical_ability', 'scientific_reasoning', 'problem_solving'], ['research_interest', 'technology_interest']),
+    'data analyst': (['analytical_ability', 'mathematical_ability', 'logical_reasoning'], ['technology_interest', 'business_interest']),
+    'cloud engineer': (['digital_ability', 'logical_reasoning', 'practical_ability', 'problem_solving'], ['technology_interest']),
+    'cybersecurity analyst': (['digital_ability', 'observation', 'logical_reasoning', 'problem_solving'], ['technology_interest']),
+    'software developer': (['logical_reasoning', 'digital_ability', 'problem_solving', 'creativity'], ['technology_interest']),
+    'mobile app developer': (['digital_ability', 'creativity', 'logical_reasoning', 'problem_solving'], ['technology_interest', 'creative_interest']),
+    'database administrator': (['digital_ability', 'analytical_ability', 'observation', 'logical_reasoning'], ['technology_interest']),
+    'network engineer': (['digital_ability', 'practical_ability', 'logical_reasoning'], ['technology_interest']),
+    'ui / ux designer': (['creativity', 'digital_ability', 'observation', 'communication'], ['creative_interest', 'technology_interest']),
+    'machine learning engineer': (['logical_reasoning', 'mathematical_ability', 'digital_ability', 'problem_solving'], ['technology_interest', 'research_interest']),
+    # Healthcare & Medicine
+    'doctor': (['scientific_reasoning', 'observation', 'problem_solving', 'practical_ability'], ['healthcare_interest', 'science_interest']),
+    'dentist': (['practical_ability', 'spatial_ability', 'observation', 'scientific_reasoning'], ['healthcare_interest']),
+    'nurse': (['communication', 'teamwork', 'observation', 'practical_ability'], ['healthcare_interest', 'social_interest']),
+    'biotechnologist': (['scientific_reasoning', 'analytical_ability', 'observation'], ['science_interest', 'research_interest']),
+    'pharmacist': (['scientific_reasoning', 'observation', 'memory', 'mathematical_ability'], ['healthcare_interest', 'science_interest']),
+    # Finance & Commerce
+    'accountant': (['mathematical_ability', 'analytical_ability', 'observation'], ['finance_interest', 'business_interest']),
+    'auditor': (['analytical_ability', 'observation', 'logical_reasoning'], ['finance_interest', 'business_interest']),
+    'financial analyst': (['analytical_ability', 'mathematical_ability', 'logical_reasoning'], ['finance_interest', 'business_interest']),
+    'investment banker': (['mathematical_ability', 'analytical_ability', 'leadership', 'communication'], ['finance_interest', 'business_interest']),
+    # Engineering & Architecture
+    'architect': (['spatial_ability', 'creativity', 'mathematical_ability', 'observation'], ['creative_interest', 'engineering_interest']),
+    'mechanical engineer': (['spatial_ability', 'mathematical_ability', 'practical_ability', 'problem_solving'], ['engineering_interest']),
+    'civil engineer': (['spatial_ability', 'mathematical_ability', 'practical_ability', 'observation'], ['engineering_interest']),
+    'electrical engineer': (['logical_reasoning', 'mathematical_ability', 'practical_ability', 'problem_solving'], ['engineering_interest']),
+    'aerospace engineer': (['mathematical_ability', 'spatial_ability', 'scientific_reasoning', 'problem_solving'], ['engineering_interest', 'technology_interest']),
+    # Arts, Media & Design
+    'animator': (['creativity', 'spatial_ability', 'digital_ability', 'observation'], ['creative_interest']),
+    'graphic designer': (['creativity', 'spatial_ability', 'digital_ability', 'observation'], ['creative_interest']),
+    'content creator': (['communication', 'creativity', 'digital_ability'], ['creative_interest', 'social_interest']),
+    'journalist': (['communication', 'creativity', 'observation', 'logical_reasoning'], ['social_interest', 'creative_interest']),
+    # Law, Education & Management
+    'lawyer': (['communication', 'logical_reasoning', 'analytical_ability'], ['social_interest', 'research_interest']),
+    'judge': (['logical_reasoning', 'analytical_ability', 'observation', 'communication'], ['social_interest', 'research_interest']),
+    'teacher': (['communication', 'learning_ability', 'teamwork', 'observation'], ['social_interest', 'research_interest']),
+    'human resources manager': (['communication', 'teamwork', 'leadership', 'observation'], ['social_interest', 'business_interest']),
+    'marketing manager': (['communication', 'creativity', 'analytical_ability', 'leadership'], ['business_interest', 'creative_interest']),
+    'product manager': (['leadership', 'communication', 'problem_solving', 'analytical_ability'], ['business_interest', 'technology_interest']),
+}
+
+
 def get_domain_profile(domain_name: str, career_name: str = '') -> tuple:
     """Finds matching domain profile and refines by career title keywords."""
+    if career_name:
+        c_clean = career_name.lower().replace(' specialist', '').strip()
+        if c_clean in SPECIFIC_ROLE_PROFILES:
+            return SPECIFIC_ROLE_PROFILES[c_clean]
+        for k, v in SPECIFIC_ROLE_PROFILES.items():
+            if k in c_clean:
+                return v
+
     d_clean = (domain_name or '').lower().strip()
     profile = None
     for k, v in DOMAIN_PROFILES.items():

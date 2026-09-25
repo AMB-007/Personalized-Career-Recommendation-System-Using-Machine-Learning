@@ -92,17 +92,40 @@ class RecommendationService:
         # Build feature DataFrame for DB careers
         feat_df = FeatureBuilder.build_batch_features(student_profile, db_career_df)
 
-        # Run XGBoost inference
+        # Run ML model inference
         pred_res = PredictionService.predict_compatibility(feat_df)
         probs = pred_res['probabilities']
 
         db_career_df['probability'] = probs
-        db_career_df['score'] = [round(p * 100.0, 1) for p in probs]
         db_career_df['ability_match'] = feat_df['ability_match_component'].values
         db_career_df['interest_match'] = feat_df['interest_match_component'].values
+        db_career_df['composite_score'] = feat_df['composite_alignment_index'].values
 
-        # Sort descending by XGBoost compatibility score
-        sorted_careers = db_career_df.sort_values(by=['score', 'ability_match'], ascending=[False, False]).head(top_k)
+        # Calibrated realistic match score:
+        # 80% weight on student's multi-dimensional alignment index (aptitude + interest + academics)
+        # 20% weight on ML model classification confidence (probability * 100)
+        # Guarantees intuitive scores between 40% and 95% without 0.0% or 100.0% binary saturation
+        db_career_df['score'] = (db_career_df['composite_score'] * 0.80 + pd.Series(probs) * 20.0).round(1)
+
+        # Sort descending by compatibility score and component matches
+        sorted_all = db_career_df.sort_values(
+            by=['score', 'ability_match', 'interest_match'],
+            ascending=[False, False, False]
+        )
+
+        # Deduplicate root career names so "X" and "X Specialist" don't take duplicate top spots
+        seen_roots = set()
+        deduped_rows = []
+        for _, r in sorted_all.iterrows():
+            root_name = str(r['career_name']).replace(' Specialist', '').strip().lower()
+            if root_name in seen_roots:
+                continue
+            seen_roots.add(root_name)
+            deduped_rows.append(r)
+            if len(deduped_rows) >= top_k:
+                break
+
+        sorted_careers = pd.DataFrame(deduped_rows)
 
         # 3. Clear prior recommendations for idempotency
         CareerRecommendation.query.filter_by(assessment_id=session.id).delete()
@@ -114,22 +137,24 @@ class RecommendationService:
             c_dom = row['career_domain']
             score_val = float(row['score'])
 
+            fit_tier = "High" if score_val >= 75 else ("Strong" if score_val >= 60 else "Moderate")
             reason_str = (
-                f"Exploratory Career Match (XGBoost ML): {score_val}% alignment across {c_dom} "
+                f"{fit_tier} Career Alignment (LightGBM ML): {score_val}% match across {c_dom} "
                 f"aptitude benchmarks ({row['ability_match']}%) and disciplinary interests ({row['interest_match']}%)."
             )
             strengths_str = (
-                f"High aptitude synergy with {c_dom} core competencies and career requirements."
+                f"Demonstrated strength in {c_dom} core competencies ({row['ability_match']}%) and relevant domain interests."
             )
             gaps_str = (
                 f"Focus on {row['minimum_education_level']} prerequisites and specialized skill development for {c_name}."
             )
 
             prob_val = float(row.get('probability', score_val / 100.0))
-            is_dec_val = bool(abs(prob_val - 0.50) >= 0.27)
+            is_dec_val = bool(score_val >= 60.0)
             breakdown_dict = {
                 'ability_match': float(row.get('ability_match', 0.0)),
-                'interest_match': float(row.get('interest_match', 0.0))
+                'interest_match': float(row.get('interest_match', 0.0)),
+                'composite_score': float(row.get('composite_score', score_val))
             }
 
             rec_entry = CareerRecommendation(

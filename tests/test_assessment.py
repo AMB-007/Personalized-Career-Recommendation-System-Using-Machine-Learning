@@ -96,6 +96,19 @@ class AssessmentTestCase(unittest.TestCase):
         self.assertEqual(ans.selected_option, "8")
         self.assertEqual(session.completion_percentage, 100.0)
 
+    def test_delete_assessment_session(self):
+        # Login
+        self.client.post('/login', data={'identifier': 'test_stu', 'password': 'Pass1234'}, follow_redirects=True)
+        session = AssessmentService.start_new_session(self.student.id)
+        self.assertIsNotNone(db.session.get(AssessmentSession, session.id))
+
+        # Delete session
+        res = self.client.post(f'/assessment/{session.id}/delete', follow_redirects=True)
+        self.assertEqual(res.status_code, 200)
+
+        # Assert deleted from DB
+        self.assertIsNone(db.session.get(AssessmentSession, session.id))
+
 
 if __name__ == '__main__':
     unittest.main()

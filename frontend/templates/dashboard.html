@@ -58,7 +58,7 @@
                 </h5>
                 <p class="small text-secondary mb-0">
                     {% if latest_session and latest_session.status == 'completed' %}
-                        Evaluated across cognitive aptitudes and interests against 1,206 career knowledge profiles with 95.97% ML accuracy.
+                        Evaluated across cognitive aptitudes and interests against 1,206 career knowledge profiles with 91.59% ML accuracy.
                     {% elif latest_session and latest_session.status == 'in_progress' %}
                         Complete the remaining questions to unlock your ranked career recommendations and personalized insights.
                     {% else %}
@@ -72,9 +72,16 @@
                         <i class="bi bi-award-fill me-1"></i> View Career Recommendations
                     </a>
                 {% elif latest_session and latest_session.status == 'in_progress' %}
-                    <a href="{{ url_for('assessment.assessment_page', session_id=latest_session.id) }}" class="btn btn-primary-custom">
-                        <i class="bi bi-play-circle-fill me-1"></i> Resume Test
-                    </a>
+                    <div class="d-flex justify-content-lg-end gap-2">
+                        <a href="{{ url_for('assessment.assessment_page', session_id=latest_session.id) }}" class="btn btn-primary-custom">
+                            <i class="bi bi-play-circle-fill me-1"></i> Resume Test
+                        </a>
+                        <form method="POST" action="{{ url_for('assessment.delete_assessment_session', assessment_id=latest_session.id) }}" class="d-inline" onsubmit="return confirm('Discard this in-progress test? You can start a fresh test anytime.');">
+                            <button type="submit" class="btn btn-outline-danger" title="Discard this session">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </form>
+                    </div>
                 {% else %}
                     <a href="{{ url_for('assessment.instructions_page') }}" class="btn btn-primary-custom">
                         <i class="bi bi-play-circle-fill me-1"></i> Start Assessment
@@ -152,7 +159,7 @@
                         <th>Progress</th>
                         <th>Top Recommended Career</th>
                         <th>Match Score</th>
-                        <th>Action</th>
+                        <th style="text-align: right;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -195,16 +202,23 @@
                                 <span class="text-secondary">&mdash;</span>
                             {% endif %}
                         </td>
-                        <td>
-                            {% if item.session.status == 'completed' %}
-                                <a href="{{ url_for('assessment.results_page', assessment_id=item.session.id) }}" class="btn btn-outline-custom btn-sm-custom">
-                                    <i class="bi bi-file-earmark-text me-1"></i> Report
-                                </a>
-                            {% elif item.session.status == 'in_progress' %}
-                                <a href="{{ url_for('assessment.assessment_page', session_id=item.session.id) }}" class="btn btn-primary-custom btn-sm-custom">
-                                    <i class="bi bi-play-fill me-1"></i> Resume
-                                </a>
-                            {% endif %}
+                        <td style="text-align: right;">
+                            <div class="d-inline-flex align-items-center gap-2">
+                                {% if item.session.status == 'completed' %}
+                                    <a href="{{ url_for('assessment.results_page', assessment_id=item.session.id) }}" class="btn btn-outline-custom btn-sm-custom">
+                                        <i class="bi bi-file-earmark-text me-1"></i> Report
+                                    </a>
+                                {% elif item.session.status == 'in_progress' %}
+                                    <a href="{{ url_for('assessment.assessment_page', session_id=item.session.id) }}" class="btn btn-primary-custom btn-sm-custom">
+                                        <i class="bi bi-play-fill me-1"></i> Resume
+                                    </a>
+                                {% endif %}
+                                <form method="POST" action="{{ url_for('assessment.delete_assessment_session', assessment_id=item.session.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete Attempt #{{ item.attempt_number }}?');">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm-custom px-2" title="Delete attempt #{{ item.attempt_number }}">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -218,49 +232,6 @@
             <p class="small text-secondary mb-0">Your completed assessments, match scores, and recommendation reports will be logged here.</p>
         </div>
         {% endif %}
-    </div>
-
-    <!-- Quick Navigation Links -->
-    <div class="row g-4">
-        <div class="col-md-6">
-            <div class="card-custom p-4 h-100 d-flex flex-column">
-                <div class="d-flex align-items-center gap-3 mb-3">
-                    <div class="brand-icon-box" style="width: 38px; height: 38px;">
-                        <i class="bi bi-compass"></i>
-                    </div>
-                    <div>
-                        <h6 class="fw-bold mb-0" style="color: var(--text-main);">Explore 1,200+ Careers</h6>
-                        <span class="small text-secondary">Browse requirements, streams, and skills</span>
-                    </div>
-                </div>
-                <p class="small text-secondary mb-3">
-                    Search required education milestones, entrance exams, and industry expectations across 10 career domains.
-                </p>
-                <a href="{{ url_for('career.explorer_page') }}" class="btn btn-outline-custom btn-sm-custom mt-auto">
-                    Open Career Explorer <i class="bi bi-arrow-right ms-1"></i>
-                </a>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <div class="card-custom p-4 h-100 d-flex flex-column">
-                <div class="d-flex align-items-center gap-3 mb-3">
-                    <div class="brand-icon-box" style="width: 38px; height: 38px; background: linear-gradient(135deg, #10B981, #059669);">
-                        <i class="bi bi-sliders"></i>
-                    </div>
-                    <div>
-                        <h6 class="fw-bold mb-0" style="color: var(--text-main);">Academic Profile & Marks</h6>
-                        <span class="small text-secondary">Keep your scores and stream updated</span>
-                    </div>
-                </div>
-                <p class="small text-secondary mb-3">
-                    Update your Mathematics, Science, and subject marks to refine academic stream alignment.
-                </p>
-                <a href="{{ url_for('student.profile_page') }}" class="btn btn-outline-custom btn-sm-custom mt-auto">
-                    Manage Profile <i class="bi bi-arrow-right ms-1"></i>
-                </a>
-            </div>
-        </div>
     </div>
 </div>
 {% endblock %}

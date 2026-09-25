@@ -38,7 +38,7 @@
                            class="form-control border-start-0" 
                            name="search" 
                            value="{{ search }}" 
-                           placeholder="Search code or question text..."
+                           placeholder="Search question text or keyword..."
                            style="border-color: var(--border-color);">
                 </div>
             </div>
@@ -209,11 +209,7 @@
                 </div>
                 <div class="modal-body p-4">
                     <div class="row g-3 mb-3">
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold small">Question Code</label>
-                            <input type="text" class="form-control" name="question_code" required placeholder="e.g. MATH_78_06, LOGIC_910_05">
-                        </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label fw-semibold small">Section Category</label>
                             <select class="form-select" name="section_id" required>
                                 {% for sec in sections %}
@@ -221,7 +217,7 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label fw-semibold small">Question Type</label>
                             <select class="form-select" name="question_type" required>
                                 <option value="MCQ">Multiple Choice (MCQ)</option>

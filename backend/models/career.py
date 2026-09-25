@@ -58,7 +58,9 @@ class DomainProxy:
     """Compatibility proxy representing a career domain."""
     def __init__(self, name="General", icon=None, domain_id=1):
         self.id = domain_id
-        self.domain_name = name or "General"
+        if hasattr(name, '__getitem__') and not isinstance(name, str):
+            name = name[0]
+        self.domain_name = str(name) if name else "General"
         self.description = f"{self.domain_name} Industry Sector"
         self.icon = icon or DOMAIN_ICONS.get(self.domain_name, 'bi-briefcase')
         self.display_order = 1
@@ -199,17 +201,43 @@ class Career(db.Model):
     description = db.Column(db.Text, nullable=True)
     minimum_education = db.Column(db.String(150), nullable=True)
     typical_education = db.Column(db.String(150), nullable=True)
-    market_demand = db.Column(db.String(50), default='High')
-    growth_rate = db.Column(db.String(50), default='10-15%')
-    avg_starting_salary = db.Column(db.String(100), default='₹4,00,000 - ₹6,00,000')
-    salary_mid_career = db.Column(db.String(100), default='₹12,00,000 - ₹18,00,000')
     required_skills = db.Column(db.JSON, default=list)
     recommended_subjects = db.Column(db.JSON, default=list)
     is_active = db.Column(db.Boolean, default=True, index=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    # Backward compatibility properties for columns removed from schema
+    @property
+    def market_demand(self):
+        return None
+
+    @property
+    def growth_rate(self):
+        return None
+
+    @property
+    def avg_starting_salary(self):
+        return None
+
+    @property
+    def salary_mid_career(self):
+        return None
+
+    @property
+    def created_at(self):
+        return None
+
+    @property
+    def updated_at(self):
+        return None
 
     def __init__(self, **kwargs):
+        # Discard dropped schema columns
+        kwargs.pop('market_demand', None)
+        kwargs.pop('growth_rate', None)
+        kwargs.pop('avg_starting_salary', None)
+        kwargs.pop('salary_mid_career', None)
+        kwargs.pop('created_at', None)
+        kwargs.pop('updated_at', None)
         # Resolve title / career_name synonym
         title_arg = kwargs.pop('title', None)
         if title_arg and 'career_name' not in kwargs:
@@ -414,7 +442,8 @@ class CareerDomain:
                 domain_rows = db.session.query(Career.domain_name).filter(Career.is_active == True).distinct().order_by(Career.domain_name.asc()).all()
                 res = []
                 for idx, r in enumerate(domain_rows, 1):
-                    d_name = r[0] if isinstance(r, tuple) else r
+                    d_name = r[0] if hasattr(r, '__getitem__') else getattr(r, 'domain_name', str(r))
+                    d_name = str(d_name)
                     res.append(CareerDomain(id=idx, domain_name=d_name, icon=DOMAIN_ICONS.get(d_name, 'bi-briefcase'), display_order=idx))
                 return res
             except Exception:

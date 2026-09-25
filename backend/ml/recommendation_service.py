@@ -73,7 +73,11 @@ class CareerRecommendationEngine:
         # 3. Attach scores
         catalogue_scored = catalogue.copy()
         catalogue_scored['probability'] = probs
-        catalogue_scored['compatibility_score'] = [round(p * 100.0, 2) for p in probs]
+        comp_scores = features_df['composite_alignment_index'].values if 'composite_alignment_index' in features_df.columns else [75.0] * len(probs)
+        catalogue_scored['composite_score'] = comp_scores
+        catalogue_scored['compatibility_score'] = [
+            round(float(c) * 0.80 + float(p) * 20.0, 1) for c, p in zip(comp_scores, probs)
+        ]
         catalogue_scored['is_compatible'] = preds
         catalogue_scored['ability_match'] = features_df['ability_match_component'].values
         catalogue_scored['interest_match'] = features_df['interest_match_component'].values
@@ -95,14 +99,25 @@ class CareerRecommendationEngine:
 
         catalogue_scored['threshold_pass'] = catalogue_scored.apply(_is_compliant, axis=1)
 
-        # 5. Sort descending by compliance, probability, and match scores
+        # 5. Sort descending by compliance, compatibility score, and match scores
         catalogue_sorted = catalogue_scored.sort_values(
-            by=['threshold_pass', 'probability', 'ability_match', 'interest_match'],
+            by=['threshold_pass', 'compatibility_score', 'ability_match', 'interest_match'],
             ascending=[False, False, False, False]
         )
 
-        # 6. Deduplicate unique careers
-        catalogue_distinct = catalogue_sorted.drop_duplicates(subset=['career_name'], keep='first').reset_index(drop=True)
+        # 6. Deduplicate unique root careers so "X" and "X Specialist" do not crowd top spots
+        seen_roots = set()
+        distinct_rows = []
+        for _, row in catalogue_sorted.iterrows():
+            root_name = str(row.get('career_name', '')).replace(' Specialist', '').strip().lower()
+            if root_name in seen_roots:
+                continue
+            seen_roots.add(root_name)
+            distinct_rows.append(row)
+            if len(distinct_rows) >= top_k:
+                break
+
+        catalogue_distinct = pd.DataFrame(distinct_rows).reset_index(drop=True)
 
         k_val = min(top_k, len(catalogue_distinct))
         recommendations_list = []

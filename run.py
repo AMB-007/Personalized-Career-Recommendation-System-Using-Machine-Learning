@@ -19,5 +19,5 @@ app = create_app(os.getenv('FLASK_ENV', 'development'))
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
     debug = os.getenv('DEBUG', 'True').lower() in ('true', '1', 't')
-    print(f"🚀 Starting Career Recommendation Platform on http://127.0.0.1:{port}")
+    print(f"[*] Starting Career Recommendation Platform on http://127.0.0.1:{port}")
     app.run(host='0.0.0.0', port=port, debug=debug)

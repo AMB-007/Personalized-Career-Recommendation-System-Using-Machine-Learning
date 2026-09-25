@@ -110,7 +110,6 @@ class Question(db.Model):
     __tablename__ = 'questions'
 
     id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), primary_key=True, autoincrement=True)
-    question_code = db.Column(db.String(50), unique=True, nullable=False, index=True)
     question_text = db.Column(db.Text, nullable=False)
     section = db.Column(db.String(100), nullable=False, default='General', index=True)
     question_type = db.Column(db.String(50), nullable=False, default='MCQ')
@@ -122,7 +121,16 @@ class Question(db.Model):
     display_order = db.Column(db.Integer, default=0)
     options_data = db.Column('options', db.JSON, nullable=False, default=list)
     is_active = db.Column(db.Boolean, default=True, index=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    # Backward compatibility properties for columns removed from schema
+    @property
+    def question_code(self):
+        """Compatibility property since question_code was removed from schema."""
+        return f"Q_{self.id}" if self.id else "Q_NEW"
+
+    @property
+    def created_at(self):
+        return None
 
     @hybrid_property
     def section_id(self):
@@ -143,6 +151,8 @@ class Question(db.Model):
 
     def __init__(self, **kwargs):
         # Clean obsolete/dropped args
+        kwargs.pop('question_code', None)
+        kwargs.pop('created_at', None)
         sec_id = kwargs.pop('section_id', None)
         sec_name = kwargs.pop('section_name', None)
         sec = kwargs.pop('section', None)

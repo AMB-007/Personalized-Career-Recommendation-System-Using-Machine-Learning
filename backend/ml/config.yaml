@@ -1,6 +1,6 @@
 model:
-  name: "XGBoost"
-  version: "V12.0-XGBoost-Champion-FinalDatasetRaw"
+  name: "LightGBM"
+  version: "V17.0-LightGBM-91pct"
   threshold: 0.5
   confidence_margin: 0.27
 

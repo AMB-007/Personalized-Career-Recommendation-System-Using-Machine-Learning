@@ -16,33 +16,33 @@ from backend.models.assessment import AssessmentSession, StudentAnswer
 class AssessmentSelectionService:
     """Intelligent adaptive question selection, randomization, and attempt-differentiation service."""
 
-    # Target question counts per student grade cohort (50 to 55 based on class level)
+    # Target question counts per student grade cohort (set to 30)
     COHORT_TARGETS = {
-        'middle_school': {'min_class': 7, 'max_class': 8, 'target_count': 50, 'difficulty_pref': ['Easy', 'Medium']},
-        'secondary': {'min_class': 9, 'max_class': 10, 'target_count': 52, 'difficulty_pref': ['Easy', 'Medium', 'Hard']},
-        'higher_secondary': {'min_class': 11, 'max_class': 12, 'target_count': 55, 'difficulty_pref': ['Medium', 'Hard', 'Easy']}
+        'middle_school': {'min_class': 7, 'max_class': 8, 'target_count': 30, 'difficulty_pref': ['Easy', 'Medium']},
+        'secondary': {'min_class': 9, 'max_class': 10, 'target_count': 30, 'difficulty_pref': ['Easy', 'Medium', 'Hard']},
+        'higher_secondary': {'min_class': 11, 'max_class': 12, 'target_count': 30, 'difficulty_pref': ['Medium', 'Hard', 'Easy']}
     }
 
-    # Minimum questions required per section for a balanced assessment
+    # Minimum questions required per section for a balanced assessment (sums to 27, leaving 3 slots filled dynamically)
     SECTION_QUOTAS = {
-        # Section ID: (Min Count Middle School [50], Min Count Secondary [52], Min Count Higher Sec [55])
-        1: (2, 2, 2),   # Academic Profile
-        2: (5, 5, 6),   # Mathematical Ability
-        3: (4, 4, 5),   # Logical Reasoning
-        4: (4, 4, 5),   # Scientific Thinking
-        5: (3, 3, 3),   # Problem Solving
-        6: (2, 3, 3),   # Analytical Thinking
-        7: (2, 2, 2),   # Communication
-        8: (2, 2, 2),   # Creativity
-        9: (2, 3, 3),   # Digital Ability
-        10: (2, 2, 2),  # Learning Ability
-        11: (2, 2, 2),  # Spatial Ability
-        12: (2, 2, 2),  # Practical Ability
-        13: (8, 8, 10), # Interests
-        14: (4, 4, 4),  # Activities
+        # Section ID: (Min Count Middle School [30], Min Count Secondary [30], Min Count Higher Sec [30])
+        1: (1, 1, 1),   # Academic Profile
+        2: (2, 2, 2),   # Mathematical Ability
+        3: (2, 2, 2),   # Logical Reasoning
+        4: (2, 2, 2),   # Scientific Thinking
+        5: (2, 2, 2),   # Problem Solving
+        6: (1, 1, 1),   # Analytical Thinking
+        7: (1, 1, 1),   # Communication
+        8: (1, 1, 1),   # Creativity
+        9: (1, 1, 1),   # Digital Ability
+        10: (1, 1, 1),  # Learning Ability
+        11: (1, 1, 1),  # Spatial Ability
+        12: (1, 1, 1),  # Practical Ability
+        13: (4, 4, 4),  # Interests
+        14: (2, 2, 2),  # Activities
         15: (1, 1, 1),  # Teamwork
         16: (1, 1, 1),  # Leadership
-        17: (2, 2, 2),  # Work Preferences
+        17: (1, 1, 1),  # Work Preferences
         18: (1, 1, 1),  # Career Awareness
         19: (1, 1, 1)   # Career Preferences
     }

@@ -284,11 +284,15 @@ class AssessmentSession(db.Model):
     selected_question_ids = db.Column(db.Text, nullable=True)
     answers_data = db.Column('answers', db.JSON, default=dict)
     scores_data = db.Column('scores', db.JSON, default=dict)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
 
     # Relationships
     student = db.relationship('User', foreign_keys=[student_id], backref=db.backref('assessments', lazy='dynamic', cascade='all, delete-orphan'))
     recommendations = db.relationship('CareerRecommendation', backref='session', lazy='dynamic', cascade='all, delete-orphan')
+
+    @property
+    def created_at(self):
+        """Compatibility property mapping to started_at since created_at was removed from schema."""
+        return self.started_at
 
     @property
     def user(self):

@@ -16,11 +16,8 @@
             <a href="{{ url_for('admin.manage_users') }}" class="btn btn-outline-custom">
                 <i class="bi bi-people-fill me-1"></i> Manage Users
             </a>
-            <a href="{{ url_for('admin.manage_questions') }}" class="btn btn-outline-custom">
+            <a href="{{ url_for('admin.manage_questions') }}" class="btn btn-primary-custom">
                 <i class="bi bi-patch-question me-1"></i> Manage Questions
-            </a>
-            <a href="{{ url_for('admin.manage_careers') }}" class="btn btn-primary-custom">
-                <i class="bi bi-briefcase me-1"></i> Manage Careers
             </a>
         </div>
     </div>
@@ -63,7 +60,7 @@
 
     <!-- Quick Navigation Hub -->
     <div class="row g-4 mb-4">
-        <div class="col-md-4">
+        <div class="col-md-6">
             <div class="card-custom p-4 h-100 shadow-sm">
                 <div class="d-flex align-items-center gap-3 mb-3">
                     <div class="p-2 rounded-3 bg-primary-subtle text-primary">
@@ -83,7 +80,7 @@
             </div>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-md-6">
             <div class="card-custom p-4 h-100 shadow-sm">
                 <div class="d-flex align-items-center gap-3 mb-3">
                     <div class="p-2 rounded-3 bg-info-subtle text-info">
@@ -99,26 +96,6 @@
                 </p>
                 <a href="{{ url_for('admin.manage_questions') }}" class="btn btn-outline-custom btn-sm-custom mt-auto">
                     Manage Questions <i class="bi bi-arrow-right ms-1"></i>
-                </a>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card-custom p-4 h-100 shadow-sm">
-                <div class="d-flex align-items-center gap-3 mb-3">
-                    <div class="p-2 rounded-3 bg-success-subtle text-success">
-                        <i class="bi bi-briefcase-fill fs-3"></i>
-                    </div>
-                    <div>
-                        <h5 class="fw-bold mb-0" style="color: var(--text-main);">Career Catalogue</h5>
-                        <div class="small text-muted">1,200+ Career Profiles</div>
-                    </div>
-                </div>
-                <p class="small mb-3" style="color: var(--text-secondary);">
-                    Add and update career knowledge requirements, skill criteria, and typical educational tracks.
-                </p>
-                <a href="{{ url_for('admin.manage_careers') }}" class="btn btn-outline-custom btn-sm-custom mt-auto">
-                    Manage Careers <i class="bi bi-arrow-right ms-1"></i>
                 </a>
             </div>
         </div>

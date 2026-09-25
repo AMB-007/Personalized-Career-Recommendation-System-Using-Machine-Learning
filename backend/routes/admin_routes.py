@@ -34,7 +34,7 @@ def admin_dashboard():
     domains = CareerDomain.query.all()
 
     # Recent assessments with student profiles
-    recent_sessions = AssessmentSession.query.order_by(AssessmentSession.created_at.desc()).limit(10).all()
+    recent_sessions = AssessmentSession.query.order_by(AssessmentSession.started_at.desc(), AssessmentSession.id.desc()).limit(10).all()
 
     return render_template(
         'admin/dashboard.html',
@@ -81,7 +81,7 @@ def manage_users():
     for s in students:
         assessments_count = s.assessments.count()
         completed_count = s.assessments.filter_by(status='completed').count()
-        latest_sess = s.assessments.order_by(AssessmentSession.created_at.desc()).first()
+        latest_sess = s.assessments.order_by(AssessmentSession.started_at.desc(), AssessmentSession.id.desc()).first()
         student_records.append({
             'student': s,
             'user': s.user,
@@ -114,7 +114,7 @@ def view_user_detail(user_id):
         return redirect(url_for('admin.manage_users'))
 
     # Retrieve all assessment sessions with scores and recommendations
-    sessions = AssessmentSession.query.filter_by(student_id=student.id).order_by(AssessmentSession.created_at.desc()).all()
+    sessions = AssessmentSession.query.filter_by(student_id=student.id).order_by(AssessmentSession.started_at.desc(), AssessmentSession.id.desc()).all()
 
     session_details = []
     for idx, sess in enumerate(reversed(sessions), 1):
@@ -227,7 +227,6 @@ def view_session_detail(session_id):
 @admin_required
 def manage_questions():
     if request.method == 'POST':
-        code = request.form.get('question_code', '').strip().upper()
         text = request.form.get('question_text', '').strip()
         sec_id = int(request.form.get('section_id'))
         q_type = request.form.get('question_type', 'MCQ')
@@ -237,18 +236,11 @@ def manage_questions():
         skill = request.form.get('skill_category', '').strip()
         stream = request.form.get('stream_specific', 'All').strip()
 
-        if not code or not text:
-            flash('Question code and question text are required.', 'danger')
-            return redirect(url_for('admin.manage_questions'))
-
-        # Check code uniqueness
-        existing = Question.query.filter_by(question_code=code).first()
-        if existing:
-            flash(f"Question code '{code}' already exists. Please use a unique code.", 'danger')
+        if not text:
+            flash('Question text is required.', 'danger')
             return redirect(url_for('admin.manage_questions'))
 
         q = Question(
-            question_code=code,
             question_text=text,
             section_id=sec_id,
             question_type=q_type,
@@ -314,10 +306,7 @@ def manage_questions():
     if diff_filter:
         query = query.filter(Question.difficulty == diff_filter)
     if search:
-        query = query.filter(
-            (Question.question_code.ilike(f"%{search}%")) |
-            (Question.question_text.ilike(f"%{search}%"))
-        )
+        query = query.filter(Question.question_text.ilike(f"%{search}%"))
 
     questions = query.order_by(Question.section_id.asc(), Question.display_order.asc(), Question.id.asc()).all()
     sections = QuestionSection.query.order_by(QuestionSection.display_order.asc()).all()

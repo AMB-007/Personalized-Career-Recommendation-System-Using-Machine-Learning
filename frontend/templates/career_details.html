@@ -31,7 +31,7 @@
                 </p>
             </div>
             <div class="col-lg-4 text-lg-end">
-                <a href="{{ url_for('assessment.start_assessment') }}" class="btn btn-primary-custom btn-lg-custom">
+                <a href="{{ url_for('assessment.instructions_page') }}" class="btn btn-primary-custom btn-lg-custom">
                     <i class="bi bi-compass me-2"></i> Take Assessment
                 </a>
             </div>
@@ -72,36 +72,7 @@
                 </div>
             </div>
 
-            <!-- Market Demand & Compensation -->
-            <div class="card-custom p-4">
-                <h4 class="fw-bold mb-3" style="color: var(--text-main);"><i class="bi bi-graph-up-arrow text-success me-2"></i> Industry Demand & Compensation</h4>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="card-subtle p-3">
-                            <div class="small text-uppercase fw-bold mb-1" style="color: var(--text-muted);">Market Demand</div>
-                            <h6 class="fw-bold text-success mb-0">{{ career.market_demand or 'High Growth' }}</h6>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card-subtle p-3">
-                            <div class="small text-uppercase fw-bold mb-1" style="color: var(--text-muted);">Projected Growth Rate</div>
-                            <h6 class="fw-bold text-primary mb-0">{{ career.growth_rate or '12-15% annually' }}</h6>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card-subtle p-3">
-                            <div class="small text-uppercase fw-bold mb-1" style="color: var(--text-muted);">Avg. Starting Salary</div>
-                            <h6 class="fw-bold mb-0" style="color: var(--text-main);">{{ career.avg_starting_salary or '₹4.5L - ₹6.5L / yr' }}</h6>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card-subtle p-3">
-                            <div class="small text-uppercase fw-bold mb-1" style="color: var(--text-muted);">Mid-Career Potential</div>
-                            <h6 class="fw-bold text-success mb-0">{{ career.salary_mid_career or '₹12L - ₹20L / yr' }}</h6>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
         </div>
 
         <!-- Right: Education Profile Sidebar -->

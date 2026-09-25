@@ -73,31 +73,16 @@
                             <i class="bi bi-patch-question-fill me-1"></i> Question Bank
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link nav-link-custom {% if request.endpoint in ['admin.manage_careers', 'admin.add_career', 'admin.edit_career'] %}active{% endif %}" href="{{ url_for('admin.manage_careers') }}">
-                            <i class="bi bi-briefcase-fill me-1"></i> Career Catalogue
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link nav-link-custom {% if request.endpoint in ['career.explorer_page', 'career.career_detail_page'] %}active{% endif %}" href="{{ url_for('career.explorer_page') }}">
-                            <i class="bi bi-compass me-1"></i> Career Explorer
-                        </a>
-                    </li>
                     {% elif current_user.is_authenticated and not current_user.is_admin %}
                     <!-- Student Navigation -->
                     <li class="nav-item">
-                        <a class="nav-link nav-link-custom {% if request.endpoint in ['student.dashboard', 'assessment.results_page', 'assessment.assessment_page', 'assessment.instructions_page', 'assessment.review_page'] %}active{% endif %}" href="{{ url_for('student.dashboard') }}">
+                        <a class="nav-link nav-link-custom {% if request.endpoint == 'student.dashboard' %}active{% endif %}" href="{{ url_for('student.dashboard') }}">
                             <i class="bi bi-speedometer2 me-1"></i> Dashboard
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link nav-link-custom {% if request.endpoint in ['career.explorer_page', 'career.career_detail_page'] %}active{% endif %}" href="{{ url_for('career.explorer_page') }}">
-                            <i class="bi bi-compass me-1"></i> Career Explorer
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link nav-link-custom {% if request.endpoint == 'student.profile_page' %}active{% endif %}" href="{{ url_for('student.profile_page') }}">
-                            <i class="bi bi-person-gear me-1"></i> Profile & Marks
+                        <a class="nav-link nav-link-custom {% if request.endpoint in ['assessment.assessment_page', 'assessment.instructions_page', 'assessment.review_page', 'assessment.results_page'] %}active{% endif %}" href="{{ url_for('assessment.instructions_page') }}">
+                            <i class="bi bi-clipboard2-check-fill text-primary me-1"></i> Take Assessment
                         </a>
                     </li>
                     {% else %}
@@ -126,23 +111,21 @@
                             <button class="btn btn-outline-custom dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-person-circle fs-5 me-1" style="color: var(--primary);"></i>
                                 <span>{{ current_user.username }}</span>
-                                {% if current_user.student %}
-                                    <span class="badge-custom badge-neutral-custom ms-1">Class {{ current_user.student.class_level }}</span>
-                                {% elif current_user.is_admin %}
+                                {% if current_user.is_admin %}
                                     <span class="badge-custom badge-warning-custom ms-1">Admin</span>
+                                {% elif current_user.student and current_user.student.class_level %}
+                                    <span class="badge-custom badge-neutral-custom ms-1">Class {{ current_user.student.class_level }}</span>
                                 {% endif %}
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end card-custom p-1 mt-2 border-0 shadow-lg">
-                                {% if current_user.student %}
+                                {% if current_user.student and not current_user.is_admin %}
                                     <li><a class="dropdown-item nav-link-custom" href="{{ url_for('student.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a></li>
                                     <li><a class="dropdown-item nav-link-custom" href="{{ url_for('student.profile_page') }}"><i class="bi bi-person-gear me-2"></i> Profile & Marks</a></li>
-                                    <li><a class="dropdown-item nav-link-custom" href="{{ url_for('career.explorer_page') }}"><i class="bi bi-compass me-2"></i> Career Explorer</a></li>
                                     <li><hr class="dropdown-divider my-1" style="border-color: var(--border-color);"></li>
                                 {% elif current_user.is_admin %}
                                     <li><a class="dropdown-item nav-link-custom" href="{{ url_for('admin.admin_dashboard') }}"><i class="bi bi-speedometer2 me-2"></i> Admin Dashboard</a></li>
                                     <li><a class="dropdown-item nav-link-custom" href="{{ url_for('admin.manage_users') }}"><i class="bi bi-people me-2"></i> Manage Users</a></li>
                                     <li><a class="dropdown-item nav-link-custom" href="{{ url_for('admin.manage_questions') }}"><i class="bi bi-patch-question me-2"></i> Question Bank</a></li>
-                                    <li><a class="dropdown-item nav-link-custom" href="{{ url_for('admin.manage_careers') }}"><i class="bi bi-briefcase me-2"></i> Manage Careers</a></li>
                                     <li><hr class="dropdown-divider my-1" style="border-color: var(--border-color);"></li>
                                 {% endif %}
                                 <li>
@@ -198,7 +181,7 @@
                     <div class="d-flex flex-wrap justify-content-lg-end gap-3 small" style="color: var(--text-secondary);">
                         <span><i class="bi bi-shield-check text-success me-1"></i> Safe & Private</span>
                         <span>&bull;</span>
-                        <span><i class="bi bi-cpu text-primary me-1"></i> XGBoost ML (95.97% Accuracy)</span>
+                        <span><i class="bi bi-cpu text-primary me-1"></i> LightGBM ML (91.59% Accuracy)</span>
                     </div>
                 </div>
             </div>

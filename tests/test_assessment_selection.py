@@ -89,25 +89,25 @@ class TestAssessmentSelection(unittest.TestCase):
         cls.app_context.pop()
 
     def test_cohort_target_counts(self):
-        """Verify selected question count falls into target bounds (50 to 55) for all classes."""
-        # Class 7-8: 48-55 questions (target 50)
+        """Verify selected question count falls into target bounds (28 to 32) for all classes."""
+        # Class 7-8: target 30
         for c in [7, 8]:
             selected = AssessmentSelectionService.select_balanced_questions(c)
-            self.assertGreaterEqual(len(selected), 48, f"Class {c} question count < 48: {len(selected)}")
-            self.assertLessEqual(len(selected), 55, f"Class {c} question count > 55: {len(selected)}")
+            self.assertGreaterEqual(len(selected), 28, f"Class {c} question count < 28: {len(selected)}")
+            self.assertLessEqual(len(selected), 32, f"Class {c} question count > 32: {len(selected)}")
 
-        # Class 9-10: 48-55 questions (target 52)
+        # Class 9-10: target 30
         for c in [9, 10]:
             selected = AssessmentSelectionService.select_balanced_questions(c)
-            self.assertGreaterEqual(len(selected), 48, f"Class {c} question count < 48: {len(selected)}")
-            self.assertLessEqual(len(selected), 55, f"Class {c} question count > 55: {len(selected)}")
+            self.assertGreaterEqual(len(selected), 28, f"Class {c} question count < 28: {len(selected)}")
+            self.assertLessEqual(len(selected), 32, f"Class {c} question count > 32: {len(selected)}")
 
-        # Class 11-12: 50-58 questions (target 55)
+        # Class 11-12: target 30
         for c in [11, 12]:
             for stream in ['Science-PCM', 'Commerce', 'Humanities']:
                 selected = AssessmentSelectionService.select_balanced_questions(c, stream=stream)
-                self.assertGreaterEqual(len(selected), 50, f"Class {c} ({stream}) question count < 50: {len(selected)}")
-                self.assertLessEqual(len(selected), 58, f"Class {c} ({stream}) question count > 58: {len(selected)}")
+                self.assertGreaterEqual(len(selected), 28, f"Class {c} ({stream}) question count < 28: {len(selected)}")
+                self.assertLessEqual(len(selected), 32, f"Class {c} ({stream}) question count > 32: {len(selected)}")
 
     def test_section_coverage_across_cohorts(self):
         """Verify selected questions include all major sections and ability dimensions."""

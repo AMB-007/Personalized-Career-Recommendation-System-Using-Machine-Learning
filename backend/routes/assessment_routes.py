@@ -169,6 +169,35 @@ def results_page(assessment_id):
     )
 
 
+@assessment_bp.route('/assessment/<int:assessment_id>/delete', methods=['POST'])
+@login_required
+def delete_assessment_session(assessment_id):
+    """Allows student or admin to delete an assessment attempt."""
+    session = db.session.get(AssessmentSession, assessment_id)
+    if not session:
+        flash('Assessment attempt not found.', 'warning')
+        return redirect(url_for('student.dashboard'))
+
+    # Authorization: Student must own the assessment or user must be Admin
+    is_owner = current_user.student and session.student_id == current_user.student.id
+    if not current_user.is_admin and not is_owner:
+        flash('You are not authorized to delete this assessment attempt.', 'danger')
+        return redirect(url_for('student.dashboard'))
+
+    try:
+        CareerRecommendation.query.filter_by(assessment_id=session.id).delete()
+        db.session.delete(session)
+        db.session.commit()
+        logger.info(f"User {current_user.username} deleted assessment session {assessment_id}")
+        flash('Assessment attempt deleted successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Failed to delete assessment session {assessment_id}: {e}")
+        flash('Failed to delete assessment attempt. Please try again.', 'danger')
+
+    return redirect(url_for('student.dashboard'))
+
+
 # ------------------------------------------------------------
 # JSON REST API Endpoints
 # ------------------------------------------------------------

@@ -266,47 +266,47 @@ class TestAssessmentWorkflowAllCohorts(unittest.TestCase):
 
     def test_cohort_01_class_7_general(self):
         """Test Class 7 (Middle School General Cohort)."""
-        self._execute_cohort_lifecycle_test(7, 'General', min_q=48, max_q=55)
+        self._execute_cohort_lifecycle_test(7, 'General', min_q=28, max_q=32)
 
     def test_cohort_02_class_8_general(self):
         """Test Class 8 (Middle School General Cohort)."""
-        self._execute_cohort_lifecycle_test(8, 'General', min_q=48, max_q=55)
+        self._execute_cohort_lifecycle_test(8, 'General', min_q=28, max_q=32)
 
     def test_cohort_03_class_9_general(self):
         """Test Class 9 (Secondary School General Cohort)."""
-        self._execute_cohort_lifecycle_test(9, 'General', min_q=48, max_q=55)
+        self._execute_cohort_lifecycle_test(9, 'General', min_q=28, max_q=32)
 
     def test_cohort_04_class_10_general(self):
         """Test Class 10 (Secondary School General Cohort)."""
-        self._execute_cohort_lifecycle_test(10, 'General', min_q=48, max_q=55)
+        self._execute_cohort_lifecycle_test(10, 'General', min_q=28, max_q=32)
 
     def test_cohort_05_class_11_science_pcm(self):
         """Test Class 11 Science-PCM Cohort."""
-        self._execute_cohort_lifecycle_test(11, 'Science-PCM', min_q=50, max_q=60)
+        self._execute_cohort_lifecycle_test(11, 'Science-PCM', min_q=28, max_q=32)
 
     def test_cohort_06_class_11_science_pcb(self):
         """Test Class 11 Science-PCB Cohort."""
-        self._execute_cohort_lifecycle_test(11, 'Science-PCB', min_q=50, max_q=60)
+        self._execute_cohort_lifecycle_test(11, 'Science-PCB', min_q=28, max_q=32)
 
     def test_cohort_07_class_11_commerce(self):
         """Test Class 11 Commerce Cohort."""
-        self._execute_cohort_lifecycle_test(11, 'Commerce', min_q=50, max_q=60)
+        self._execute_cohort_lifecycle_test(11, 'Commerce', min_q=28, max_q=32)
 
     def test_cohort_08_class_11_humanities(self):
         """Test Class 11 Humanities Cohort."""
-        self._execute_cohort_lifecycle_test(11, 'Humanities', min_q=50, max_q=60)
+        self._execute_cohort_lifecycle_test(11, 'Humanities', min_q=28, max_q=32)
 
     def test_cohort_09_class_12_science(self):
         """Test Class 12 Science Cohort."""
-        self._execute_cohort_lifecycle_test(12, 'Science-PCM', min_q=50, max_q=60)
+        self._execute_cohort_lifecycle_test(12, 'Science-PCM', min_q=28, max_q=32)
 
     def test_cohort_10_class_12_commerce(self):
         """Test Class 12 Commerce Cohort."""
-        self._execute_cohort_lifecycle_test(12, 'Commerce', min_q=50, max_q=60)
+        self._execute_cohort_lifecycle_test(12, 'Commerce', min_q=28, max_q=32)
 
     def test_cohort_11_class_12_humanities(self):
         """Test Class 12 Humanities Cohort."""
-        self._execute_cohort_lifecycle_test(12, 'Humanities', min_q=50, max_q=60)
+        self._execute_cohort_lifecycle_test(12, 'Humanities', min_q=28, max_q=32)
 
     @classmethod
     def tearDownClass(cls):

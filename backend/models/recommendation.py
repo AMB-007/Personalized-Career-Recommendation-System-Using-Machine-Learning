@@ -18,7 +18,6 @@ class CareerRecommendation(db.Model):
     strengths = db.Column(db.Text, nullable=True)
     skill_gaps = db.Column(db.Text, nullable=True)
     match_breakdown = db.Column(db.JSON, nullable=True)  # Ability, Interest, Academic, Learning match components
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     __table_args__ = (
         db.UniqueConstraint('assessment_id', 'career_id', name='uq_assessment_career'),
@@ -27,7 +26,13 @@ class CareerRecommendation(db.Model):
     # Relationships
     career = db.relationship('Career')
 
+    @property
+    def created_at(self):
+        """Compatibility property linking to session started_at since created_at was removed from schema."""
+        return self.session.started_at if self.session else None
+
     def __init__(self, **kwargs):
+        kwargs.pop('created_at', None)
         if 'rank' in kwargs and 'rank_position' not in kwargs:
             kwargs['rank_position'] = kwargs.pop('rank')
         if 'match_score' in kwargs and 'score' not in kwargs:

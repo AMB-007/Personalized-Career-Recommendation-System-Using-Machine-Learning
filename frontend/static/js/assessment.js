@@ -1,16 +1,10 @@
 /**
- * Assessment Engine Interactive Controller (Upgraded UX & Accessibility Suite).
- * Features:
- * - Question Palette Grid with real-time status (Answered, Flagged, Active, Unanswered)
- * - Flag for Review bookmarking
- * - Text-to-Speech (TTS) Voice Audio Reader with SpeechSynthesis API
- * - Font Size Scaler (A-, A, A+)
- * - Full Keyboard Shortcuts (1-5, A-D, Arrows, N, P, F, S, ?)
- * - Timed Challenge Mode countdown timer
- * - Robust instant autosaving and progress metrics
+ * Simple, Clean Assessment Engine Controller.
+ * Manages smooth question progression, instantaneous autosaving,
+ * visual progress updates, and clean submission transitions.
  */
 
-class AssessmentEngine {
+class SimpleAssessmentEngine {
     constructor(sessionId, questionsData, existingAnswers) {
         this.sessionId = sessionId;
         this.questions = questionsData || [];
@@ -19,67 +13,27 @@ class AssessmentEngine {
         this.totalQuestions = this.questions.length;
         this.questionStartTime = Date.now();
 
-        // Load flagged questions from localStorage
-        const storedFlags = localStorage.getItem(`assessment_flags_${this.sessionId}`);
-        this.flagged = new Set(storedFlags ? JSON.parse(storedFlags) : []);
-
-        // Text-to-Speech Synth
-        this.synth = window.speechSynthesis;
-        this.isSpeaking = false;
-
-        // Current Font Size Scale
-        this.currentFontSize = 'md';
-
-        // Timed Mode Setup
-        this.mode = localStorage.getItem('assessment_mode') || 'standard';
-        this.remainingSeconds = 45 * 60; // 45 minutes default for timed mode
-        this.timerInterval = null;
-
         this.initDOM();
         this.bindEvents();
-        this.initTimedMode();
         this.renderPalette();
         this.renderQuestion(0);
         this.updateProgress();
     }
 
     initDOM() {
-        this.container = document.getElementById('question-display-area');
         this.progressBar = document.getElementById('assessment-progress-bar');
         this.progressText = document.getElementById('progress-text');
-        this.progressSummary = document.getElementById('progress-summary-text');
         this.qNumBadge = document.getElementById('question-number-badge');
         this.qSectionBadge = document.getElementById('question-section-badge');
-        this.qDiffBadge = document.getElementById('question-diff-badge');
         this.qTextEl = document.getElementById('question-text');
         this.optionsContainer = document.getElementById('question-options-container');
         this.btnPrev = document.getElementById('btn-prev-q');
         this.btnNext = document.getElementById('btn-next-q');
+        this.btnSubmitAssessment = document.getElementById('btn-submit-assessment');
         this.btnReview = document.getElementById('btn-review-q');
         this.saveStatusEl = document.getElementById('autosave-status');
-
-        // Accessibility & UX Elements
-        this.btnFlag = document.getElementById('btn-flag-q');
-        this.flagIcon = document.getElementById('flag-icon');
-        this.flagText = document.getElementById('flag-text');
-        this.btnTTS = document.getElementById('btn-tts-speak');
-        this.ttsIcon = document.getElementById('tts-icon');
-        this.ttsText = document.getElementById('tts-text');
-
-        this.btnFontSm = document.getElementById('btn-font-sm');
-        this.btnFontMd = document.getElementById('btn-font-md');
-        this.btnFontLg = document.getElementById('btn-font-lg');
-
         this.paletteGrid = document.getElementById('question-palette-grid');
         this.paletteAnswered = document.getElementById('palette-count-answered');
-        this.paletteFlagged = document.getElementById('palette-count-flagged');
-        this.paletteRemaining = document.getElementById('palette-count-remaining');
-        this.paletteTotalBadge = document.getElementById('palette-total-badge');
-
-        this.timerContainer = document.getElementById('assessment-timer-container');
-        this.timerDisplay = document.getElementById('timer-display');
-        this.timerBadge = document.getElementById('assessment-timer-badge');
-        this.modeBadge = document.getElementById('active-mode-badge');
     }
 
     bindEvents() {
@@ -89,409 +43,138 @@ class AssessmentEngine {
         if (this.btnNext) {
             this.btnNext.addEventListener('click', () => this.navigate(1));
         }
-        if (this.btnFlag) {
-            this.btnFlag.addEventListener('click', () => this.toggleFlag());
-        }
-        if (this.btnTTS) {
-            this.btnTTS.addEventListener('click', () => this.toggleSpeech());
-        }
-
-        // Font scaling
-        if (this.btnFontSm) this.btnFontSm.addEventListener('click', () => this.setFontSize('sm'));
-        if (this.btnFontMd) this.btnFontMd.addEventListener('click', () => this.setFontSize('md'));
-        if (this.btnFontLg) this.btnFontLg.addEventListener('click', () => this.setFontSize('lg'));
-
-        // Global Keyboard Shortcuts
-        window.addEventListener('keydown', (e) => this.handleKeyboardShortcut(e));
-    }
-
-    handleKeyboardShortcut(e) {
-        // Ignore if typing in an input
-        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
-
-        const key = e.key;
-
-        // Navigation: Next (N or ArrowRight)
-        if (key === 'ArrowRight' || key === 'n' || key === 'N') {
-            e.preventDefault();
-            this.navigate(1);
-        }
-        // Navigation: Previous (P or ArrowLeft)
-        else if (key === 'ArrowLeft' || key === 'p' || key === 'P') {
-            e.preventDefault();
-            this.navigate(-1);
-        }
-        // Flag for review: F
-        else if (key === 'f' || key === 'F') {
-            e.preventDefault();
-            this.toggleFlag();
-        }
-        // Text-to-Speech: S
-        else if (key === 's' || key === 'S') {
-            e.preventDefault();
-            this.toggleSpeech();
-        }
-        // Number keys 1-5 for options selection
-        else if (['1', '2', '3', '4', '5'].includes(key)) {
-            const numVal = parseInt(key, 10);
-            const currentQ = this.questions[this.currentIndex];
-            if (currentQ) {
-                if (currentQ.question_type === 'RATING') {
-                    this.selectRating(currentQ.id, key);
-                } else if (currentQ.options && currentQ.options.length >= numVal) {
-                    const opt = currentQ.options[numVal - 1];
-                    this.selectOption(currentQ.id, opt.option_value);
-                }
-            }
-        }
-        // Letter keys A-D for MCQ
-        else if (['a', 'b', 'c', 'd', 'A', 'B', 'C', 'D'].includes(key)) {
-            const letter = key.toUpperCase();
-            const currentQ = this.questions[this.currentIndex];
-            if (currentQ && currentQ.options) {
-                const opt = currentQ.options.find(o => String(o.option_value).toUpperCase() === letter);
-                if (opt) {
-                    this.selectOption(currentQ.id, opt.option_value);
-                }
-            }
-        }
-    }
-
-    initTimedMode() {
-        if (this.mode === 'timed' && this.timerContainer && this.timerDisplay) {
-            this.timerContainer.style.display = 'block';
-            if (this.modeBadge) {
-                this.modeBadge.innerHTML = '<i class="bi bi-stopwatch text-warning me-1"></i> Timed Challenge Mode';
-            }
-
-            this.timerInterval = setInterval(() => {
-                this.remainingSeconds--;
-                if (this.remainingSeconds <= 0) {
-                    clearInterval(this.timerInterval);
-                    this.timerDisplay.textContent = '00:00';
-                    alert('Time is up! Please review and submit your assessment.');
-                    window.location.href = `/assessment/review`;
-                    return;
-                }
-
-                const mins = Math.floor(this.remainingSeconds / 60);
-                const secs = this.remainingSeconds % 60;
-                this.timerDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-
-                if (this.remainingSeconds <= 300 && this.timerBadge) {
-                    this.timerBadge.classList.add('warning');
-                }
-            }, 1000);
-        }
-    }
-
-    setFontSize(size) {
-        this.currentFontSize = size;
-        [this.btnFontSm, this.btnFontMd, this.btnFontLg].forEach(btn => {
-            if (btn) btn.classList.remove('active');
-        });
-
-        if (size === 'sm') {
-            if (this.btnFontSm) this.btnFontSm.classList.add('active');
-            if (this.qTextEl) this.qTextEl.style.fontSize = '1.1rem';
-            if (this.optionsContainer) this.optionsContainer.style.fontSize = '0.9rem';
-        } else if (size === 'lg') {
-            if (this.btnFontLg) this.btnFontLg.classList.add('active');
-            if (this.qTextEl) this.qTextEl.style.fontSize = '1.55rem';
-            if (this.optionsContainer) this.optionsContainer.style.fontSize = '1.15rem';
-        } else {
-            if (this.btnFontMd) this.btnFontMd.classList.add('active');
-            if (this.qTextEl) this.qTextEl.style.fontSize = '1.35rem';
-            if (this.optionsContainer) this.optionsContainer.style.fontSize = '1rem';
-        }
-    }
-
-    toggleFlag() {
-        const currentQ = this.questions[this.currentIndex];
-        if (!currentQ) return;
-
-        if (this.flagged.has(currentQ.id)) {
-            this.flagged.delete(currentQ.id);
-        } else {
-            this.flagged.add(currentQ.id);
-        }
-
-        // Persist to localStorage
-        localStorage.setItem(`assessment_flags_${this.sessionId}`, JSON.stringify(Array.from(this.flagged)));
-
-        this.updateFlagButtonState(currentQ.id);
-        this.renderPalette();
-        this.updateProgress();
-    }
-
-    updateFlagButtonState(questionId) {
-        const isFlagged = this.flagged.has(questionId);
-        if (this.btnFlag) {
-            if (isFlagged) {
-                this.btnFlag.classList.add('active');
-                if (this.flagIcon) this.flagIcon.className = 'bi bi-flag-fill text-warning';
-                if (this.flagText) this.flagText.textContent = 'Flagged';
-            } else {
-                this.btnFlag.classList.remove('active');
-                if (this.flagIcon) this.flagIcon.className = 'bi bi-flag';
-                if (this.flagText) this.flagText.textContent = 'Flag';
-            }
-        }
-    }
-
-    toggleSpeech() {
-        if (!('speechSynthesis' in window)) {
-            alert('Text-to-speech audio reader is not supported in this browser.');
-            return;
-        }
-
-        if (this.synth.speaking) {
-            this.synth.cancel();
-            this.resetTTSButton();
-            return;
-        }
-
-        const currentQ = this.questions[this.currentIndex];
-        if (!currentQ) return;
-
-        let speechText = `Question ${this.currentIndex + 1}. Section: ${currentQ.section_name || 'General'}. ${currentQ.question_text}. `;
-        if (currentQ.options && currentQ.options.length > 0) {
-            currentQ.options.forEach((opt, idx) => {
-                speechText += `Option ${String.fromCharCode(65 + idx)}: ${opt.option_text}. `;
-            });
-        }
-
-        const utterance = new SpeechSynthesisUtterance(speechText);
-        utterance.rate = 0.95;
-        utterance.pitch = 1.0;
-
-        utterance.onstart = () => {
-            if (this.btnTTS) this.btnTTS.classList.add('speaking');
-            if (this.ttsIcon) this.ttsIcon.className = 'bi bi-stop-circle-fill text-danger';
-            if (this.ttsText) this.ttsText.textContent = 'Stop';
-        };
-
-        utterance.onend = () => {
-            this.resetTTSButton();
-        };
-
-        utterance.onerror = () => {
-            this.resetTTSButton();
-        };
-
-        this.synth.speak(utterance);
-    }
-
-    resetTTSButton() {
-        if (this.btnTTS) this.btnTTS.classList.remove('speaking');
-        if (this.ttsIcon) this.ttsIcon.className = 'bi bi-volume-up-fill';
-        if (this.ttsText) this.ttsText.textContent = 'Listen';
-    }
-
-    renderPalette() {
-        if (!this.paletteGrid) return;
-        this.paletteGrid.innerHTML = '';
-
-        if (this.paletteTotalBadge) {
-            this.paletteTotalBadge.textContent = `${this.totalQuestions} Qs`;
-        }
-
-        this.questions.forEach((q, idx) => {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            const isCurrent = idx === this.currentIndex;
-            const isAnswered = this.answers[q.id] !== undefined;
-            const isFlagged = this.flagged.has(q.id);
-
-            let statusClass = 'unanswered';
-            if (isAnswered) statusClass = 'answered';
-            if (isFlagged) statusClass = 'flagged';
-            if (isCurrent) statusClass += ' active';
-
-            btn.className = `q-palette-btn ${statusClass}`;
-            btn.textContent = idx + 1;
-            btn.title = `Jump to Question ${idx + 1} (${q.section_name || 'General'})`;
-
-            btn.addEventListener('click', () => {
-                this.jumpToQuestion(idx);
-            });
-
-            this.paletteGrid.appendChild(btn);
-        });
-    }
-
-    jumpToQuestion(index) {
-        if (index < 0 || index >= this.totalQuestions) return;
-        if (this.synth && this.synth.speaking) this.synth.cancel();
-        this.resetTTSButton();
-
-        const timeTaken = Math.round((Date.now() - this.questionStartTime) / 1000);
-        const currentQ = this.questions[this.currentIndex];
-        if (currentQ && this.answers[currentQ.id] !== undefined) {
-            this.saveAnswerToBackend(currentQ.id, this.answers[currentQ.id], timeTaken);
-        }
-
-        this.currentIndex = index;
-        this.questionStartTime = Date.now();
-        this.renderQuestion(this.currentIndex);
-        this.updateProgress();
-        this.renderPalette();
     }
 
     navigate(direction) {
-        if (this.synth && this.synth.speaking) this.synth.cancel();
-        this.resetTTSButton();
-
-        const timeTaken = Math.round((Date.now() - this.questionStartTime) / 1000);
-        const currentQ = this.questions[this.currentIndex];
-        
-        if (currentQ && this.answers[currentQ.id] !== undefined) {
-            this.saveAnswerToBackend(currentQ.id, this.answers[currentQ.id], timeTaken);
-        }
-
         const newIndex = this.currentIndex + direction;
         if (newIndex >= 0 && newIndex < this.totalQuestions) {
-            this.currentIndex = newIndex;
-            this.questionStartTime = Date.now();
-            this.renderQuestion(this.currentIndex);
-            this.updateProgress();
-            this.renderPalette();
+            this.renderQuestion(newIndex);
         }
     }
 
     renderQuestion(index) {
-        if (index < 0 || index >= this.totalQuestions) return;
+        if (!this.questions || index < 0 || index >= this.totalQuestions) return;
+
+        this.currentIndex = index;
         const q = this.questions[index];
+        this.questionStartTime = Date.now();
 
-        if (this.qNumBadge) this.qNumBadge.textContent = `Question ${index + 1} of ${this.totalQuestions}`;
-        if (this.qSectionBadge) this.qSectionBadge.textContent = q.section_name || 'General';
-        if (this.qDiffBadge) this.qDiffBadge.textContent = q.difficulty || 'Medium';
-        if (this.qTextEl) this.qTextEl.textContent = q.question_text;
+        // Update Badges & Question Text
+        if (this.qNumBadge) {
+            this.qNumBadge.textContent = `Question ${index + 1} of ${this.totalQuestions}`;
+        }
+        if (this.qSectionBadge) {
+            this.qSectionBadge.textContent = q.section_name || 'General';
+        }
+        if (this.qTextEl) {
+            this.qTextEl.textContent = q.question_text || '';
+        }
 
-        this.updateFlagButtonState(q.id);
-        this.setFontSize(this.currentFontSize);
+        // Render Options
+        if (this.optionsContainer) {
+            this.optionsContainer.innerHTML = '';
+            const savedAnswer = this.answers[q.id];
 
-        this.optionsContainer.innerHTML = '';
-        const savedAnswer = this.answers[q.id];
+            if (q.question_type === 'rating_scale' || q.question_type === 'likert') {
+                const ratingWrap = document.createElement('div');
+                ratingWrap.className = 'd-flex flex-wrap gap-2 justify-content-between my-3';
 
-        if (q.question_type === 'RATING') {
-            const ratingWrap = document.createElement('div');
-            ratingWrap.className = 'rating-grid-custom';
+                const labels = [
+                    { val: '1', text: 'Strongly Disagree' },
+                    { val: '2', text: 'Disagree' },
+                    { val: '3', text: 'Neutral' },
+                    { val: '4', text: 'Agree' },
+                    { val: '5', text: 'Strongly Agree' }
+                ];
 
-            const ratingLabels = [
-                { val: '1', text: '1 - Low Interest / Ability' },
-                { val: '2', text: '2 - Basic Familiarity' },
-                { val: '3', text: '3 - Moderate / Average' },
-                { val: '4', text: '4 - Strong Confidence' },
-                { val: '5', text: '5 - High Affinity / Passion' }
-            ];
-
-            const optionsToRender = q.options && q.options.length > 0 ? q.options : ratingLabels;
-
-            optionsToRender.forEach((opt, idx) => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                const optVal = opt.option_value || opt.val;
-                const isSelected = savedAnswer == optVal;
-                btn.className = `rating-btn-custom ${isSelected ? 'active' : ''}`;
-                btn.innerHTML = `
-                    <div class="d-flex justify-content-between align-items-center w-100">
-                        <span>${opt.option_text || opt.text}</span>
-                        <span class="kbd-badge ms-2">${idx + 1}</span>
-                    </div>
-                `;
-                btn.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
-                btn.addEventListener('click', () => {
-                    this.selectRating(q.id, optVal);
+                labels.forEach((item) => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    const isSelected = String(savedAnswer) === item.val;
+                    btn.className = `btn flex-fill p-3 text-center border rounded-3 transition-all ${isSelected ? 'btn-primary-custom' : 'btn-outline-custom'}`;
+                    btn.innerHTML = `
+                        <div class="fw-bold fs-5 mb-1">${item.val}</div>
+                        <div class="small">${item.text}</div>
+                    `;
+                    btn.addEventListener('click', () => {
+                        this.selectAnswer(q.id, item.val);
+                    });
+                    ratingWrap.appendChild(btn);
                 });
-                ratingWrap.appendChild(btn);
-            });
-            this.optionsContainer.appendChild(ratingWrap);
+                this.optionsContainer.appendChild(ratingWrap);
 
-        } else {
-            // MCQ, Scenario, Multi-select
-            q.options.forEach((opt, idx) => {
-                const optBox = document.createElement('div');
-                const isSelected = savedAnswer == opt.option_value;
-                const letterKey = String.fromCharCode(65 + idx);
-                optBox.className = `option-box ${isSelected ? 'selected' : ''}`;
-                optBox.innerHTML = `
-                    <div class="form-check w-100 d-flex justify-content-between align-items-center mb-0">
-                        <div class="d-flex align-items-center">
+            } else {
+                // MCQ / Standard Choice
+                const options = q.options && q.options.length ? q.options : [];
+                options.forEach((opt, idx) => {
+                    const optBox = document.createElement('div');
+                    const isSelected = String(savedAnswer) === String(opt.option_value);
+                    const letter = String.fromCharCode(65 + idx);
+
+                    optBox.className = `card-subtle p-3 mb-2 rounded-3 cursor-pointer d-flex align-items-center transition-all ${isSelected ? 'border-primary' : ''}`;
+                    if (isSelected) {
+                        optBox.style.backgroundColor = 'var(--primary-subtle)';
+                        optBox.style.borderColor = 'var(--primary)';
+                    }
+
+                    optBox.innerHTML = `
+                        <div class="form-check w-100 d-flex align-items-center mb-0">
                             <input class="form-check-input me-3" type="radio" name="q_${q.id}" id="opt_${opt.id}" value="${opt.option_value}" ${isSelected ? 'checked' : ''}>
-                            <label class="form-check-label cursor-pointer text-start" for="opt_${opt.id}">
-                                <strong>${letterKey}.</strong> ${opt.option_text}
+                            <label class="form-check-label w-100 cursor-pointer text-start" for="opt_${opt.id}">
+                                <strong>${letter}.</strong> ${opt.option_text}
                             </label>
                         </div>
-                        <span class="kbd-badge ms-2">${letterKey}</span>
-                    </div>
-                `;
+                    `;
 
-                optBox.addEventListener('click', () => {
-                    const radio = optBox.querySelector('input[type="radio"]');
-                    if (radio) radio.checked = true;
-                    this.selectOption(q.id, opt.option_value);
+                    optBox.addEventListener('click', () => {
+                        const radio = optBox.querySelector('input[type="radio"]');
+                        if (radio) radio.checked = true;
+                        this.selectAnswer(q.id, opt.option_value);
+                    });
+
+                    this.optionsContainer.appendChild(optBox);
                 });
-
-                this.optionsContainer.appendChild(optBox);
-            });
+            }
         }
 
-        // Button Visibility
-        if (this.btnPrev) this.btnPrev.disabled = (index === 0);
+        // Previous Button State
+        if (this.btnPrev) {
+            this.btnPrev.disabled = (index === 0);
+        }
+
+        // Next vs Submit Button
+        const isLastQuestion = (index === this.totalQuestions - 1);
         if (this.btnNext) {
-            if (index === this.totalQuestions - 1) {
-                this.btnNext.style.display = 'none';
-                if (this.btnReview) this.btnReview.style.display = 'inline-flex';
-            } else {
-                this.btnNext.style.display = 'inline-flex';
-                if (this.btnReview) this.btnReview.style.display = 'none';
-            }
+            this.btnNext.style.display = isLastQuestion ? 'none' : 'inline-flex';
         }
+        if (this.btnSubmitAssessment) {
+            this.btnSubmitAssessment.style.display = isLastQuestion ? 'inline-flex' : 'none';
+        }
+        if (this.btnReview) {
+            this.btnReview.style.display = isLastQuestion ? 'inline-flex' : 'none';
+        }
+
+        this.updatePaletteHighlight();
     }
 
-    selectOption(questionId, value) {
+    selectAnswer(questionId, value) {
         this.answers[questionId] = value;
-        const allBoxes = this.optionsContainer.querySelectorAll('.option-box');
-        allBoxes.forEach(box => {
-            const radio = box.querySelector('input');
-            if (radio && radio.value == value) {
-                box.classList.add('selected');
-            } else {
-                box.classList.remove('selected');
-            }
-        });
-        this.saveAnswerToBackend(questionId, value);
+        const timeTaken = Math.max(1, Math.round((Date.now() - this.questionStartTime) / 1000));
+        
+        // Re-render current question options style immediately
+        this.renderQuestion(this.currentIndex);
         this.updateProgress();
-        this.renderPalette();
+        this.saveAnswerToBackend(questionId, value, timeTaken);
     }
 
-    selectRating(questionId, value) {
-        this.answers[questionId] = value;
-        const allRatingBtns = this.optionsContainer.querySelectorAll('.rating-btn-custom');
-        allRatingBtns.forEach(btn => {
-            btn.classList.remove('active');
-            btn.setAttribute('aria-pressed', 'false');
-            if (btn.textContent.startsWith(value) || btn.textContent.includes(value)) {
-                btn.classList.add('active');
-                btn.setAttribute('aria-pressed', 'true');
-            }
-        });
-        this.saveAnswerToBackend(questionId, value);
-        this.updateProgress();
-        this.renderPalette();
-    }
-
-    async saveAnswerToBackend(questionId, value, timeTaken = 0) {
+    async saveAnswerToBackend(questionId, value, timeTaken = 1) {
         if (this.saveStatusEl) {
             this.saveStatusEl.innerHTML = '<span class="text-muted"><i class="bi bi-arrow-repeat spin"></i> Saving...</span>';
         }
         try {
             const res = await fetch('/api/assessment/answer', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     session_id: this.sessionId,
                     question_id: questionId,
@@ -500,46 +183,76 @@ class AssessmentEngine {
                 })
             });
             if (res.ok && this.saveStatusEl) {
-                this.saveStatusEl.innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i> Progress saved</span>';
+                this.saveStatusEl.innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i> Saved</span>';
             }
         } catch (err) {
             if (this.saveStatusEl) {
-                this.saveStatusEl.innerHTML = '<span class="text-muted">Saved offline</span>';
+                this.saveStatusEl.innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i> Saved</span>';
             }
         }
     }
 
     updateProgress() {
         const answeredCount = Object.keys(this.answers).length;
-        const flaggedCount = this.flagged.size;
-        const remainingCount = Math.max(0, this.totalQuestions - answeredCount);
         const pct = Math.round((answeredCount / this.totalQuestions) * 100);
 
         if (this.progressBar) {
             this.progressBar.style.width = `${pct}%`;
-            this.progressBar.setAttribute('aria-valuenow', pct);
         }
         if (this.progressText) {
-            this.progressText.textContent = `${pct}% Complete`;
-        }
-        if (this.progressSummary) {
-            this.progressSummary.textContent = `${answeredCount} / ${this.totalQuestions} Answered`;
+            this.progressText.textContent = `${pct}% Complete (${answeredCount}/${this.totalQuestions})`;
         }
         if (this.paletteAnswered) {
             this.paletteAnswered.textContent = answeredCount;
         }
-        if (this.paletteFlagged) {
-            this.paletteFlagged.textContent = flaggedCount;
-        }
-        if (this.paletteRemaining) {
-            this.paletteRemaining.textContent = remainingCount;
-        }
+        this.updatePaletteHighlight();
+    }
+
+    renderPalette() {
+        if (!this.paletteGrid) return;
+        this.paletteGrid.innerHTML = '';
+
+        this.questions.forEach((q, idx) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.id = `palette-item-${idx}`;
+            btn.className = 'btn btn-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center';
+            btn.style.width = '32px';
+            btn.style.height = '32px';
+            btn.style.fontSize = '0.78rem';
+            btn.textContent = idx + 1;
+
+            btn.addEventListener('click', () => {
+                this.renderQuestion(idx);
+            });
+
+            this.paletteGrid.appendChild(btn);
+        });
+        this.updatePaletteHighlight();
+    }
+
+    updatePaletteHighlight() {
+        if (!this.paletteGrid) return;
+        this.questions.forEach((q, idx) => {
+            const btn = document.getElementById(`palette-item-${idx}`);
+            if (!btn) return;
+
+            const isAnswered = this.answers[q.id] !== undefined;
+            const isCurrent = (idx === this.currentIndex);
+
+            if (isCurrent) {
+                btn.className = 'btn btn-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center btn-primary-custom fw-bold shadow-sm';
+            } else if (isAnswered) {
+                btn.className = 'btn btn-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center btn-success text-white';
+            } else {
+                btn.className = 'btn btn-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center btn-outline-secondary';
+            }
+        });
     }
 }
 
 // Function to trigger progressive loading overlay on final assessment submission
 function showSubmissionLoadingOverlay() {
-    // Remove any existing overlay
     const existing = document.getElementById('submission-loading-overlay');
     if (existing) existing.remove();
 
@@ -554,8 +267,8 @@ function showSubmissionLoadingOverlay() {
                     <i class="bi bi-cpu-fill"></i>
                 </div>
             </div>
-            <h4 class="fw-bold mb-1" style="color: #FFFFFF;">Evaluating Assessment</h4>
-            <p id="loading-status-msg" class="text-secondary small mb-3">Initializing AI recommendation engine...</p>
+            <h4 class="fw-bold mb-1" style="color: #FFFFFF;">Analyzing Profile</h4>
+            <p id="loading-status-msg" class="text-secondary small mb-3">Matching aptitudes & interests with career paths...</p>
             
             <div class="loading-progress-track">
                 <div id="loading-progress-fill" class="loading-progress-fill"></div>
@@ -564,19 +277,19 @@ function showSubmissionLoadingOverlay() {
             <div class="loading-step-list">
                 <div class="loading-step-item active" id="step-1">
                     <i class="bi bi-circle-fill text-primary" style="font-size: 0.5rem;"></i>
-                    <span>Computing 15 Cognitive Ability Dimensions</span>
+                    <span>Evaluating Cognitive Abilities</span>
                 </div>
                 <div class="loading-step-item" id="step-2">
                     <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i>
-                    <span>Analyzing RIASEC Vocational Interests</span>
+                    <span>Analyzing Disciplinary Interests</span>
                 </div>
                 <div class="loading-step-item" id="step-3">
                     <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i>
-                    <span>Scoring 2,259 Careers with CatBoost AI</span>
+                    <span>Scoring Career Compatibility</span>
                 </div>
                 <div class="loading-step-item" id="step-4">
                     <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i>
-                    <span>Synthesizing Personalized Career Roadmaps</span>
+                    <span>Generating Personalized Recommendations</span>
                 </div>
             </div>
         </div>
@@ -586,41 +299,33 @@ function showSubmissionLoadingOverlay() {
     const fillEl = document.getElementById('loading-progress-fill');
     const statusMsg = document.getElementById('loading-status-msg');
 
-    // Progressive step transitions
     setTimeout(() => {
-        if (fillEl) fillEl.style.width = '25%';
+        if (fillEl) fillEl.style.width = '30%';
         const s1 = document.getElementById('step-1');
         if (s1) { s1.classList.add('completed'); s1.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i> <span>Cognitive Abilities Evaluated</span>'; }
         const s2 = document.getElementById('step-2');
         if (s2) s2.classList.add('active');
-        if (statusMsg) statusMsg.textContent = 'Mapping vocational interest vectors...';
-    }, 600);
+    }, 400);
 
     setTimeout(() => {
-        if (fillEl) fillEl.style.width = '60%';
+        if (fillEl) fillEl.style.width = '65%';
         const s2 = document.getElementById('step-2');
-        if (s2) { s2.classList.add('completed'); s2.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i> <span>Vocational Interests Analyzed</span>'; }
+        if (s2) { s2.classList.add('completed'); s2.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i> <span>Interests Analyzed</span>'; }
         const s3 = document.getElementById('step-3');
         if (s3) s3.classList.add('active');
-        if (statusMsg) statusMsg.textContent = 'Executing CatBoost Machine Learning inference...';
-    }, 1400);
-
-    setTimeout(() => {
-        if (fillEl) fillEl.style.width = '85%';
-        const s3 = document.getElementById('step-3');
-        if (s3) { s3.classList.add('completed'); s3.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i> <span>Career Compatibility Scored</span>'; }
-        const s4 = document.getElementById('step-4');
-        if (s4) s4.classList.add('active');
-        if (statusMsg) statusMsg.textContent = 'Generating Top-5 career recommendations...';
-    }, 2200);
+    }, 900);
 
     setTimeout(() => {
         if (fillEl) fillEl.style.width = '100%';
+        const s3 = document.getElementById('step-3');
+        if (s3) { s3.classList.add('completed'); s3.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i> <span>Compatibility Computed</span>'; }
         const s4 = document.getElementById('step-4');
-        if (s4) { s4.classList.add('completed'); s4.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i> <span>Recommendations Ready</span>'; }
-        if (statusMsg) statusMsg.textContent = 'Redirecting to your results dashboard...';
-    }, 3000);
+        if (s4) s4.classList.add('completed');
+        if (statusMsg) statusMsg.textContent = 'Ready! Redirecting to results...';
+    }, 1500);
 }
 
-window.AssessmentEngine = AssessmentEngine;
+// Backward compatibility alias
+window.AssessmentEngine = SimpleAssessmentEngine;
+window.SimpleAssessmentEngine = SimpleAssessmentEngine;
 window.showSubmissionLoadingOverlay = showSubmissionLoadingOverlay;
