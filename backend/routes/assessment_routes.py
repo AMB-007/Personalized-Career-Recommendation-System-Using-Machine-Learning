@@ -7,7 +7,7 @@ review before submission, and final scoring evaluation.
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
 from backend.extensions import db
-from backend.models.assessment import AssessmentSession, StudentAnswer, AssessmentScore
+from backend.models.assessment import AssessmentSession
 from backend.models.recommendation import CareerRecommendation
 from backend.models.question import Question, QuestionSection
 from backend.services.assessment_service import AssessmentService
@@ -92,7 +92,7 @@ def assessment_page():
     # Load existing answers
     existing_answers = {
         a.question_id: a.selected_option or a.answer_text
-        for a in StudentAnswer.query.filter_by(assessment_id=session.id).all()
+        for a in session.answers.all()
     }
 
     # Group questions by section
@@ -126,7 +126,7 @@ def review_page():
     questions = AssessmentService.get_questions_for_session(session)
     answers_map = {
         a.question_id: a
-        for a in StudentAnswer.query.filter_by(assessment_id=session.id).all()
+        for a in session.answers.all()
     }
 
     return render_template(
@@ -303,11 +303,10 @@ def api_get_assessment_scores(id):
     if not current_user.is_admin and (not current_user.student or session.student_id != current_user.student.id):
         return api_error("Unauthorized to access scores.", status_code=403)
 
-    score_record = AssessmentScore.query.filter_by(assessment_id=session.id).first()
-    if not score_record:
+    if not session.scores_data:
         return api_error("Scores have not been calculated yet for this session.", status_code=404)
 
-    return api_response(score_record.to_dict())
+    return api_response(session.scores.to_dict())
 
 
 @assessment_bp.route('/api/assessment/<int:assessment_id>/profile', methods=['GET'])

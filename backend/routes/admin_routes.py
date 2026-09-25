@@ -8,10 +8,10 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from backend.extensions import db
 from backend.models.user import User
-from backend.models.student import Student, AcademicScore
-from backend.models.assessment import AssessmentSession, AssessmentScore, StudentAnswer
-from backend.models.question import Question, QuestionSection, QuestionOption
-from backend.models.career import CareerDomain, Career, CareerSkill, CareerSubject, CareerEducation
+from backend.models.student import Student
+from backend.models.assessment import AssessmentSession
+from backend.models.question import Question, QuestionSection
+from backend.models.career import CareerDomain, Career
 from backend.models.recommendation import CareerRecommendation
 from backend.utils.helpers import admin_required, api_response, api_error, logger
 
@@ -118,16 +118,13 @@ def view_user_detail(user_id):
 
     session_details = []
     for idx, sess in enumerate(reversed(sessions), 1):
-        scores = AssessmentScore.query.filter_by(assessment_id=sess.id).first()
         top_recs = CareerRecommendation.query.filter_by(assessment_id=sess.id).order_by(CareerRecommendation.rank_position.asc()).limit(5).all()
-        answers_count = StudentAnswer.query.filter_by(assessment_id=sess.id).count()
-
         session_details.append({
             'attempt_number': idx,
             'session': sess,
-            'scores': scores,
+            'scores': sess.scores,
             'top_recs': top_recs,
-            'answers_count': answers_count
+            'answers_count': sess.answers.count()
         })
     session_details.reverse()  # Most recent attempt on top
 
@@ -178,11 +175,11 @@ def view_session_detail(session_id):
         return redirect(url_for('admin.admin_dashboard'))
 
     student = session.student
-    scores = AssessmentScore.query.filter_by(assessment_id=session.id).first()
+    scores = session.scores
     recommendations = CareerRecommendation.query.filter_by(assessment_id=session.id).order_by(CareerRecommendation.rank_position.asc()).all()
 
-    # Answers map
-    answers = StudentAnswer.query.filter_by(assessment_id=session.id).all()
+    # Answers map directly from session JSON
+    answers = session.answers.all()
     answers_by_qid = {a.question_id: a for a in answers}
 
     # Fetch all questions in session
@@ -255,6 +252,7 @@ def manage_questions():
         db.session.flush()
 
         # Add options if MCQ / Scenario
+        opts_list = []
         if q_type in ['MCQ', 'SCENARIO']:
             opt1 = request.form.get('option_1', '').strip()
             opt2 = request.form.get('option_2', '').strip()
@@ -262,34 +260,34 @@ def manage_questions():
             opt4 = request.form.get('option_4', '').strip()
             correct_opt = int(request.form.get('correct_option', 1))
 
-            opts_list = [opt1, opt2, opt3, opt4]
-            for idx, opt_text in enumerate(opts_list, 1):
+            raw_opts = [opt1, opt2, opt3, opt4]
+            for idx, opt_text in enumerate(raw_opts, 1):
                 if opt_text:
                     is_c = (idx == correct_opt)
-                    db.session.add(QuestionOption(
-                        question_id=q.id,
-                        option_text=opt_text,
-                        option_value=str(idx),
-                        score=100.0 if is_c else 0.0,
-                        is_correct=is_c,
-                        display_order=idx
-                    ))
+                    opts_list.append({
+                        'id': idx,
+                        'option_text': opt_text,
+                        'option_value': str(idx),
+                        'score': 100.0 if is_c else 0.0,
+                        'is_correct': is_c,
+                        'display_order': idx
+                    })
         elif q_type == 'RATING':
-            # Create standard 5-point Likert options
             labels = ["Strongly Disagree / Low", "Disagree / Slight", "Neutral / Moderate", "Agree / Strong", "Strongly Agree / Very High"]
             for idx, label in enumerate(labels, 1):
-                db.session.add(QuestionOption(
-                    question_id=q.id,
-                    option_text=label,
-                    option_value=str(idx),
-                    score=float(idx * 20),
-                    is_correct=False,
-                    display_order=idx
-                ))
+                opts_list.append({
+                    'id': idx,
+                    'option_text': label,
+                    'option_value': str(idx),
+                    'score': float(idx * 20),
+                    'is_correct': False,
+                    'display_order': idx
+                })
 
+        q.options = opts_list
         db.session.commit()
-        logger.info(f"Admin {current_user.username} created new question: {code}")
-        flash(f'Question {code} successfully added to the master question bank!', 'success')
+        logger.info(f"Admin {current_user.username} created new question: {q.question_code}")
+        flash(f'Question {q.question_code} successfully added to the master question bank!', 'success')
         return redirect(url_for('admin.manage_questions'))
 
     # GET: Filter questions

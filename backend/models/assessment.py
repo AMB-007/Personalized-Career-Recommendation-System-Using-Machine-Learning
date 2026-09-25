@@ -1,7 +1,6 @@
 """
 Student Assessment Session Model for MySQL Database.
-Stores assessment sessions, student answers, and cognitive ability scores directly in 'assessment_sessions' (Table 4 of 6),
-eliminating redundant 1:1 separate assessment_scores and student_answers tables.
+Stores assessment sessions, student answers, and cognitive ability scores directly in 'assessment_sessions'.
 """
 
 from datetime import datetime, timezone
@@ -10,7 +9,7 @@ from backend.extensions import db
 
 
 class AssessmentScoreProxy:
-    """Compatibility proxy for cognitive ability & interest scores stored in JSON."""
+    """Proxy for cognitive ability & interest scores stored in JSON on AssessmentSession."""
     COGNITIVE_FIELDS = [
         'mathematical_ability', 'logical_reasoning', 'scientific_reasoning',
         'problem_solving', 'analytical_ability', 'communication', 'creativity',
@@ -30,9 +29,7 @@ class AssessmentScoreProxy:
     def __getattr__(self, name):
         if name.startswith('_'):
             raise AttributeError(name)
-        if name in self._data:
-            return self._data[name]
-        return 0.0
+        return float(self._data.get(name, 0.0))
 
     def __setattr__(self, name, value):
         if name.startswith('_') or name == 'assessment_id':
@@ -50,7 +47,7 @@ class AssessmentScoreProxy:
             'assessment_id': self._session.id if self._session else 1,
             'cognitive_scores': cog,
             'interest_scores': intr,
-            'created_at': self._session.created_at.isoformat() if self._session and self._session.created_at else None
+            'created_at': self._session.started_at.isoformat() if self._session and self._session.started_at else None
         }
 
     def __repr__(self):
@@ -58,10 +55,9 @@ class AssessmentScoreProxy:
 
 
 class StudentAnswer:
-    """Compatibility interface for individual student answer records."""
-    def __init__(self, data_or_session_id=None, **kwargs):
-        self.__dict__['_initialized'] = False
+    """Interface for individual student answer records stored in session JSON."""
 
+    def __init__(self, data_or_session_id=None, **kwargs):
         if isinstance(data_or_session_id, dict):
             data = dict(data_or_session_id)
             data.update(kwargs)
@@ -73,42 +69,14 @@ class StudentAnswer:
 
         self.id = data.get('id', 1)
         self.assessment_id = data.get('assessment_id', 1)
-        self.question_id = data.get('question_id', 1)
+        self.question_id = int(data.get('question_id', 1)) if str(data.get('question_id', '')).isdigit() else 1
         self.selected_option_id = data.get('selected_option_id')
         self.selected_option = data.get('selected_option')
         self.answer_text = data.get('answer_text') or self.selected_option
         num_v = data.get('numeric_value')
         self.numeric_value = float(num_v) if num_v is not None else None
-        tt = data.get('time_taken_seconds', 0)
-        self.time_taken_seconds = int(tt) if tt else 0
-
-        ans_at = data.get('answered_at')
-        if isinstance(ans_at, datetime):
-            self.answered_at = ans_at.isoformat()
-        else:
-            self.answered_at = str(ans_at) if ans_at else datetime.now(timezone.utc).isoformat()
-
-        self.__dict__['_initialized'] = True
-        self._sync()
-
-    def _sync(self):
-        if not self.__dict__.get('_initialized'):
-            return
-        if self.assessment_id and self.question_id and db.session:
-            try:
-                sess = db.session.get(AssessmentSession, self.assessment_id)
-                if sess:
-                    current_answers = dict(sess.answers_data or {})
-                    current_answers[str(self.question_id)] = self.to_dict()
-                    sess.answers_data = current_answers
-                    flag_modified(sess, 'answers_data')
-            except Exception:
-                pass
-
-    def __setattr__(self, name, value):
-        super().__setattr__(name, value)
-        if not name.startswith('_'):
-            self._sync()
+        self.time_taken_seconds = int(data.get('time_taken_seconds', 0) or 0)
+        self.answered_at = str(data.get('answered_at', datetime.now(timezone.utc).isoformat()))
 
     @property
     def question(self):
@@ -136,7 +104,7 @@ class StudentAnswer:
             'answer_text': self.answer_text,
             'numeric_value': self.numeric_value,
             'time_taken_seconds': self.time_taken_seconds,
-            'answered_at': str(self.answered_at)
+            'answered_at': self.answered_at
         }
 
     class _Query:
@@ -150,73 +118,42 @@ class StudentAnswer:
                 def first(self):
                     if not self.a_id or not db.session:
                         return None
-                    try:
-                        sess = db.session.get(AssessmentSession, self.a_id)
-                        if not sess:
-                            return None
-                        ans_map = sess.answers_data if isinstance(sess.answers_data, dict) else {}
-                        if self.q_id is not None:
-                            item = ans_map.get(str(self.q_id))
-                            if item:
-                                if isinstance(item, dict):
-                                    return StudentAnswer(item)
-                                return StudentAnswer(assessment_id=self.a_id, question_id=int(self.q_id), selected_option=str(item))
-                            return None
-                        for qid, item in ans_map.items():
-                            if isinstance(item, dict):
-                                return StudentAnswer(item)
-                            return StudentAnswer(assessment_id=self.a_id, question_id=int(qid), selected_option=str(item))
+                    sess = db.session.get(AssessmentSession, self.a_id)
+                    if not sess or not sess.answers_data:
                         return None
-                    except Exception:
-                        return None
+                    ans_map = sess.answers_data if isinstance(sess.answers_data, dict) else {}
+                    if self.q_id is not None:
+                        item = ans_map.get(str(self.q_id))
+                        return StudentAnswer(item) if isinstance(item, dict) else (StudentAnswer(assessment_id=self.a_id, question_id=self.q_id, selected_option=str(item)) if item else None)
+                    for qid, item in ans_map.items():
+                        return StudentAnswer(item) if isinstance(item, dict) else StudentAnswer(assessment_id=self.a_id, question_id=int(qid) if str(qid).isdigit() else 1, selected_option=str(item))
+                    return None
 
                 def all(self):
                     if not self.a_id or not db.session:
                         return []
-                    try:
-                        sess = db.session.get(AssessmentSession, self.a_id)
-                        if not sess:
-                            return []
-                        ans_map = sess.answers_data if isinstance(sess.answers_data, dict) else {}
-                        if self.q_id is not None:
-                            item = ans_map.get(str(self.q_id))
-                            if item:
-                                if isinstance(item, dict):
-                                    return [StudentAnswer(item)]
-                                return [StudentAnswer(assessment_id=self.a_id, question_id=int(self.q_id), selected_option=str(item))]
-                            return []
-                        res = []
-                        for qid, item in ans_map.items():
-                            if isinstance(item, dict):
-                                res.append(StudentAnswer(item))
-                            else:
-                                res.append(StudentAnswer(assessment_id=self.a_id, question_id=int(qid) if str(qid).isdigit() else 1, selected_option=str(item)))
-                        return res
-                    except Exception:
+                    sess = db.session.get(AssessmentSession, self.a_id)
+                    if not sess or not sess.answers_data:
                         return []
+                    ans_map = sess.answers_data if isinstance(sess.answers_data, dict) else {}
+                    if self.q_id is not None:
+                        item = ans_map.get(str(self.q_id))
+                        if item:
+                            return [StudentAnswer(item) if isinstance(item, dict) else StudentAnswer(assessment_id=self.a_id, question_id=self.q_id, selected_option=str(item))]
+                        return []
+                    res = []
+                    for qid, item in ans_map.items():
+                        qid_int = int(qid) if str(qid).isdigit() else 1
+                        res.append(StudentAnswer(item) if isinstance(item, dict) else StudentAnswer(assessment_id=self.a_id, question_id=qid_int, selected_option=str(item)))
+                    return res
 
                 def count(self):
-                    if not self.a_id or not db.session:
-                        return 0
-                    try:
-                        sess = db.session.get(AssessmentSession, self.a_id)
-                        if not sess:
-                            return 0
-                        ans_map = sess.answers_data if isinstance(sess.answers_data, dict) else {}
-                        if self.q_id is not None:
-                            return 1 if str(self.q_id) in ans_map else 0
-                        return len(ans_map)
-                    except Exception:
-                        return 0
+                    return len(self.all())
 
                 def __iter__(self):
                     return iter(self.all())
 
             return _AnsResult(assessment_id, question_id)
-
-        @staticmethod
-        def all():
-            return []
 
     query = _Query()
 
@@ -224,12 +161,9 @@ class StudentAnswer:
         return f"<StudentAnswer Q{self.question_id}: {self.selected_option}>"
 
 
-# Alias for backward compatibility
-StudentAnswerProxy = StudentAnswer
-
-
 class AnswersCollectionProxy:
-    """Query-like collection proxy for student answers in an assessment session."""
+    """Collection proxy for student answers in an assessment session."""
+
     def __init__(self, answers_dict=None, session=None):
         self._answers = dict(answers_dict) if isinstance(answers_dict, dict) else {}
         self._session = session
@@ -239,7 +173,10 @@ class AnswersCollectionProxy:
         for q_id, a_data in self._answers.items():
             qid_int = int(q_id) if str(q_id).isdigit() else 1
             if isinstance(a_data, dict):
-                res.append(StudentAnswer(assessment_id=self._session.id if self._session else 1, question_id=qid_int, **a_data))
+                item = dict(a_data)
+                item.setdefault('assessment_id', self._session.id if self._session else 1)
+                item.setdefault('question_id', qid_int)
+                res.append(StudentAnswer(item))
             else:
                 res.append(StudentAnswer(assessment_id=self._session.id if self._session else 1, question_id=qid_int, selected_option=str(a_data)))
         return res
@@ -252,14 +189,19 @@ class AnswersCollectionProxy:
             def __init__(self, parent, q_id):
                 self.parent = parent
                 self.q_id = str(q_id)
+
             def first(self):
                 if self.q_id in self.parent._answers:
                     item = self.parent._answers[self.q_id]
                     qid_int = int(self.q_id) if str(self.q_id).isdigit() else 1
                     if isinstance(item, dict):
-                        return StudentAnswer(assessment_id=self.parent._session.id if self.parent._session else 1, question_id=qid_int, **item)
+                        d = dict(item)
+                        d.setdefault('assessment_id', self.parent._session.id if self.parent._session else 1)
+                        d.setdefault('question_id', qid_int)
+                        return StudentAnswer(d)
                     return StudentAnswer(assessment_id=self.parent._session.id if self.parent._session else 1, question_id=qid_int, selected_option=str(item))
                 return None
+
         return _FilterRes(self, question_id)
 
     def __iter__(self):
@@ -267,7 +209,7 @@ class AnswersCollectionProxy:
 
 
 class AssessmentSession(db.Model):
-    """Student assessment session state and progress in MySQL (Table 4 of 6)."""
+    """Student assessment session state and progress in MySQL."""
     __tablename__ = 'assessment_sessions'
 
     id = db.Column(db.Integer().with_variant(db.BigInteger, "mysql"), primary_key=True, autoincrement=True)
@@ -308,9 +250,6 @@ class AssessmentSession(db.Model):
             self.scores_data = dict(val)
         elif isinstance(val, AssessmentScoreProxy):
             self.scores_data = dict(val._data)
-        elif isinstance(val, AssessmentScore):
-            self.scores_data = dict(val.to_dict().get('cognitive_scores', {}))
-            self.scores_data.update(val.to_dict().get('interest_scores', {}))
         else:
             self.scores_data = {}
 
@@ -320,10 +259,7 @@ class AssessmentSession(db.Model):
 
     @answers.setter
     def answers(self, val):
-        if isinstance(val, dict):
-            self.answers_data = dict(val)
-        else:
-            self.answers_data = {}
+        self.answers_data = dict(val) if isinstance(val, dict) else {}
 
     def to_dict(self):
         return {
@@ -342,46 +278,15 @@ class AssessmentSession(db.Model):
         return f"<AssessmentSession {self.id} - Student {self.student_id} ({self.status})>"
 
 
-# -------------------------------------------------------------------
-# Compatibility Proxy Classes (Non-table classes for backward compatibility)
-# -------------------------------------------------------------------
-
-
 class AssessmentScore:
     """Compatibility interface for assessment scores without a separate database table."""
+
     def __init__(self, assessment_id=None, **kwargs):
         self.assessment_id = assessment_id
         self._data = dict(kwargs)
 
-        if assessment_id and db.session:
-            try:
-                sess = db.session.get(AssessmentSession, assessment_id)
-                if sess:
-                    current = dict(sess.scores_data or {})
-                    current.update(self._data)
-                    sess.scores_data = current
-            except Exception:
-                pass
-
     def __getattr__(self, name):
-        if name.startswith('_'):
-            raise AttributeError(name)
         return self._data.get(name, 0.0)
-
-    def __setattr__(self, name, value):
-        if name in ('assessment_id', '_data'):
-            super().__setattr__(name, value)
-        else:
-            self._data[name] = float(value) if value is not None else 0.0
-            if self.assessment_id and db.session:
-                try:
-                    sess = db.session.get(AssessmentSession, self.assessment_id)
-                    if sess:
-                        current = dict(sess.scores_data or {})
-                        current[name] = self._data[name]
-                        sess.scores_data = current
-                except Exception:
-                    pass
 
     def to_dict(self):
         cog = {k: round(float(self._data.get(k, 0.0)), 1) for k in AssessmentScoreProxy.COGNITIVE_FIELDS}
@@ -400,14 +305,13 @@ class AssessmentScore:
             class _QueryResult:
                 def __init__(self, a_id):
                     self.a_id = a_id
+
                 def first(self):
                     if not self.a_id or not db.session:
                         return None
-                    try:
-                        sess = db.session.get(AssessmentSession, self.a_id)
-                        return sess.scores if sess else None
-                    except Exception:
-                        return None
+                    sess = db.session.get(AssessmentSession, self.a_id)
+                    return sess.scores if sess else None
+
             return _QueryResult(assessment_id)
 
     query = _Query()

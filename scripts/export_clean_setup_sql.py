@@ -101,11 +101,10 @@ def generate_setup_sql():
     INDEX `idx_users_code` (`student_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n""")
 
-    # 1.2 questions (CLEAN: no section_id, is_required, explanation)
-    lines.append("-- 1.2 Table: questions (Roadmap and redundant fields removed)")
+    # 1.2 questions (CLEAN: no question_code, created_at)
+    lines.append("-- 1.2 Table: questions (Cleaned: no question_code, created_at)")
     lines.append("""CREATE TABLE `questions` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `question_code` VARCHAR(50) NOT NULL UNIQUE,
     `question_text` TEXT NOT NULL,
     `section` VARCHAR(100) NOT NULL DEFAULT 'General',
     `question_type` VARCHAR(50) NOT NULL DEFAULT 'MCQ',
@@ -117,15 +116,13 @@ def generate_setup_sql():
     `display_order` INT DEFAULT 0,
     `options` JSON NOT NULL,
     `is_active` BOOLEAN DEFAULT TRUE,
-    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX `idx_questions_code` (`question_code`),
     INDEX `idx_questions_section` (`section`),
     INDEX `idx_questions_skill` (`skill_category`),
     INDEX `idx_questions_class` (`class_min`, `class_max`),
     INDEX `idx_questions_active` (`is_active`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n""")
 
-    # 1.3 assessment_sessions
+    # 1.3 assessment_sessions (CLEAN: no created_at)
     lines.append("-- 1.3 Table: assessment_sessions (Foreign key links directly to users.id)")
     lines.append("""CREATE TABLE `assessment_sessions` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -138,15 +135,13 @@ def generate_setup_sql():
     `selected_question_ids` TEXT NULL,
     `answers` JSON NULL,
     `scores` JSON NULL,
-    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT `fk_sessions_user` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
     INDEX `idx_sessions_student` (`student_id`),
-    INDEX `idx_sessions_status` (`status`),
-    INDEX `idx_sessions_created` (`created_at`)
+    INDEX `idx_sessions_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n""")
 
-    # 1.4 careers (CLEAN: no work_environment, work_style, entry_level_role, advanced_role, related_careers)
-    lines.append("-- 1.4 Table: careers (Roadmap fields removed)")
+    # 1.4 careers (CLEAN: no market_demand, growth_rate, salaries, created_at, updated_at)
+    lines.append("-- 1.4 Table: careers (Cleaned: no market_demand, growth_rate, salaries, created_at, updated_at)")
     lines.append("""CREATE TABLE `careers` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `career_code` VARCHAR(50) NULL,
@@ -157,23 +152,17 @@ def generate_setup_sql():
     `description` TEXT NULL,
     `minimum_education` VARCHAR(150) NULL,
     `typical_education` VARCHAR(150) NULL,
-    `market_demand` VARCHAR(50) DEFAULT 'High',
-    `growth_rate` VARCHAR(50) DEFAULT '10-15%',
-    `avg_starting_salary` VARCHAR(100) DEFAULT '₹4,00,000 - ₹6,00,000',
-    `salary_mid_career` VARCHAR(100) DEFAULT '₹12,00,000 - ₹18,00,000',
     `required_skills` JSON NULL,
     `recommended_subjects` JSON NULL,
     `is_active` BOOLEAN DEFAULT TRUE,
-    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX `idx_careers_code` (`career_code`),
     INDEX `idx_careers_name` (`career_name`),
     INDEX `idx_careers_domain` (`domain`),
     INDEX `idx_careers_active` (`is_active`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\n""")
 
-    # 1.5 career_recommendations (CLEAN: with is_decisive, probability, match_breakdown)
-    lines.append("-- 1.5 Table: career_recommendations (ML confidence & match breakdown added)")
+    # 1.5 career_recommendations (CLEAN: no created_at)
+    lines.append("-- 1.5 Table: career_recommendations (ML confidence & match breakdown, no created_at)")
     lines.append("""CREATE TABLE `career_recommendations` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `assessment_id` BIGINT UNSIGNED NOT NULL,
@@ -186,7 +175,6 @@ def generate_setup_sql():
     `strengths` TEXT NULL,
     `skill_gaps` TEXT NULL,
     `match_breakdown` JSON NULL,
-    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT `fk_recs_assessment` FOREIGN KEY (`assessment_id`) REFERENCES `assessment_sessions` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_recs_career` FOREIGN KEY (`career_id`) REFERENCES `careers` (`id`) ON DELETE CASCADE,
     INDEX `idx_recs_assessment` (`assessment_id`),
@@ -212,7 +200,7 @@ def generate_setup_sql():
 
     # 2.2 Seed Questions
     lines.append("-- 2.2 Seed Questions (413 Master Assessment Questions - Cleaned)")
-    q_cols = ['id', 'question_code', 'question_text', 'section', 'question_type', 'class_min', 'class_max', 'difficulty', 'skill_category', 'stream_specific', 'display_order', 'options', 'is_active']
+    q_cols = ['id', 'question_text', 'section', 'question_type', 'class_min', 'class_max', 'difficulty', 'skill_category', 'stream_specific', 'display_order', 'options', 'is_active']
     cur.execute(f"SELECT {', '.join(f'`{c}`' for c in q_cols)} FROM `questions` ORDER BY `id`")
     q_rows = cur.fetchall()
 
@@ -224,8 +212,8 @@ def generate_setup_sql():
     lines.append(",\n".join(q_val_lines) + ";\n")
 
     # 2.3 Seed Careers
-    lines.append("-- 2.3 Seed Careers (1203 Curated Careers - Cleaned, No Roadmap Fields)")
-    c_cols = ['id', 'career_code', 'career_name', 'domain', 'subdomain', 'cluster', 'description', 'minimum_education', 'typical_education', 'market_demand', 'growth_rate', 'avg_starting_salary', 'salary_mid_career', 'required_skills', 'recommended_subjects', 'is_active']
+    lines.append("-- 2.3 Seed Careers (158 Curated Careers - Cleaned, No Market/Salary Fields)")
+    c_cols = ['id', 'career_code', 'career_name', 'domain', 'subdomain', 'cluster', 'description', 'minimum_education', 'typical_education', 'required_skills', 'recommended_subjects', 'is_active']
     cur.execute(f"SELECT {', '.join(f'`{c}`' for c in c_cols)} FROM `careers` ORDER BY `id`")
     c_rows = cur.fetchall()
 

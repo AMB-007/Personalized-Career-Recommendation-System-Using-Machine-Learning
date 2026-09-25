@@ -161,11 +161,7 @@ class CareerRecommendationEngine:
                 'gaps_summary': gaps_desc,
                 'description': row.get('description', ''),
                 'minimum_education': row.get('minimum_education_level', "Bachelor's Degree"),
-                'typical_education': row.get('typical_education', 'Degree'),
-                'avg_starting_salary': row.get('avg_starting_salary', '₹5,00,000 - ₹8,00,000'),
-                'salary_mid_career': row.get('salary_mid_career', '₹15,00,000 - ₹25,00,000'),
-                'market_demand': row.get('market_demand', 'High'),
-                'growth_rate': row.get('growth_rate', '15-20%')
+                'typical_education': row.get('typical_education', 'Degree')
             }
             recommendations_list.append(rec_item)
 

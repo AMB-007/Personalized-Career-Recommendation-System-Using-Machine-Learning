@@ -5,9 +5,10 @@ Categorizes scores into educational guidance bands (Very Low, Low, Average, Good
 """
 
 from typing import Dict, Any, List, Union
+from sqlalchemy.orm.attributes import flag_modified
 from backend.extensions import db
 from backend.models.assessment import AssessmentSession, StudentAnswer, AssessmentScore
-from backend.models.question import Question, QuestionOption
+from backend.models.question import Question
 
 
 class ScoringService:
@@ -43,7 +44,7 @@ class ScoringService:
                 raise ValueError(f"AssessmentSession {session} not found.")
             session = session_obj
 
-        answers = StudentAnswer.query.filter_by(assessment_id=session.id).all()
+        answers = session.answers.all()
         
         # Track total points scored and maximum possible points per skill category
         category_scores: Dict[str, float] = {}
@@ -99,9 +100,9 @@ class ScoringService:
             max_pts = 100.0
 
             if q.question_type in ['MCQ', 'SCENARIO']:
-                selected_opt = QuestionOption.query.filter_by(question_id=q.id, option_value=ans.selected_option).first()
+                selected_opt = next((opt for opt in q.options if str(opt.option_value) == str(ans.selected_option)), None)
                 raw_score = (selected_opt.score if selected_opt else 0.0)
-                all_opts = QuestionOption.query.filter_by(question_id=q.id).all()
+                all_opts = q.options
                 opt_max = max([opt.score for opt in all_opts] or [1.0])
                 pts = raw_score
                 max_pts = opt_max if opt_max > 0 else 1.0
@@ -112,7 +113,7 @@ class ScoringService:
                     try:
                         val = float(ans.selected_option)
                     except ValueError:
-                        selected_opt = QuestionOption.query.filter_by(question_id=q.id, option_value=ans.selected_option).first()
+                        selected_opt = next((opt for opt in q.options if str(opt.option_value) == str(ans.selected_option)), None)
                         val = selected_opt.score if selected_opt else 60.0
 
                 if val is not None:
@@ -121,10 +122,10 @@ class ScoringService:
                     max_pts = 100.0
 
             elif q.question_type == 'MULTI_SELECT':
-                selected_vals = (ans.selected_option or '').split(',')
-                opts = QuestionOption.query.filter_by(question_id=q.id).all()
+                selected_vals = [s.strip() for s in (ans.selected_option or '').split(',') if s.strip()]
+                opts = q.options
                 total_max = sum(opt.score for opt in opts if opt.score > 0) or 1.0
-                earned = sum(opt.score for opt in opts if opt.option_value in selected_vals)
+                earned = sum(opt.score for opt in opts if str(opt.option_value) in selected_vals)
                 pts = earned
                 max_pts = total_max if total_max > 0 else 1.0
 
@@ -166,15 +167,8 @@ class ScoringService:
             if dim not in normalized_results:
                 normalized_results[dim] = 60.0
 
-        # Update or create AssessmentScore record
-        score_record = AssessmentScore.query.filter_by(assessment_id=session.id).first()
-        if not score_record:
-            score_record = AssessmentScore(assessment_id=session.id)
-            db.session.add(score_record)
-
-        for dim, val in normalized_results.items():
-            if hasattr(score_record, dim):
-                setattr(score_record, dim, val)
-
+        # Update session scores directly in JSON
+        session.scores_data = normalized_results
+        flag_modified(session, 'scores_data')
         db.session.commit()
-        return score_record
+        return session.scores

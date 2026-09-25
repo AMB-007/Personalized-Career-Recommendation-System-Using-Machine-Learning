@@ -7,9 +7,8 @@ Identifies standout strengths, tailored developmental areas, and vocational alig
 
 from typing import Dict, Any, List, Optional
 from backend.extensions import db
-from backend.models.assessment import AssessmentSession, StudentAnswer, AssessmentScore
-from backend.models.student import Student, AcademicScore
-from backend.models.question import Question, QuestionOption
+from backend.models.assessment import AssessmentSession
+from backend.models.student import Student
 from backend.services.scoring_service import ScoringService
 
 
@@ -95,8 +94,8 @@ class StudentProfileService:
             raise ValueError(f"Assessment session {assessment_id} not found.")
 
         student = session.student
-        scores_record = AssessmentScore.query.filter_by(assessment_id=session.id).first()
-        academic_record = AcademicScore.query.filter_by(student_id=student.id).order_by(AcademicScore.created_at.desc()).first()
+        scores_record = session.scores
+        academic_record = student.academic_scores if student else None
 
         # 1. Academic Profile Synthesis
         academic_profile = {
@@ -147,7 +146,7 @@ class StudentProfileService:
                 }
 
         # 4. Extract Work Preferences & Activities from Student Answers
-        answers = StudentAnswer.query.filter_by(assessment_id=session.id).all()
+        answers = session.answers.all()
         work_preferences = {
             'environment': 'Modern Tech / Collaborative Office',
             'collaboration_style': 'Balanced Solo & Team Work',

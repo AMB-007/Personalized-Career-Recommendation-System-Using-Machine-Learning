@@ -6,7 +6,7 @@ Displays student overview, assessment progress, multi-attempt history, score hig
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
 from backend.extensions import db
-from backend.models.assessment import AssessmentSession, AssessmentScore
+from backend.models.assessment import AssessmentSession
 from backend.models.recommendation import CareerRecommendation
 from backend.models.student import AcademicScore
 from backend.utils.helpers import student_required, api_response, api_error, logger
@@ -37,7 +37,7 @@ def dashboard():
         score_obj = None
         if sess.status == 'completed':
             top_rec = CareerRecommendation.query.filter_by(assessment_id=sess.id, rank_position=1).first()
-            score_obj = AssessmentScore.query.filter_by(assessment_id=sess.id).first()
+            score_obj = sess.scores if sess.scores_data else None
         history_items.append({
             'attempt_number': idx,
             'session': sess,
@@ -49,7 +49,7 @@ def dashboard():
     recent_scores = None
     recent_recs = []
     if latest_session and latest_session.status == 'completed':
-        recent_scores = AssessmentScore.query.filter_by(assessment_id=latest_session.id).first()
+        recent_scores = latest_session.scores if latest_session.scores_data else None
         recent_recs = CareerRecommendation.query.filter_by(assessment_id=latest_session.id).order_by(CareerRecommendation.rank_position.asc()).limit(3).all()
 
     return render_template(

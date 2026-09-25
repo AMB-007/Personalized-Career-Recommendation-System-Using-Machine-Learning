@@ -6,8 +6,7 @@ and step-by-step education roadmap pathways.
 
 from typing import List, Dict, Any, Optional, Tuple
 from backend.models.career import (
-    CareerDomain, CareerSubdomain, CareerCluster,
-    Career, CareerSkill, CareerSubject, CareerEducation
+    CareerDomain, CareerSubdomain, CareerCluster, Career
 )
 
 
@@ -62,28 +61,10 @@ class CareerService:
 
         if domain_id:
             try:
-                from backend.models.career import _DOMAIN_REGISTRY
-                d_name = _DOMAIN_REGISTRY.get(int(domain_id))
-                if d_name:
-                    query = query.filter(Career.domain_name == d_name)
-            except (ValueError, TypeError):
-                pass
-
-        if subdomain_id:
-            try:
-                from backend.models.career import _SUBDOMAIN_REGISTRY
-                sub_name = _SUBDOMAIN_REGISTRY.get(int(subdomain_id))
-                if sub_name:
-                    query = query.filter(Career.subdomain_val == sub_name)
-            except (ValueError, TypeError):
-                pass
-
-        if cluster_id:
-            try:
-                from backend.models.career import _CLUSTER_REGISTRY
-                clu_name = _CLUSTER_REGISTRY.get(int(cluster_id))
-                if clu_name:
-                    query = query.filter(Career.cluster_val == clu_name)
+                all_doms = CareerDomain.query.all()
+                target_dom = next((d for d in all_doms if d.id == int(domain_id)), None)
+                if target_dom:
+                    query = query.filter(Career.domain_name == target_dom.domain_name)
             except (ValueError, TypeError):
                 pass
 

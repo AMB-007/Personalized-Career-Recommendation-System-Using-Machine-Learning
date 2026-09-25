@@ -6,15 +6,16 @@ progress tracking, and final submission scoring triggers with strict transaction
 
 from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
+import json
+from sqlalchemy.orm.attributes import flag_modified
 from backend.extensions import db
-from backend.models.assessment import AssessmentSession, StudentAnswer, AssessmentScore
-from backend.models.question import Question, QuestionSection, QuestionOption
+from backend.models.assessment import AssessmentSession, StudentAnswer
+from backend.models.question import Question
 from backend.models.student import Student
 from backend.services.assessment_selection_service import AssessmentSelectionService
 from backend.services.scoring_service import ScoringService
 from backend.services.recommendation_service import RecommendationService
 from backend.utils.helpers import logger
-import json
 
 
 class AssessmentService:
@@ -34,11 +35,7 @@ class AssessmentService:
         selected_questions = AssessmentSelectionService.select_balanced_questions(class_level, stream)
 
         if section_name:
-            section = QuestionSection.query.filter_by(name=section_name, is_active=True).first()
-            if section:
-                selected_questions = [q for q in selected_questions if q.section_id == section.id]
-            else:
-                return []
+            selected_questions = [q for q in selected_questions if (q.section or '').lower() == section_name.lower()]
 
         return selected_questions
 
@@ -111,35 +108,37 @@ class AssessmentService:
             raise ValueError(f"Session {session_id} not found.")
 
         # Find matching option if option_id or option_value provided
+        question = db.session.get(Question, question_id)
         selected_opt_obj = None
-        if selected_option is not None:
-            selected_opt_obj = QuestionOption.query.filter_by(
-                question_id=question_id,
-                option_value=str(selected_option)
-            ).first()
+        if question and selected_option is not None:
+            selected_opt_obj = next((opt for opt in question.options if str(opt.option_value) == str(selected_option)), None)
 
-        answer = StudentAnswer.query.filter_by(assessment_id=session_id, question_id=question_id).first()
-        if not answer:
-            answer = StudentAnswer(assessment_id=session_id, question_id=question_id)
-            db.session.add(answer)
-
-        answer.selected_option_id = selected_opt_obj.id if selected_opt_obj else None
-        answer.selected_option = str(selected_option) if selected_option is not None else None
-        answer.answer_text = str(answer_text) if answer_text is not None else None
-        answer.numeric_value = float(numeric_value) if numeric_value is not None else None
-        answer.time_taken_seconds = int(time_taken_seconds)
-        answer.answered_at = datetime.now(timezone.utc)
+        current_answers = dict(session.answers_data or {})
+        ans_dict = {
+            'id': int(question_id),
+            'assessment_id': session.id,
+            'question_id': int(question_id),
+            'selected_option_id': selected_opt_obj.id if selected_opt_obj else None,
+            'selected_option': str(selected_option) if selected_option is not None else None,
+            'answer_text': str(answer_text) if answer_text is not None else (str(selected_option) if selected_option is not None else None),
+            'numeric_value': float(numeric_value) if numeric_value is not None else None,
+            'time_taken_seconds': int(time_taken_seconds),
+            'answered_at': datetime.now(timezone.utc).isoformat()
+        }
+        current_answers[str(question_id)] = ans_dict
+        session.answers_data = current_answers
+        flag_modified(session, 'answers_data')
 
         # Update progress percentage based on session's actual question count
         session_questions = cls.get_questions_for_session(session)
         total_questions = len(session_questions)
-        answered_count = StudentAnswer.query.filter_by(assessment_id=session_id).count()
+        answered_count = len(current_answers)
 
         if total_questions > 0:
             session.completion_percentage = min(100.0, round((answered_count / total_questions) * 100.0, 1))
 
         db.session.commit()
-        return answer
+        return StudentAnswer(ans_dict)
 
     @classmethod
     def complete_and_evaluate_assessment(cls, session_id: int) -> Dict[str, Any]:
@@ -158,7 +157,7 @@ class AssessmentService:
             raise ValueError(f"Session {session_id} not found.")
 
         # Validate that the student has answered questions before submitting
-        answered_count = StudentAnswer.query.filter_by(assessment_id=session.id).count()
+        answered_count = len(session.answers_data or {})
         if answered_count == 0:
             raise ValueError("Cannot submit an empty assessment. Please answer questions before submitting.")
 

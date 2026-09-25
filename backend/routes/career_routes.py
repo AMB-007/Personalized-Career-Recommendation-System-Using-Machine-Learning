@@ -7,7 +7,7 @@ and executing XGBoost ML recommendation predictions.
 from flask import Blueprint, render_template, request, jsonify, abort
 from flask_login import login_required, current_user
 from backend.extensions import db
-from backend.models.career import CareerDomain, CareerSubdomain, CareerCluster, Career
+from backend.models.career import CareerDomain, Career
 from backend.models.assessment import AssessmentSession
 from backend.models.student import Student
 from backend.services.career_service import CareerService

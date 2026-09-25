@@ -8,10 +8,10 @@ matches with detailed educational milestones, prerequisite subjects, and roadmap
 from typing import List, Dict, Any, Optional
 import pandas as pd
 from backend.extensions import db
-from backend.models.assessment import AssessmentSession, AssessmentScore, StudentAnswer
-from backend.models.career import Career, CareerDomain, CareerSkill, CareerSubject, CareerEducation, CareerPathway
+from backend.models.assessment import AssessmentSession
+from backend.models.career import Career, CareerDomain
 from backend.models.recommendation import CareerRecommendation
-from backend.models.student import Student, AcademicScore
+from backend.models.student import Student
 from backend.ml.recommendation_service import CareerRecommendationEngine
 from backend.ml.feature_builder import FeatureBuilder
 from backend.ml.prediction_service import PredictionService
@@ -25,15 +25,15 @@ class RecommendationService:
     def build_student_profile_dict(
         cls,
         session: AssessmentSession,
-        score_record: Optional[AssessmentScore] = None,
-        academic_record: Optional[AcademicScore] = None
+        score_record: Optional[Any] = None,
+        academic_record: Optional[Any] = None
     ) -> Dict[str, Any]:
         """Constructs standardized student profile dictionary for ML inference."""
         student = session.student
         if score_record is None:
-            score_record = AssessmentScore.query.filter_by(assessment_id=session.id).first()
+            score_record = session.scores
         if academic_record is None and student:
-            academic_record = AcademicScore.query.filter_by(student_id=student.id).order_by(AcademicScore.created_at.desc()).first()
+            academic_record = student.academic_scores
 
         scores_dict = {}
         if score_record:
@@ -62,9 +62,9 @@ class RecommendationService:
         Generates and persists top K career recommendations for a completed assessment session
         using the production V7.1/V7.2 XGBoost Career Compatibility model.
         """
-        score_record = AssessmentScore.query.filter_by(assessment_id=session.id).first()
+        score_record = session.scores
         student = session.student
-        academic_record = AcademicScore.query.filter_by(student_id=student.id).order_by(AcademicScore.created_at.desc()).first() if student else None
+        academic_record = student.academic_scores if student else None
 
         active_db_careers = Career.query.filter_by(is_active=True).all()
         if not active_db_careers:
@@ -195,16 +195,14 @@ class RecommendationService:
             if not c:
                 continue
 
-            # Fetch skills with importance
+            # Fetch skills and subjects directly from career profile
             skills_data = [
                 {'skill_name': s.skill_name, 'importance': s.importance_level, 'label': s.importance_label}
-                for s in CareerSkill.query.filter_by(career_id=c.id).order_by(CareerSkill.importance_level.desc()).all()
+                for s in c.skills
             ]
-
-            # Fetch subjects with importance
             subjects_data = [
                 {'subject_name': sub.subject_name, 'importance': sub.importance_level, 'label': sub.importance_label}
-                for sub in CareerSubject.query.filter_by(career_id=c.id).order_by(CareerSubject.importance_level.desc()).all()
+                for sub in c.subjects
             ]
 
             # Roadmaps are eliminated
@@ -223,9 +221,6 @@ class RecommendationService:
                 'description': c.description,
                 'minimum_education': c.minimum_education,
                 'typical_education': c.typical_education,
-                'market_demand': getattr(c, 'market_demand', 'High'),
-                'growth_rate': getattr(c, 'growth_rate', '10-15%'),
-                'avg_starting_salary': getattr(c, 'avg_starting_salary', 'Competitive'),
                 'is_decisive': getattr(r, 'is_decisive', False),
                 'probability': getattr(r, 'probability', None),
                 'match_breakdown': getattr(r, 'match_breakdown', {}) or {},

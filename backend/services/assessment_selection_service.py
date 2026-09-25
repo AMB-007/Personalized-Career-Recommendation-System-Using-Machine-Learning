@@ -9,8 +9,8 @@ questions across consecutive attempts for the same student.
 import json
 import random
 from typing import List, Dict, Any, Optional, Set
-from backend.models.question import Question, QuestionSection
-from backend.models.assessment import AssessmentSession, StudentAnswer
+from backend.models.question import Question
+from backend.models.assessment import AssessmentSession
 
 
 class AssessmentSelectionService:
@@ -78,13 +78,12 @@ class AssessmentSelectionService:
                     except Exception:
                         pass
 
-            # 2. From actual answered responses
-            if session_ids:
-                answers = StudentAnswer.query.filter(
-                    StudentAnswer.assessment_id.in_(session_ids)
-                ).with_entities(StudentAnswer.question_id).all()
-                for (qid,) in answers:
-                    prior_ids.add(qid)
+            # 2. From actual answered responses in session JSON
+            for s in sessions:
+                if s.answers_data and isinstance(s.answers_data, dict):
+                    for qid in s.answers_data.keys():
+                        if str(qid).isdigit():
+                            prior_ids.add(int(qid))
         except Exception:
             pass
 
