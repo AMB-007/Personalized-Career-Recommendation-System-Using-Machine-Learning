@@ -40,7 +40,7 @@ A machine learning–powered web application that recommends the most suitable c
 
 | Model | Accuracy | F1-Score | ROC-AUC | Train Time |
 |---|---|---|---|---|
-| 🏆 **LightGBM** *(Champion)* | **91.59%** | **0.9417** | **97.13%** | 21.4s |
+| 🏆 **LightGBM** | **91.59%** | **0.9417** | **97.13%** | 21.4s |
 | XGBoost | 91.35% | 0.9401 | 97.16% | 20.7s |
 | Random Forest | 90.74% | 0.9341 | 97.01% | 172.7s |
 
