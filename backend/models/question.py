@@ -64,23 +64,23 @@ class SectionProxy:
 class OptionProxy:
     """Proxy for multiple choice options stored in JSON."""
 
-    def __init__(self, data, question_id=None, idx=1):
+    def __init__(self, data=None, question_id=None, idx=1, **kwargs):
         if isinstance(data, dict):
-            self.id = data.get('id', idx)
-            self.question_id = question_id or data.get('question_id', 1)
-            self.option_text = data.get('option_text', '')
-            self.option_value = data.get('option_value', '')
-            self.score = float(data.get('score', 0.0) or 0.0)
-            self.is_correct = bool(data.get('is_correct', False))
-            self.display_order = int(data.get('display_order', idx) or idx)
+            merged = dict(data)
+            merged.update(kwargs)
+        elif data is not None:
+            merged = {'option_text': str(data), 'option_value': str(data)}
+            merged.update(kwargs)
         else:
-            self.id = idx
-            self.question_id = question_id or 1
-            self.option_text = str(data)
-            self.option_value = str(data)
-            self.score = 0.0
-            self.is_correct = False
-            self.display_order = idx
+            merged = kwargs
+
+        self.id = merged.get('id', idx)
+        self.question_id = question_id or merged.get('question_id', 1)
+        self.option_text = merged.get('option_text', '')
+        self.option_value = merged.get('option_value', '')
+        self.score = float(merged.get('score', 0.0) or 0.0)
+        self.is_correct = bool(merged.get('is_correct', False))
+        self.display_order = int(merged.get('display_order', idx) or idx)
 
     def to_dict(self, include_correct=False):
         d = {
@@ -140,6 +140,8 @@ class Question(db.Model):
     def __init__(self, **kwargs):
         kwargs.pop('question_code', None)
         kwargs.pop('created_at', None)
+        kwargs.pop('is_required', None)
+        kwargs.pop('explanation', None)
         sec_id = kwargs.pop('section_id', None)
         sec_name = kwargs.pop('section_name', None)
         sec = kwargs.pop('section', None)

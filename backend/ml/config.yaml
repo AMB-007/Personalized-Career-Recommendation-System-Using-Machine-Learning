@@ -1,6 +1,6 @@
 model:
-  name: "LightGBM"
-  version: "V17.0-LightGBM-91pct"
+  name: "XGBoost"
+  version: "V18.0-XGBoost-SMOTE-91pct"
   threshold: 0.5
   confidence_margin: 0.27
 

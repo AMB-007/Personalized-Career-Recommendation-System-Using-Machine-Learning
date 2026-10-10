@@ -1,6 +1,6 @@
 {
-  "version": "V17.0-LightGBM-91pct",
-  "trained_at": "2026-09-23T08:54:00Z",
+  "version": "V18.0-XGBoost-SMOTE-91pct",
+  "trained_at": "2026-10-09T04:52:43Z",
   "status": "production_ready",
-  "accuracy": 91.59
+  "accuracy": 91.41
 }

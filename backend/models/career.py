@@ -164,13 +164,16 @@ class Career(db.Model):
     is_active = db.Column(db.Boolean, default=True, index=True)
 
     def __init__(self, **kwargs):
-        # Discard dropped schema columns
+        # Discard dropped schema columns and read-only properties
         kwargs.pop('market_demand', None)
         kwargs.pop('growth_rate', None)
         kwargs.pop('avg_starting_salary', None)
         kwargs.pop('salary_mid_career', None)
         kwargs.pop('created_at', None)
         kwargs.pop('updated_at', None)
+        kwargs.pop('domain_id', None)
+        kwargs.pop('subdomain_id', None)
+        kwargs.pop('cluster_id', None)
 
         title = kwargs.pop('title', None)
         if title and 'career_name' not in kwargs:
@@ -332,21 +335,29 @@ class CareerDomain:
 
 # Lightweight compatibility aliases
 class CareerSubdomain:
+    def __init__(self, **kwargs):
+        self.id = kwargs.get('id', 1)
+        self.__dict__.update(kwargs)
     query = type('_Q', (), {'filter_by': staticmethod(lambda **k: type('_Q', (), {'order_by': staticmethod(lambda *a: type('_Q', (), {'all': staticmethod(lambda: [])}))})), 'all': staticmethod(lambda: [])})()
 
 class CareerCluster:
+    def __init__(self, **kwargs):
+        self.id = kwargs.get('id', 1)
+        self.__dict__.update(kwargs)
     query = type('_Q', (), {'filter_by': staticmethod(lambda **k: type('_Q', (), {'order_by': staticmethod(lambda *a: type('_Q', (), {'all': staticmethod(lambda: [])}))})), 'all': staticmethod(lambda: [])})()
 
 class CareerSkill:
+    def __init__(self, **kwargs): self.__dict__.update(kwargs)
     importance_level = _AttrProxy()
     query = type('_Q', (), {'filter_by': staticmethod(lambda **k: type('_Q', (), {'order_by': staticmethod(lambda *a: type('_Q', (), {'all': staticmethod(lambda: []), 'count': staticmethod(lambda: 0)}))})), 'count': staticmethod(lambda: 0), 'all': staticmethod(lambda: [])})()
 
 class CareerSubject:
+    def __init__(self, **kwargs): self.__dict__.update(kwargs)
     importance_level = _AttrProxy()
     query = type('_Q', (), {'filter_by': staticmethod(lambda **k: type('_Q', (), {'order_by': staticmethod(lambda *a: type('_Q', (), {'all': staticmethod(lambda: []), 'count': staticmethod(lambda: 0)}))})), 'count': staticmethod(lambda: 0), 'all': staticmethod(lambda: [])})()
 
 class CareerEducation:
-    pass
+    def __init__(self, **kwargs): self.__dict__.update(kwargs)
 
 class CareerPathway:
-    pass
+    def __init__(self, **kwargs): self.__dict__.update(kwargs)

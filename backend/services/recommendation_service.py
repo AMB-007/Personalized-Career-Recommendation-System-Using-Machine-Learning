@@ -139,7 +139,7 @@ class RecommendationService:
 
             fit_tier = "High" if score_val >= 75 else ("Strong" if score_val >= 60 else "Moderate")
             reason_str = (
-                f"{fit_tier} Career Alignment (LightGBM ML): {score_val}% match across {c_dom} "
+                f"{fit_tier} Career Alignment (XGBoost ML): {score_val}% match across {c_dom} "
                 f"aptitude benchmarks ({row['ability_match']}%) and disciplinary interests ({row['interest_match']}%)."
             )
             strengths_str = (

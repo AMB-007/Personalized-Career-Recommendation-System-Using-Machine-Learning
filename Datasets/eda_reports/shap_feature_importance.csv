@@ -1,20 +1,21 @@
 Feature,Mean_Abs_SHAP
-composite_alignment_index,1.2656262
-class,0.37284955
-career_domain,0.22027887
-age,0.21785209
-holistic_synergy,0.15730004
-stream,0.114184834
-geometric_core_synergy,0.07925071
-interest_match_component,0.075847805
-harmonic_core_match,0.060057156
-ability_match_component,0.058547296
-learning_match_component,0.04450548
-career_name,0.042119674
-min_core_match,0.038831204
-academic_match_component,0.035542756
-ability_interest_gap,0.032973386
-career_subdomain,0.028589152
-career_cluster,0.027206225
-max_core_match,0.02429524
-ability_interest_synergy,0.02091422
+composite_alignment_index,3.156765
+geometric_core_synergy,0.93816614
+harmonic_core_match,0.66220236
+ability_interest_synergy,0.59648335
+min_core_match,0.30111438
+age,0.2376554
+max_core_match,0.17732364
+ability_match_component,0.14897963
+interest_match_component,0.13390484
+holistic_synergy,0.10818371
+class,0.09030116
+learning_match_component,0.071188755
+ability_interest_gap,0.06695744
+academic_match_component,0.06674757
+stream_Commerce,0.02431502
+career_domain_Architecture & Construction,0.0142405005
+stream_Science,0.014001924
+career_name_Journalist Specialist,0.012996291
+career_name_Cloud Engineer Specialist,0.012119518
+career_domain_Education,0.0119008375
