@@ -1,4 +1,7 @@
-Model,Decisive_Acc (%),Raw_Acc (%),Balanced_Acc (%),F1-Score,Precision (%),Recall (%),ROC-AUC (%),PR-AUC (%),Log_Loss,Fit_Time (s)
-XGBoost,95.83,91.41,89.39,0.94,93.89,94.1,97.16,98.87,0.195,22.21
-LightGBM,94.95,91.37,89.17,0.9398,93.66,94.3,97.12,98.85,0.2098,20.6
-Random Forest,95.89,90.68,89.64,0.9339,94.75,92.06,96.94,98.78,0.2125,403.9
+Model,Balanced_Strategy,Test_Accuracy (%),Balanced_Acc (%),Decisive_Acc (%),Precision (%),Recall (%),F1-Score,ROC-AUC (%),PR-AUC (%),Log_Loss,Fit_Time (s)
+XGBoost,SMOTE,91.35,89.87,95.83,95.01,93.06,0.9403,97.03,98.91,0.1965,44.55
+LightGBM,SMOTE,91.06,88.91,95.42,94.19,93.55,0.9387,96.9,98.86,0.2005,14.81
+Random Forest,class_weight=balanced,90.57,90.51,95.55,96.25,90.64,0.9336,97.06,98.92,0.2106,7.36
+Logistic Regression,class_weight=balanced,90.51,90.74,95.12,96.56,90.24,0.9329,97.11,98.94,0.2173,1.44
+Decision Tree,class_weight=balanced,89.45,89.49,94.01,95.9,89.39,0.9253,95.79,98.03,0.415,1.27
+KNN (k=15),SMOTE,87.08,89.48,93.39,97.74,84.28,0.9051,95.92,98.37,0.5971,0.09
