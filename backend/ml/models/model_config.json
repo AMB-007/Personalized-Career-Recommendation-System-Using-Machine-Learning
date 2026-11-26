@@ -1,15 +1,40 @@
 {
   "model": "XGBoost",
   "best_params": {
-    "n_estimators": 1500,
-    "max_depth": 8,
-    "learning_rate": 0.02,
-    "tree_method": "hist",
-    "eval_metric": "logloss",
-    "reg_lambda": 0.5
+    "n_estimators": 1000,
+    "max_depth": 6,
+    "learning_rate": 0.025,
+    "subsample": 0.85,
+    "colsample_bytree": 0.85,
+    "reg_lambda": 1.0,
+    "tree_method": "hist"
   },
   "threshold": 0.5,
-  "confidence_margin": 0.27,
+  "confidence_margin": 0.25,
   "target": "compatibility_label",
-  "feature_count": 17
+  "selected_numeric_features": [
+    "ability_match_component",
+    "interest_match_component",
+    "academic_match_component",
+    "learning_match_component",
+    "composite_alignment_index",
+    "ability_interest_synergy",
+    "ability_interest_gap",
+    "min_core_match",
+    "max_core_match",
+    "harmonic_core_match",
+    "geometric_core_synergy",
+    "holistic_synergy",
+    "academic_learning_avg",
+    "component_mean_4d",
+    "component_std_4d",
+    "alignment_to_gap_ratio",
+    "weighted_synergy_index"
+  ],
+  "selected_categorical_features": [
+    "stream",
+    "career_domain",
+    "career_name"
+  ],
+  "feature_count": 20
 }
