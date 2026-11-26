@@ -1,6 +1,8 @@
 {
-  "version": "V18.0-XGBoost-SMOTE-91pct",
-  "trained_at": "2026-10-09T04:52:43Z",
+  "version": "V19.0-XGBoost-SMOTE-91pct",
+  "algorithm": "XGBoost",
+  "trained_at": "2026-11-26T05:47:08Z",
+  "created": "2026-11-26T05:47:08Z",
   "status": "production_ready",
-  "accuracy": 91.41
+  "accuracy": 91.35
 }
