@@ -1,6 +1,7 @@
-Metric,Score,Target_Achieved
-Hit@1 (Top-1 Match),94.26%,YES
-Hit@3 (Top-3 Match),99.81%,YES
-Hit@5 (Top-5 Match),100.00%,YES
-MRR (Mean Reciprocal Rank),0.9692,YES
-NDCG@5,0.9540,YES
+Metric,Score
+Hit@1 (Top-1 Accuracy),99.43%
+Hit@3 (Top-3 Accuracy),99.95%
+Hit@5 (Top-5 Accuracy),100.00%
+Hit@10 (Top-10 Accuracy),100.00%
+MRR (Mean Reciprocal Rank),0.9970
+NDCG@5,0.9905
