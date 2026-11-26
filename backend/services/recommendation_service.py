@@ -1,6 +1,6 @@
 """
 Career Recommendation Service.
-Coordinates the production V7.1/V7.2 XGBoost Career Compatibility Machine Learning Engine,
+Coordinates the production XGBoost Career Compatibility Machine Learning Engine,
 evaluates multi-dimensional student profile vectors, and persists Top-K personalized career
 matches with detailed educational milestones, prerequisite subjects, and roadmaps in MySQL.
 """
@@ -60,7 +60,7 @@ class RecommendationService:
     ) -> List[CareerRecommendation]:
         """
         Generates and persists top K career recommendations for a completed assessment session
-        using the production V7.1/V7.2 XGBoost Career Compatibility model.
+        using the production XGBoost Career Compatibility model.
         """
         score_record = session.scores
         student = session.student
