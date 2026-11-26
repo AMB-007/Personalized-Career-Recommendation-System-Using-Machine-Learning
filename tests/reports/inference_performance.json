@@ -1,18 +1,18 @@
 {
-  "model_version": "V7.2",
+  "model_version": "V19.0-XGBoost-SMOTE-91pct",
   "algorithm": "XGBoost",
-  "candidates_evaluated": 1206,
+  "candidates_evaluated": 158,
   "timings_seconds": {
-    "feature_building_sec": 2.6911,
-    "model_inference_sec": 0.0918,
-    "full_recommendation_pipeline_sec": 0.0228
+    "feature_building_sec": 0.1008,
+    "model_inference_sec": 0.085,
+    "full_recommendation_pipeline_sec": 0.2294
   },
   "timings_milliseconds": {
-    "feature_building_ms": 2691.14,
-    "model_inference_ms": 91.77,
-    "full_recommendation_pipeline_ms": 22.81
+    "feature_building_ms": 100.84,
+    "model_inference_ms": 85.01,
+    "full_recommendation_pipeline_ms": 229.36
   },
-  "top_1_career": "Lawyer Specialist 840",
-  "top_1_score": 99.85,
+  "top_1_career": "Ai Engineer",
+  "top_1_score": 92.4,
   "status": "PASS"
 }
