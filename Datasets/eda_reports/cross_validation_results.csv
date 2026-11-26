@@ -1,0 +1,5 @@
+Model,CV_Accuracy_Mean (%),CV_Accuracy_Std (%),CV_F1_Mean,CV_ROC_AUC_Mean (%)
+LightGBM,90.96,0.24,0.9367,96.84
+XGBoost,90.86,0.44,0.9352,96.97
+Random Forest,90.37,0.37,0.9308,96.97
+Logistic Regression,90.0,0.41,0.9278,97.03
