@@ -1,88 +1,151 @@
 {
   "model_name": "PathFinder Career Compatibility Classifier",
-  "model_version": "V18.0-XGBoost-SMOTE-91pct",
+  "model_version": "V19.0-XGBoost-SMOTE-91pct",
   "algorithm": "XGBoost",
-  "accuracy": 91.41,
-  "f1_score": 0.94,
-  "roc_auc": 97.16,
-  "precision": 93.89,
-  "recall": 94.1,
+  "accuracy": 91.35,
+  "balanced_accuracy": 89.87,
+  "decisive_accuracy": 95.83,
+  "f1_score": 0.9403,
+  "precision": 95.01,
+  "recall": 93.06,
+  "roc_auc": 97.03,
+  "pr_auc": 98.91,
   "best_parameters": {
-    "n_estimators": 1500,
-    "max_depth": 8,
-    "learning_rate": 0.02,
-    "tree_method": "hist",
-    "eval_metric": "logloss",
-    "reg_lambda": 0.5
+    "n_estimators": 1000,
+    "max_depth": 6,
+    "learning_rate": 0.025,
+    "subsample": 0.85,
+    "colsample_bytree": 0.85,
+    "reg_lambda": 1.0,
+    "tree_method": "hist"
   },
   "models_evaluated": {
     "XGBoost": {
-      "Accuracy": 0.9141,
-      "Precision": 0.9389,
-      "Recall": 0.941,
-      "F1-Score": 0.94,
-      "ROC-AUC": 0.9716,
-      "Train_Time_s": 22.21
+      "Accuracy": 0.9135,
+      "Balanced_Accuracy": 0.8987,
+      "Precision": 0.9501,
+      "Recall": 0.9306,
+      "F1-Score": 0.9403,
+      "ROC-AUC": 0.9703,
+      "PR-AUC": 0.9891,
+      "Log_Loss": 0.1965,
+      "Train_Time_s": 44.55
     },
     "LightGBM": {
-      "Accuracy": 0.9137,
-      "Precision": 0.9366,
-      "Recall": 0.943,
-      "F1-Score": 0.9398,
-      "ROC-AUC": 0.9712,
-      "Train_Time_s": 20.6
+      "Accuracy": 0.9106,
+      "Balanced_Accuracy": 0.8891,
+      "Precision": 0.9419,
+      "Recall": 0.9355,
+      "F1-Score": 0.9387,
+      "ROC-AUC": 0.969,
+      "PR-AUC": 0.9886,
+      "Log_Loss": 0.2005,
+      "Train_Time_s": 14.81
     },
     "Random Forest": {
-      "Accuracy": 0.9068,
-      "Precision": 0.9475,
-      "Recall": 0.9206,
-      "F1-Score": 0.9339,
-      "ROC-AUC": 0.9694,
-      "Train_Time_s": 403.9
+      "Accuracy": 0.9057,
+      "Balanced_Accuracy": 0.9051,
+      "Precision": 0.9625,
+      "Recall": 0.9064,
+      "F1-Score": 0.9336,
+      "ROC-AUC": 0.9706,
+      "PR-AUC": 0.9892,
+      "Log_Loss": 0.2106,
+      "Train_Time_s": 7.36
+    },
+    "Logistic Regression": {
+      "Accuracy": 0.9051,
+      "Balanced_Accuracy": 0.9074,
+      "Precision": 0.9656,
+      "Recall": 0.9024,
+      "F1-Score": 0.9329,
+      "ROC-AUC": 0.9711,
+      "PR-AUC": 0.9894,
+      "Log_Loss": 0.2173,
+      "Train_Time_s": 1.44
+    },
+    "Decision Tree": {
+      "Accuracy": 0.8945,
+      "Balanced_Accuracy": 0.8949,
+      "Precision": 0.959,
+      "Recall": 0.8939,
+      "F1-Score": 0.9253,
+      "ROC-AUC": 0.9579,
+      "PR-AUC": 0.9803,
+      "Log_Loss": 0.415,
+      "Train_Time_s": 1.27
+    },
+    "KNN (k=15)": {
+      "Accuracy": 0.8708,
+      "Balanced_Accuracy": 0.8948,
+      "Precision": 0.9774,
+      "Recall": 0.8428,
+      "F1-Score": 0.9051,
+      "ROC-AUC": 0.9592,
+      "PR-AUC": 0.9837,
+      "Log_Loss": 0.5971,
+      "Train_Time_s": 0.09
     }
   },
-  "label_engineering": {
-    "method": "Weighted z-score composite with Gaussian noise and SMOTE balancing",
-    "balancing": "SMOTE applied strictly on training partition (zero leakage)",
-    "score_cols": [
-      "composite_alignment_index",
-      "ability_interest_synergy",
-      "geometric_core_synergy",
-      "harmonic_core_match",
-      "holistic_synergy",
-      "min_core_match",
-      "max_core_match"
-    ],
-    "weights": [
-      0.3,
-      0.15,
-      0.15,
-      0.15,
-      0.1,
-      0.075,
-      0.075
-    ],
-    "noise_std": 0.3,
-    "random_seed": 42
+  "ranking_metrics": {
+    "Hit@1": 0.9943,
+    "Hit@3": 0.9995,
+    "Hit@5": 1.0,
+    "Hit@10": 1.0,
+    "MRR": 0.997,
+    "NDCG@5": 0.9905
   },
-  "features_count": 17,
-  "feature_type": "14 numerical + 3 categorical (OHE)",
-  "trained_at": "2026-10-09T04:52:43Z",
+  "features_count": 20,
+  "feature_type": "17 numerical (incl. 5 engineered) + 3 categorical (OHE)",
+  "selected_features": [
+    "ability_match_component",
+    "interest_match_component",
+    "academic_match_component",
+    "learning_match_component",
+    "composite_alignment_index",
+    "ability_interest_synergy",
+    "ability_interest_gap",
+    "min_core_match",
+    "max_core_match",
+    "harmonic_core_match",
+    "geometric_core_synergy",
+    "holistic_synergy",
+    "academic_learning_avg",
+    "component_mean_4d",
+    "component_std_4d",
+    "alignment_to_gap_ratio",
+    "weighted_synergy_index",
+    "stream",
+    "career_domain",
+    "career_name"
+  ],
+  "pruned_features": [
+    "student_id",
+    "career_id",
+    "career_subdomain",
+    "career_cluster",
+    "age",
+    "class",
+    "ability_to_interest_ratio"
+  ],
+  "trained_at": "2026-11-26T05:47:08Z",
   "num_classes": 158,
   "dataset": "Student Career Recommendation Dataset.csv",
-  "test_set_size": 4936,
+  "cleaned_dataset_size": 49691,
+  "train_set_size": 39818,
+  "test_set_size": 9873,
   "class_report": {
     "Incompatible (0)": {
-      "precision": 0.8515,
-      "recall": 0.8467,
-      "f1": 0.8491,
-      "support": 1409
+      "precision": 0.821,
+      "recall": 0.8668,
+      "f1": 0.8433,
+      "support": 2651
     },
     "Compatible (1)": {
-      "precision": 0.9389,
-      "recall": 0.941,
-      "f1": 0.94,
-      "support": 3527
+      "precision": 0.9501,
+      "recall": 0.9306,
+      "f1": 0.9403,
+      "support": 7222
     }
   }
 }
