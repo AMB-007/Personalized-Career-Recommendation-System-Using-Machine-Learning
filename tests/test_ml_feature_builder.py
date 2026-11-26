@@ -114,6 +114,29 @@ class TestMLFeatureBuilder(unittest.TestCase):
         self.assertEqual(len(batch_df), 2)
         self.assertNotIn('student_id', batch_df.columns)
 
+    def test_engineered_features_and_stream_cleaning(self):
+        from backend.ml.feature_engineering import clean_stream_value
+        self.assertEqual(clean_stream_value('Science-PCM'), 'Science')
+        self.assertEqual(clean_stream_value('Sciense'), 'Science')
+        self.assertEqual(clean_stream_value('Comerce'), 'Commerce')
+        self.assertEqual(clean_stream_value('Humanities'), 'Arts')
+
+        student_profile = {
+            'age': 17,
+            'class_level': 12,
+            'stream': 'Science-PCM',
+            'academic_percentage': 88.5,
+            'scores': self.sample_scores
+        }
+        row = FeatureBuilder.build_candidate_feature_row(student_profile, self.sample_career_reqs)
+        for eng_col in [
+            'academic_learning_avg', 'component_mean_4d', 'component_std_4d',
+            'alignment_to_gap_ratio', 'weighted_synergy_index'
+        ]:
+            self.assertIn(eng_col, row)
+            self.assertIsInstance(row[eng_col], float)
+        self.assertEqual(row['stream'], 'Science')
+
 
 if __name__ == '__main__':
     unittest.main()
