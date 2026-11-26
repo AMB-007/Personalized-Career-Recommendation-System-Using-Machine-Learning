@@ -170,8 +170,8 @@ class CareerRecommendationEngine:
         return {
             'student_id': student_profile.get('student_id', 'STUDENT_001'),
             'total_evaluated_careers': total_evaluated,
-            'model_name': config.get('model', 'RandomForest'),
-            'model_version': version_info.get('version', 'V13.0-RandomForest-Champion-Benchmark'),
+            'model_name': config.get('model', 'XGBoost'),
+            'model_version': version_info.get('version', 'V19.0-XGBoost-SMOTE'),
             'top_1': recommendations_list[0] if recommendations_list else None,
             'top_3': recommendations_list[:3],
             'top_5': recommendations_list[:5],
