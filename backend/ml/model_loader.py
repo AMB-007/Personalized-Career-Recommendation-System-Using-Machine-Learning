@@ -89,7 +89,7 @@ class ModelLoader:
                 with open(cfg_path, "r", encoding="utf-8") as f:
                     cls._config = json.load(f)
             else:
-                cls._config = {"model": "RandomForest", "threshold": 0.5, "confidence_margin": 0.27}
+                cls._config = {"model": "XGBoost", "threshold": 0.5, "confidence_margin": 0.25}
         return cls._config
 
     @classmethod
@@ -111,7 +111,7 @@ class ModelLoader:
                 with open(ver_path, "r", encoding="utf-8") as f:
                     cls._version = json.load(f)
             else:
-                cls._version = {"version": "V13.0-RandomForest-Champion-Benchmark"}
+                cls._version = {"version": "V19.0-XGBoost-SMOTE"}
         return cls._version
 
     @classmethod
@@ -145,13 +145,8 @@ def get_model_version() -> Dict[str, Any]:
 
 
 def get_feature_columns() -> List[str]:
-    return [
-        'age', 'class', 'ability_match_component', 'interest_match_component',
-        'academic_match_component', 'learning_match_component', 'composite_alignment_index',
-        'ability_interest_synergy', 'ability_interest_gap', 'min_core_match',
-        'max_core_match', 'harmonic_core_match', 'geometric_core_synergy', 'holistic_synergy',
-        'stream', 'career_domain', 'career_name'
-    ]
+    from backend.ml.feature_engineering import API_FEATURE_COLUMNS
+    return list(API_FEATURE_COLUMNS)
 
 
 def get_classes() -> Dict[str, Any]:
