@@ -16,7 +16,7 @@
                     Discover the Right Career & Stream for Your Future
                 </h1>
                 <p class="lead mb-4" style="color: var(--text-secondary); max-width: 600px; font-size: 1.1rem; line-height: 1.6;">
-                    Take a simple, grade-appropriate assessment to discover your natural strengths, explore 1,200+ verified careers, and receive personalized machine learning recommendations.
+                    Take a simple, grade-appropriate assessment to discover your natural strengths, explore 158 verified careers, and receive personalized machine learning recommendations.
                 </p>
                 <div class="d-flex flex-wrap gap-3 mb-4">
                     {% if current_user.is_authenticated %}
@@ -37,7 +37,7 @@
                             <i class="bi bi-rocket-takeoff-fill me-1"></i> Start Free Assessment
                         </a>
                         <a href="{{ url_for('career.explorer_page') }}" class="btn btn-outline-custom btn-lg-custom">
-                            <i class="bi bi-compass me-1"></i> Explore 1,200+ Careers
+                            <i class="bi bi-compass me-1"></i> Explore 158 Careers
                         </a>
                     {% endif %}
                 </div>
@@ -49,11 +49,11 @@
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <i class="bi bi-check-circle-fill text-success"></i>
-                        <span>1,206 Career Library</span>
+                        <span>158 Career Library</span>
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <i class="bi bi-check-circle-fill text-success"></i>
-                        <span>91.41% ML Accuracy</span>
+                        <span>91.35% ML Accuracy</span>
                     </div>
                 </div>
             </div>
@@ -132,7 +132,7 @@
                     </div>
                     <h5 class="fw-bold mb-2">ML Matching Engine</h5>
                     <p class="small text-secondary mb-0">
-                        Our trained XGBoost model evaluates your multi-dimensional score across 1,206 careers with 91.41% accuracy.
+                        Our trained XGBoost model evaluates your multi-dimensional score across 158 careers with 91.35% accuracy.
                     </p>
                 </div>
             </div>
