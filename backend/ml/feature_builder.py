@@ -6,6 +6,11 @@ Constructs standard feature dataframes for model inference.
 from typing import Any, Dict, List
 import numpy as np
 import pandas as pd
+from backend.ml.feature_engineering import (
+    clean_stream_value,
+    compute_core_match_metrics,
+    compute_engineered_scalar_features,
+)
 from backend.ml.model_loader import get_feature_columns
 
 PRIMARY_ABILITY_PAIRS = [
@@ -267,21 +272,26 @@ class FeatureBuilder:
         scores = student_profile.get('scores', {})
         age_val = int(student_profile.get('age', 16))
         class_val = int(student_profile.get('class_level', student_profile.get('class', 10)))
-        stream_val = str(student_profile.get('stream', 'Science')).strip()
+        cleaned_stream = clean_stream_value(student_profile.get('stream', 'Science'))
+        stream_val = cleaned_stream if isinstance(cleaned_stream, str) else 'General'
 
         ability_match = cls.calculate_ability_match(scores, career_reqs)
         interest_match = cls.calculate_interest_match(scores, career_reqs)
         academic_match = float(student_profile.get('academic_percentage', 78.0))
         learning_match = float(scores.get('learning_ability', 75.0))
 
-        comp_idx = (ability_match * 0.40) + (interest_match * 0.35) + (academic_match * 0.25)
-        synergy = float(np.sqrt(max(ability_match * interest_match, 0.0)))
-        gap = float(abs(ability_match - interest_match))
-        min_core = float(min(ability_match, interest_match, academic_match))
-        max_core = float(max(ability_match, interest_match, academic_match))
-        harmonic = float(3.0 / (1.0/max(ability_match, 1.0) + 1.0/max(interest_match, 1.0) + 1.0/max(academic_match, 1.0)))
-        geom = float((max(ability_match * interest_match * academic_match, 0.0)) ** (1.0/3.0))
-        holistic = float((comp_idx + synergy + harmonic + geom) / 4.0)
+        core_metrics = compute_core_match_metrics(
+            ability_match, interest_match, academic_match, learning_match
+        )
+        eng_metrics = compute_engineered_scalar_features(
+            ability_match,
+            interest_match,
+            academic_match,
+            learning_match,
+            core_metrics['composite_alignment_index'],
+            core_metrics['ability_interest_gap'],
+            core_metrics['holistic_synergy'],
+        )
 
         c_dom = str(career_reqs.get('career_domain', career_reqs.get('domain', 'Technology'))).strip()
         c_name = str(career_reqs.get('career_name', 'Career')).strip()
@@ -293,14 +303,8 @@ class FeatureBuilder:
             'interest_match_component': round(interest_match, 2),
             'academic_match_component': round(academic_match, 2),
             'learning_match_component': round(learning_match, 2),
-            'composite_alignment_index': round(comp_idx, 2),
-            'ability_interest_synergy': round(synergy, 2),
-            'ability_interest_gap': round(gap, 2),
-            'min_core_match': round(min_core, 2),
-            'max_core_match': round(max_core, 2),
-            'harmonic_core_match': round(harmonic, 2),
-            'geometric_core_synergy': round(geom, 2),
-            'holistic_synergy': round(holistic, 2),
+            **core_metrics,
+            **eng_metrics,
             'stream': stream_val,
             'career_domain': c_dom,
             'career_name': c_name
