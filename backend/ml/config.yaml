@@ -1,8 +1,8 @@
 model:
   name: "XGBoost"
-  version: "V18.0-XGBoost-SMOTE-91pct"
+  version: "V19.0-XGBoost-SMOTE-91pct"
   threshold: 0.5
-  confidence_margin: 0.27
+  confidence_margin: 0.25
 
 domain_requirements:
   "information technology":
