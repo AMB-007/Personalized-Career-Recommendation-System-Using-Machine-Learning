@@ -1,0 +1,15 @@
+feature,raw_min,raw_max,raw_iqr_outliers,raw_zscore_gt3,impossible_errors_removed,clean_min,clean_max,clean_iqr_tail_points
+age,-5.0,150.0,500,196,500,11.0,19.0,0
+class,-1.0,25.0,272,272,395,7.0,12.0,0
+ability_match_component,-87.11,999.0,544,154,219,44.6,97.92,332
+interest_match_component,-85.25,999.0,565,158,228,0.0,97.81,346
+academic_match_component,-98.9,999.0,501,151,216,12.0,99.9,303
+learning_match_component,-97.9,999.0,372,137,191,11.8,99.7,203
+composite_alignment_index,37.83,89.06,385,153,0,37.83,89.06,385
+ability_interest_synergy,0.0,80.67,322,122,0,0.0,80.67,322
+ability_interest_gap,0.0,83.76,834,407,0,0.0,83.76,834
+min_core_match,0.0,89.04,533,168,0,0.0,89.04,533
+max_core_match,57.04,95.6,310,121,0,57.04,95.6,310
+harmonic_core_match,0.0,89.78,383,103,0,0.0,89.78,383
+geometric_core_synergy,0.0,89.81,364,105,0,0.0,89.81,364
+holistic_synergy,0.0,90.63,644,264,0,0.0,90.63,644
