@@ -57,12 +57,12 @@ class TestMLPredictionService(unittest.TestCase):
 
     def test_reference_sample_sanity_test(self):
         """
-        Sanity test loading the example prediction generated during training
-        from Career_Recommendation/Personalized_Career_Recommendation_FINAL_V7_1/K_Model_Testing/example_prediction.csv
+        Sanity test loading cleaned student-career interaction rows from
+        Datasets/cleaned_career_dataset.csv and verifying prediction integrity.
         """
-        example_csv_path = Path('Career_Recommendation/Personalized_Career_Recommendation_FINAL_V7_1/K_Model_Testing/example_prediction.csv')
-        if example_csv_path.exists():
-            ex_df = pd.read_csv(example_csv_path)
+        cleaned_csv_path = Path('Datasets/cleaned_career_dataset.csv')
+        if cleaned_csv_path.exists():
+            ex_df = pd.read_csv(cleaned_csv_path).head(25)
             req_cols = get_feature_columns()
             input_df = ex_df[req_cols]
 
