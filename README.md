@@ -198,9 +198,7 @@ All data inspection, preprocessing, feature engineering, feature selection, trai
 │   ├── templates/                    # Responsive Jinja2 + Bootstrap 5 templates
 │   └── static/                       # CSS, JS, Chart.js integrations & brand assets
 ├── model_training/
-│   ├── model_training.ipynb          # Complete executed 12-step EDA & ML training notebook
-│   ├── model.joblib                  # Champion XGBoost model binary
-│   └── preprocessor.joblib           # Fitted ColumnTransformer pipeline
+│   └── model_training.ipynb          # Complete executed 12-step EDA & ML training notebook
 ├── Datasets/
 │   ├── Student Career Recommendation Dataset.csv
 │   ├── cleaned_career_dataset.csv    # Cleaned & feature-engineered pre-split dataset
