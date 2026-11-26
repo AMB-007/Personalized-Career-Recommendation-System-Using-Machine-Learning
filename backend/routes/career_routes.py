@@ -137,8 +137,8 @@ def api_health():
 
     version_info = get_model_version() if model_ready else {}
     config = get_model_config() if model_ready else {}
-    model_name = config.get('model', 'CatBoost')
-    model_ver = version_info.get('version', 'V8.0-Champion')
+    model_name = config.get('model', 'XGBoost')
+    model_ver = version_info.get('version', 'V19.0-XGBoost-SMOTE')
 
     return api_response({
         'status': 'healthy' if (model_ready and prep_ready and cat_ready and db_ready) else 'degraded',
@@ -158,25 +158,25 @@ def api_model_info():
         config = get_model_config()
         version_info = get_model_version()
         features = get_feature_columns()
-        model_name = config.get('model', 'CatBoost')
-        model_ver = version_info.get('version', 'V8.0-Champion')
+        model_name = config.get('model', 'XGBoost')
+        model_ver = version_info.get('version', 'V19.0-XGBoost-SMOTE')
 
         class_metrics = {
-            'accuracy': 0.8622,
-            'balanced_accuracy': 0.8249,
-            'precision': 0.8920,
-            'recall': 0.9166,
-            'f1_score': 0.9154,
-            'roc_auc': 0.8604,
-            'pr_auc': 0.9214
+            'accuracy': 0.9135,
+            'balanced_accuracy': 0.8987,
+            'precision': 0.9501,
+            'recall': 0.9306,
+            'f1_score': 0.9403,
+            'roc_auc': 0.9703,
+            'pr_auc': 0.9891
         }
         rec_metrics = {
-            'hit_at_1': 0.9603,
-            'hit_at_3': 0.9964,
-            'hit_at_5': 0.9989,
-            'hit_at_10': 0.9995,
-            'mrr': 0.9781,
-            'ndcg_at_5': 0.9211
+            'hit_at_1': 0.9943,
+            'hit_at_3': 0.9995,
+            'hit_at_5': 1.0000,
+            'hit_at_10': 1.0000,
+            'mrr': 0.9970,
+            'ndcg_at_5': 0.9905
         }
 
         try:
@@ -187,15 +187,10 @@ def api_model_info():
             if meta_path.exists():
                 with open(meta_path, "r", encoding="utf-8") as f:
                     meta_data = json.load(f)
-                    if "accuracy" in meta_data:
-                        acc_val = float(meta_data["accuracy"])
-                        class_metrics['accuracy'] = round(acc_val / 100.0 if acc_val > 1.0 else acc_val, 4)
-                    if "f1_score" in meta_data:
-                        f1_val = float(meta_data["f1_score"])
-                        class_metrics['f1_score'] = round(f1_val, 4)
-                    if "roc_auc" in meta_data:
-                        roc_val = float(meta_data["roc_auc"])
-                        class_metrics['roc_auc'] = round(roc_val / 100.0 if roc_val > 1.0 else roc_val, 4)
+                    for key in ["accuracy", "balanced_accuracy", "precision", "recall", "f1_score", "roc_auc", "pr_auc"]:
+                        if key in meta_data:
+                            val = float(meta_data[key])
+                            class_metrics[key] = round(val / 100.0 if val > 1.0 else val, 4)
             hist_path = models_dir / "training_history.json"
             if hist_path.exists():
                 with open(hist_path, "r", encoding="utf-8") as f:
@@ -203,12 +198,12 @@ def api_model_info():
                     if "ranking_metrics" in hist_data:
                         rm = hist_data["ranking_metrics"]
                         rec_metrics = {
-                            'hit_at_1': round(float(rm.get('Hit@1', 0.9603)), 4),
-                            'hit_at_3': round(float(rm.get('Hit@3', 0.9964)), 4),
-                            'hit_at_5': round(float(rm.get('Hit@5', 0.9989)), 4),
-                            'hit_at_10': round(float(rm.get('Hit@10', 0.9995)), 4),
-                            'mrr': round(float(rm.get('MRR', 0.9781)), 4),
-                            'ndcg_at_5': round(float(rm.get('NDCG@5', 0.9211)), 4)
+                            'hit_at_1': round(float(rm.get('Hit@1', rec_metrics['hit_at_1'])), 4),
+                            'hit_at_3': round(float(rm.get('Hit@3', rec_metrics['hit_at_3'])), 4),
+                            'hit_at_5': round(float(rm.get('Hit@5', rec_metrics['hit_at_5'])), 4),
+                            'hit_at_10': round(float(rm.get('Hit@10', rec_metrics['hit_at_10'])), 4),
+                            'mrr': round(float(rm.get('MRR', rec_metrics['mrr'])), 4),
+                            'ndcg_at_5': round(float(rm.get('NDCG@5', rec_metrics['ndcg_at_5'])), 4)
                         }
         except Exception:
             pass
@@ -220,8 +215,8 @@ def api_model_info():
             'model_version': model_ver,
             'feature_count': len(features),
             'features': features,
-            'threshold': float(config.get('threshold', 0.405)),
-            'created_at': version_info.get('created'),
+            'threshold': float(config.get('threshold', 0.5)),
+            'created_at': version_info.get('created') or version_info.get('trained_at'),
             'classification_metrics': class_metrics,
             'recommendation_metrics': rec_metrics
         })
@@ -273,8 +268,8 @@ def api_generate_recommendations():
             persisted_recs = RecommendationService.generate_recommendations_for_session(session, top_k=top_k)
             version_info = get_model_version()
             config = get_model_config()
-            model_name = config.get('model', 'CatBoost')
-            model_ver = version_info.get('version', 'V8.0-Champion')
+            model_name = config.get('model', 'XGBoost')
+            model_ver = version_info.get('version', 'V19.0-XGBoost-SMOTE')
             return api_response({
                 'model': model_name,
                 'model_version': model_ver,
@@ -366,8 +361,8 @@ def api_get_recommendations(assessment_id):
     recs = RecommendationService.get_recommendations_for_session(assessment_id)
     version_info = get_model_version()
     config = get_model_config()
-    model_name = config.get('model', 'CatBoost')
-    model_ver = version_info.get('version', 'V8.0-Champion')
+    model_name = config.get('model', 'XGBoost')
+    model_ver = version_info.get('version', 'V19.0-XGBoost-SMOTE')
     return api_response({
         'assessment_id': assessment_id,
         'model': model_name,
@@ -404,8 +399,8 @@ def api_get_student_recommendations(student_id):
     recs = RecommendationService.get_recommendations_for_session(latest_session.id)
     version_info = get_model_version()
     config = get_model_config()
-    model_name = config.get('model', 'CatBoost')
-    model_ver = version_info.get('version', 'V8.0-Champion')
+    model_name = config.get('model', 'XGBoost')
+    model_ver = version_info.get('version', 'V19.0-XGBoost-SMOTE')
     return api_response({
         'student_id': student.student_code,
         'assessment_id': latest_session.id,
